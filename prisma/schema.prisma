@@ -17,7 +17,6 @@ enum Role {
 enum TipeAsesmen {
   KUIS
   UJIAN
-  TUGAS
 }
 
 enum StatusAsesmen {
@@ -31,84 +30,87 @@ enum TipeSoal {
   ESSAY
 }
 
+enum StatusLaporan {
+  PENDING
+  DITERIMA
+  DITOLAK
+}
+
 // =========================
 // A. USER & AUTH
 // =========================
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String // hash. admin/kepsek/kurikulum=password asli, guru=NIK, siswa=NIS (default)
-  role       Role
-  nama       String
-  nik        String?  @unique // wajib klo role GURU
-  nis        String?  @unique // wajib klo role SISWA
-  fotoProfil String?
-  deskripsi  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  passwordSementara Boolean   @default(true)
+  role              Role
+  nama              String
+  nik               String?   @unique
+  nis               String?   @unique
+  jenisKelamin      String?
+  tanggalLahir      DateTime?
+  fotoProfil        String?
+  deskripsi         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  // relasi kelas
-  kelasSebagaiWalas Kelas[]          @relation("Walas")
-  kelasSiswa        KelasSiswa[]
-  kelasGuruMapel    KelasGuruMapel[]
-  guruJurusan       GuruJurusan[]
+  kelasReferensiId String?
+  kelasReferensi   KelasReferensi? @relation(fields: [kelasReferensiId], references: [id])
 
-  // relasi konten
+  kelasSiswa     KelasSiswa[]
+  kelasGuruMapel KelasGuruMapel[]
+
   materiDibuat     Materi[]
   asesmenDibuat    Asesmen[]
   pengumumanDibuat Pengumuman[]
   submission       Submission[]
+  tugasDibuat      Tugas[]
+  tugasSubmission  TugasSubmission[]
+  laporanReset     LaporanResetPassword[]
 }
 
 // =========================
-// B. JURUSAN & KELAS REFERENSI (master/seed)
+// B. JURUSAN & KELAS REFERENSI (master/seed) -- khusus status rombel siswa
 // =========================
 
 model Jurusan {
   id   String @id @default(cuid())
-  nama String @unique // DKV, TJKT, PPLG, PEMASARAN, MPLB, SMP, SMA
+  nama String @unique
 
   kelasReferensi KelasReferensi[]
-  guruJurusan    GuruJurusan[]
-  kelas          Kelas[]
 }
 
-// master label kelas, misal "12 PPLG 2" - dipake pas admin bikin Kelas biar konsisten penamaan
 model KelasReferensi {
-  id        String   @id @default(cuid())
-  label     String   @unique // "12 PPLG 2", "10 TJKT PLUS", "SMP", "SMA"
-  jenjang   String // SMP / SMA / SMK
-  tingkat   Int? // 10/11/12, null klo SMP/SMA generic
+  id        String  @id @default(cuid())
+  label     String  @unique
+  jenjang   String
+  tingkat   Int?
   jurusanId String?
   jurusan   Jurusan? @relation(fields: [jurusanId], references: [id])
 
-  kelas Kelas[]
+  siswa User[]
 }
 
 // =========================
-// C. KELAS (instance beneran)
+// C. KELAS (classroom custom buatan admin) -- gak ada walas
 // =========================
 
 model Kelas {
-  id               String         @id @default(cuid())
-  kelasReferensiId String // wajib, nentuin nama baku ("12 PPLG 2")
-  kelasReferensi   KelasReferensi @relation(fields: [kelasReferensiId], references: [id])
-  judul            String? // optional, override nama custom di atas label baku
-  jurusanId        String // buat grouping header PPLG/TKJ/DKV
-  jurusan          Jurusan        @relation(fields: [jurusanId], references: [id])
-  walasId          String?
-  walas            User?          @relation("Walas", fields: [walasId], references: [id])
-  deskripsi        String?
-  inviteToken      String         @unique @default(cuid()) // buat "salin link undangan"
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id          String   @id @default(cuid())
+  judul       String
+  deskripsi   String?
+  inviteToken String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   siswa        KelasSiswa[]
   guruMapel    KelasGuruMapel[]
   pengumuman   Pengumuman[]
   asesmenKelas AsesmenKelas[]
   materiKelas  MateriKelas[]
+  tugasKelas   TugasKelas[]
 }
 
 model KelasSiswa {
@@ -128,16 +130,7 @@ model Mapel {
 
   kelasGuruMapel KelasGuruMapel[]
   asesmen        Asesmen[]
-}
-
-model GuruJurusan {
-  id        String  @id @default(cuid())
-  guruId    String
-  jurusanId String
-  guru      User    @relation(fields: [guruId], references: [id])
-  jurusan   Jurusan @relation(fields: [jurusanId], references: [id])
-
-  @@unique([guruId, jurusanId])
+  tugas          Tugas[]
 }
 
 model KelasGuruMapel {
@@ -153,29 +146,26 @@ model KelasGuruMapel {
 }
 
 // =========================
-// D. PENGUMUMAN (+ komentar self-relation)
+// D. PENGUMUMAN -- gak ada komentar lagi, cuma GURU yang bisa posting
 // =========================
 
 model Pengumuman {
   id        String   @id @default(cuid())
   kelasId   String
   authorId  String
-  parentId  String? // null = pengumuman utama, isi = komentar
   isi       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  kelas    Kelas        @relation(fields: [kelasId], references: [id])
-  author   User         @relation(fields: [authorId], references: [id])
-  parent   Pengumuman?  @relation("Komentar", fields: [parentId], references: [id])
-  komentar Pengumuman[] @relation("Komentar")
+  kelas    Kelas      @relation(fields: [kelasId], references: [id])
+  author   User       @relation(fields: [authorId], references: [id])
   lampiran Lampiran[]
 }
 
 model Lampiran {
   id           String     @id @default(cuid())
   pengumumanId String
-  tipe         String // FILE / LINK / VIDEO
+  tipe         String
   url          String
   judul        String?
   thumbnail    String?
@@ -190,7 +180,7 @@ model Materi {
   id        String   @id @default(cuid())
   guruId    String
   judul     String
-  tipe      String // PDF / LINK
+  tipe      String
   url       String
   deskripsi String?
   createdAt DateTime @default(now())
@@ -210,7 +200,78 @@ model MateriKelas {
 }
 
 // =========================
-// F. ASESMEN + SOAL + SUBMISSION
+// F. TUGAS
+// Guru membuat tugas dan mengirimkannya ke satu atau beberapa kelas.
+// Siswa mengumpulkan jawaban melalui lampiran/link.
+// Tidak ada jawaban teks dari siswa.
+// =========================
+
+model Tugas {
+  id        String   @id @default(cuid())
+  guruId    String
+  judul     String
+  isi       String?
+  mapelId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guru        User              @relation(fields: [guruId], references: [id])
+  mapel       Mapel?            @relation(fields: [mapelId], references: [id])
+  lampiran    LampiranTugas[]
+  kelasTujuan TugasKelas[]
+  submission  TugasSubmission[]
+}
+
+model LampiranTugas {
+  id        String @id @default(cuid())
+  tugasId   String
+  tipe      String
+  url       String
+  judul     String?
+  thumbnail String?
+
+  tugas Tugas @relation(fields: [tugasId], references: [id])
+}
+
+model TugasKelas {
+  id      String @id @default(cuid())
+  tugasId String
+  kelasId String
+
+  tugas Tugas @relation(fields: [tugasId], references: [id])
+  kelas Kelas @relation(fields: [kelasId], references: [id])
+
+  @@unique([tugasId, kelasId])
+}
+
+model TugasSubmission {
+  id          String   @id @default(cuid())
+  tugasId     String
+  siswaId     String
+  status      String   @default("BELUM")
+  submittedAt DateTime?
+
+  tugas Tugas @relation(fields: [tugasId], references: [id])
+  siswa User  @relation(fields: [siswaId], references: [id])
+
+  lampiran LampiranTugasSubmission[]
+
+  @@unique([tugasId, siswaId])
+}
+
+model LampiranTugasSubmission {
+  id           String @id @default(cuid())
+  submissionId String
+  tipe         String
+  url          String
+  judul        String?
+  thumbnail    String?
+
+  submission TugasSubmission @relation(fields: [submissionId], references: [id])
+}
+
+// =========================
+// G. ASESMEN + SOAL + SUBMISSION (KUIS & UJIAN, dua-duanya punya durasi)
 // =========================
 
 model Asesmen {
@@ -219,10 +280,8 @@ model Asesmen {
   judul       String
   tipe        TipeAsesmen
   mapelId     String?
-  durasiMenit Int? // dipakai buat KUIS/UJIAN
+  durasiMenit Int?
   deskripsi   String?
-  fileUrl     String? // dipakai buat TUGAS - file dari guru
-  linkUrl     String? // dipakai buat TUGAS - link dari guru
   status      StatusAsesmen @default(PROSES)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -268,16 +327,17 @@ model OpsiJawaban {
   jawabanOpsi JawabanOpsi[]
 }
 
-// header submission per siswa per asesmen (kuis/ujian/tugas)
 model Submission {
   id          String    @id @default(cuid())
   asesmenId   String
   siswaId     String
-  fileUrl     String? // khusus tipe TUGAS - punya siswa
-  linkUrl     String? // khusus tipe TUGAS - punya siswa
-  status      String    @default("BELUM") // BELUM / SUDAH
+  status      String    @default("BELUM")
   submittedAt DateTime?
   nilaiAkhir  Float?
+  mulaiPada   DateTime  @default(now())
+
+  soalOrder      String?
+  tabSwitchCount Int     @default(0)
 
   asesmen Asesmen        @relation(fields: [asesmenId], references: [id])
   siswa   User           @relation(fields: [siswaId], references: [id])
@@ -286,13 +346,13 @@ model Submission {
   @@unique([asesmenId, siswaId])
 }
 
-// detail jawaban per soal (khusus KUIS/UJIAN)
 model JawabanSiswa {
   id           String  @id @default(cuid())
   submissionId String
   soalId       String
   jawabanEssay String?
   nilaiSoal    Float?
+  raguRagu     Boolean @default(false)
 
   submission  Submission    @relation(fields: [submissionId], references: [id])
   soal        Soal          @relation(fields: [soalId], references: [id])
@@ -305,4 +365,23 @@ model JawabanOpsi {
   opsiJawabanId  String
   jawabanSiswa   JawabanSiswa @relation(fields: [jawabanSiswaId], references: [id])
   opsiJawaban    OpsiJawaban  @relation(fields: [opsiJawabanId], references: [id])
+}
+
+// =========================
+// H. LUPA PASSWORD (OTP flow)
+// =========================
+
+model LaporanResetPassword {
+  id           String        @id @default(cuid())
+  userId       String
+  email        String
+  alasan       String
+  status       StatusLaporan @default(PENDING)
+  otpHash      String?
+  otpExpiredAt DateTime?
+  otpVerified  Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }

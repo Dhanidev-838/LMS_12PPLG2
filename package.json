@@ -11,11 +11,16 @@
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@vercel/blob": "^2.8.0",
+    "bcryptjs": "^3.0.3",
+    "exceljs": "^4.4.0",
+    "jose": "^6.2.8",
     "mariadb": "^3.5.3",
     "next": "16.2.11",
     "prisma": "^7.9.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "resend": "^6.20.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -26,6 +31,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }
