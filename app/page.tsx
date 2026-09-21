@@ -3,371 +3,61 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const BRAND = "#6B85F6";
-
-const JURUSAN = ["TJKT", "PPLG", "PEMASARAN", "DKV", "MPLB"];
-
+const JURUSAN = ["TJKT", "PPLG", "Pemasaran", "DKV", "MPLB"];
 const ROLES = [
-  {
-    nama: "Guru",
-    desk: "Bertugas mengelola proses pembelajaran dengan mengunggah materi, membuat tugas dan asesmen, serta memberikan penilaian kepada siswa.",
-    icon: (
-      <path d="M4 19V5a2 2 0 0 1 2-2h11l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M9 8h7 M9 12h7 M9 16h4" />
-    ),
-  },
-  {
-    nama: "Siswa",
-    desk: "Mengakses materi pembelajaran, mengerjakan tugas dan asesmen, serta melihat hasil belajar yang diberikan oleh guru.",
-    icon: <path d="M12 3 2 8l10 5 8-4v6M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />,
-  },
-  {
-    nama: "Kepsek",
-    desk: "Memantau aktivitas pembelajaran dan mengakses laporan akademik sebagai bahan evaluasi serta pengambilan keputusan.",
-    icon: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-  },
-  {
-    nama: "Kurikulum",
-    desk: "Mengawasi pelaksanaan kegiatan pembelajaran, memonitor aktivitas guru, serta mengunduh laporan nilai untuk evaluasi kurikulum.",
-    icon: <path d="M6 2h9l5 5v15H6V2Zm9 0v5h5M9 13h6M9 17h6" />,
-  },
-  {
-    nama: "Admin",
-    desk: "Mengelola data pengguna, kelas, jurusan, mata pelajaran, serta mengatur hak akses dan kebutuhan administrasi sistem.",
-    icon: <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0M17 8l2 2 3-3" />,
-  },
-];
+  ["Guru", "Mengatur materi, tugas, asesmen, dan penilaian untuk kelas yang diampu."],
+  ["Siswa", "Mengakses pembelajaran, mengumpulkan pekerjaan, dan melihat perkembangan belajar."],
+  ["Kepsek", "Memantau aktivitas pembelajaran dan laporan akademik untuk pengambilan keputusan."],
+  ["Kurikulum", "Mengawasi pelaksanaan pembelajaran serta mengevaluasi laporan nilai."],
+  ["Admin", "Mengelola data pengguna, kelas, jurusan, mata pelajaran, dan hak akses."],
+] as const;
+const FEATURES = [
+  ["Materi pembelajaran", "Bagikan PDF dan tautan materi agar dapat diakses kapan saja."],
+  ["Tugas & asesmen", "Buat tugas, kuis, atau ujian dan kumpulkan jawaban dalam satu tempat."],
+  ["Penilaian", "Kelola nilai berdasarkan mata pelajaran, kelas, dan hasil belajar siswa."],
+  ["Manajemen akademik", "Satukan data guru, siswa, kelas, jurusan, dan mata pelajaran."],
+] as const;
 
-const SYSTEM_FEATURES = [
-  {
-    judul: "Materi Pembelajaran",
-    desk: "Guru mengunggah materi berupa PDF maupun tautan sehingga siswa dapat mengaksesnya kapan saja.",
-    icon: <path d="M4 4h16v16H4z M8 8h8M8 12h8M8 16h5" />,
-  },
-  {
-    judul: "Tugas & Asesmen",
-    desk: "Guru membuat tugas, kuis, atau ujian online yang dapat dikerjakan dan dikumpulkan langsung oleh siswa.",
-    icon: <path d="M9 3h6l1 3H8l1-3ZM6 6h12v15H6zM9 11h6M9 15h6" />,
-  },
-  {
-    judul: "Penilaian",
-    desk: "Nilai dikelola secara digital berdasarkan mata pelajaran, kelas, jurusan, hingga hasil belajar setiap siswa.",
-    icon: <path d="M12 2l3 6 6.5.9-4.7 4.6L18 20l-6-3.4L6 20l1.2-6.5L2.5 8.9 9 8l3-6Z" />,
-  },
-  {
-    judul: "Manajemen Akademik",
-    desk: "Admin mengelola data siswa, guru, kelas, dan jurusan dalam satu sistem yang terintegrasi dan mudah dipantau.",
-    icon: <path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M14 3v5h5" />,
-  },
-];
-
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="white"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-7 w-7"
-    >
-      {children}
-    </svg>
-  );
+function ArrowIcon() {
+  return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-4 w-4"><path d="M4 10h11M11 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-[#111827]" style={{ fontFamily: "Inter, sans-serif" }}>
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 flex-shrink-0">
-  <Image
-    src="/Logo1.png"
-    alt="Logo Classify"
-    fill
-    sizes="32px"
-    className="rounded-full object-contain"
-  />
-</div>
-            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Classify
-            </span>
-          </div>
-
-          <nav className="hidden items-center gap-6 text-sm font-medium text-[#374151] md:flex">
-  <a href="#tentang" className="hover:opacity-70 transition-opacity">About Us</a>
-  <a href="#role" className="hover:opacity-70 transition-opacity">Role</a>
-  <a href="#system" className="hover:opacity-70 transition-opacity">System</a>
-  <a href="#jurusan" className="hover:opacity-70 transition-opacity">Jurusan</a>
-  <a href="#contact" className="hover:opacity-70 transition-opacity">Contact Us</a>
-</nav>
-
-          <Link
-            href="/login"
-            className="rounded-full px-6 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
-            style={{ background: BRAND }}
-          >
-            Login
-          </Link>
+    <div className="min-h-screen bg-[#fcfcfd] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+      <header className="sticky top-0 z-50 border-b border-[#e8ebf2] bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <a href="#beranda" className="flex shrink-0 items-center gap-2.5" aria-label="Classify beranda"><Image src="/Logo1.png" alt="" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-0.04em]">Classify</span></a>
+          <nav className="hidden items-center gap-6 text-sm font-medium text-[#697386] lg:flex" aria-label="Navigasi utama"><a href="#tentang" className="hover:text-[#6B85F6]">Tentang</a><a href="#system" className="hover:text-[#6B85F6]">Sistem</a><a href="#role" className="hover:text-[#6B85F6]">Peran</a><a href="#jurusan" className="hover:text-[#6B85F6]">Jurusan</a><a href="#contact" className="hover:text-[#6B85F6]">Kontak</a></nav>
+          <Link href="/login" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#6B85F6] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5974ed]">Masuk <ArrowIcon /></Link>
         </div>
       </header>
 
-      {/* HERO - ganti background di style bawah dengan foto gedung sekolah lu sendiri (taro di /public) */}
-      <section
-        className="relative flex min-h-[700px] items-center justify-center bg-cover bg-center text-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(17,24,39,0.35), rgba(17,24,39,0.55)), url('/hero-sekolah.jpg')",
-          backgroundColor: "#1F2937",
-        }}
-      >
-        <div className="px-6">
-          <h1 className="text-3xl font-bold text-white md:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Ayo Belajar Lebih Cerdas Bersama Classify
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm text-white/90 md:text-base">
-            &quot;Platform pembelajaran digital yang membantu guru dan siswa belajar,
-            mengajar, dan berkembang dalam satu tempat.&quot;
-          </p>
-          <Link
-            href="/login"
-            className="mt-8 inline-block rounded-xl px-8 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-105"
-            style={{ background: BRAND }}
-          >
-            Login
-          </Link>
-        </div>
-      </section>
-
-      {/* TENTANG CLASSIFY */}
-      <section id="tentang" className="py-16">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-2">
-          <div>
-            <h2
-              className="inline-block border-b-2 pb-1 text-2xl font-bold"
-              style={{ borderColor: BRAND, fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              Tentang Classify
-            </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[#4B5563]">
-              Classify adalah platform Learning Management System (LMS) berbasis web
-              yang dirancang untuk mendukung proses belajar mengajar secara digital,
-              terstruktur, dan efisien. Classify menjadi media yang menghubungkan guru,
-              siswa, serta pihak manajemen sekolah dalam satu sistem yang terintegrasi.
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-[#4B5563]">
-              Classify mempermudah guru dalam membagikan materi pembelajaran, memberikan
-              tugas, menyelenggarakan asesmen atau ujian online, serta mengelola nilai
-              siswa. Di sisi lain, siswa dapat mengakses materi kapan saja, mengerjakan
-              asesmen, mengumpulkan tugas, dan memantau perkembangan pembelajaran melalui
-              satu platform yang mudah digunakan.
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-[#4B5563]">
-              Selain mendukung kegiatan belajar mengajar, Classify juga menyediakan sistem
-              manajemen akademik yang memungkinkan administrator mengelola data guru,
-              siswa, kelas, jurusan, dan mata pelajaran. Pihak kurikulum serta kepala
-              sekolah dapat memantau aktivitas pembelajaran dan memperoleh laporan
-              akademik sebagai bahan evaluasi serta pengambilan keputusan.
-            </p>
-            <div className="mt-6 rounded-xl border border-black/5 bg-[#F9FAFB] p-4 text-center">
-              <p className="text-sm font-bold">Fokus</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">
-                Menyediakan platform pembelajaran digital yang memudahkan pengelolaan
-                materi, tugas, asesmen, dan penilaian dalam satu sistem yang terintegrasi.
-              </p>
-            </div>
+      <main>
+        <section id="beranda" className="overflow-hidden border-b border-[#e8ebf2] bg-white">
+          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-[.94fr_1.06fr] lg:items-center lg:gap-16 lg:px-8 lg:py-24">
+            <div className="max-w-xl"><p className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em] text-[#6B85F6]"><span className="h-2 w-2 rounded-full bg-[#6B85F6]" /> Learning management system</p><h1 className="text-4xl font-bold tracking-[-.055em] sm:text-5xl lg:text-[56px] lg:leading-[1.04]">Pembelajaran sekolah, lebih terarah dalam satu sistem.</h1><p className="mt-6 max-w-lg text-[15px] leading-7 text-[#657084] sm:text-base">Classify menyatukan materi, tugas, asesmen, penilaian, dan pemantauan akademik agar setiap peran dapat bekerja dengan lebih jelas.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/login" className="inline-flex items-center gap-2 rounded-lg bg-[#6B85F6] px-5 py-3 text-sm font-semibold text-white hover:bg-[#5974ed]">Mulai dengan Classify <ArrowIcon /></Link><a href="#tentang" className="rounded-lg border border-[#dce1eb] px-5 py-3 text-sm font-semibold text-[#3f4a5e] hover:bg-[#f8f9ff]">Pelajari sistemnya</a></div><div className="mt-10 grid max-w-md grid-cols-3 divide-x divide-[#e5e8ef] border-y border-[#e5e8ef] py-4">{[["5", "Peran terhubung"], ["4", "Fitur inti"], ["1", "Sistem terpadu"]].map(([value, label]) => <div key={label} className="px-3 first:pl-0"><p className="text-xl font-bold tracking-[-.04em]">{value}</p><p className="mt-1 text-[11px] leading-4 text-[#7b8495]">{label}</p></div>)}</div></div>
+            <DashboardPreview />
           </div>
+        </section>
 
-          <div className="flex justify-center">
-            <div className="relative h-64 w-64 overflow-hidden rounded-2xl border border-black/5 bg-[#F9FAFB] shadow-sm md:h-80 md:w-80">
-  <Image
-  src="/Logo1.png"
-  alt="Logo Classify"
-  fill
-  sizes="(max-width: 768px) 256px, 320px"
-  className="object-contain p-8"
-/>
-</div>
-          </div>
-        </div>
-      </section>
+        <section id="tentang" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="grid gap-8 lg:grid-cols-[.86fr_1.14fr] lg:gap-16"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#6B85F6]">Tentang Classify</p><h2 className="mt-3 text-3xl font-bold tracking-[-.045em] sm:text-4xl">Satu tempat untuk proses belajar yang saling terhubung.</h2></div><div className="grid gap-4 sm:grid-cols-2"><p className="text-[15px] leading-7 text-[#647084]">Classify adalah LMS berbasis web yang membantu sekolah mengelola kegiatan belajar mengajar secara digital, terstruktur, dan efisien.</p><div className="border-l-2 border-[#6B85F6] pl-4 text-sm leading-6 text-[#465166]">Dirancang untuk menghubungkan guru, siswa, manajemen sekolah, serta data akademik dalam satu sistem.</div></div></div><div className="mt-10 grid gap-4 md:grid-cols-3">{[["Materi yang mudah diakses", "Guru membagikan bahan belajar kapan pun diperlukan."], ["Evaluasi yang rapi", "Tugas, asesmen, jawaban, dan nilai tidak lagi tersebar."], ["Keputusan berbasis data", "Laporan memberi gambaran perkembangan belajar yang jelas."]].map(([title, description], i) => <article key={title} className={`border border-[#e3e7ef] p-5 ${i === 0 ? "bg-[#f5f6ff]" : "bg-white"}`}><span className="text-xs font-bold text-[#6B85F6]">0{i + 1}</span><h3 className="mt-8 font-bold tracking-[-.025em]">{title}</h3><p className="mt-2 text-sm leading-6 text-[#6f798a]">{description}</p></article>)}</div></section>
 
-      {/* JURUSAN */}
-      <section id="jurusan" className="py-16" style={{ background: BRAND }}>
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Berbagai Jurusan yang ada di web kami
-          </h2>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-            {JURUSAN.map((j) => (
-              <div
-                key={j}
-                className="flex h-28 items-center justify-center rounded-2xl bg-white text-center text-sm font-bold shadow-md transition-transform hover:-translate-y-1"
-              >
-                {j}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <section id="system" className="border-y border-[#e6e9f0] bg-[#f7f8fb]"><div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#6B85F6]">Sistem terintegrasi</p><h2 className="mt-3 text-3xl font-bold tracking-[-.045em] sm:text-4xl">Dari kelas hingga laporan akademik.</h2></div><p className="max-w-md text-sm leading-6 text-[#6d7788]">Setiap modul dibuat untuk menjaga proses pembelajaran tetap berjalan, terbaca, dan mudah ditindaklanjuti.</p></div><div className="mt-10 grid gap-3 md:grid-cols-2"><article className="min-h-56 border border-[#dfe4ef] bg-[#6B85F6] p-6 text-white md:row-span-2"><span className="text-xs font-bold tracking-[.16em] text-white/70">ALUR UTAMA</span><h3 className="mt-16 max-w-sm text-2xl font-bold tracking-[-.04em]">Kelola pembelajaran tanpa berpindah-pindah tempat.</h3><p className="mt-4 max-w-sm text-sm leading-6 text-white/80">Materi, aktivitas siswa, dan hasil belajar tersedia dalam konteks yang sama.</p></article>{FEATURES.map(([title, description], index) => <article key={title} className="border border-[#dfe4ef] bg-white p-6"><span className="text-xs font-bold text-[#6B85F6]">0{index + 1}</span><h3 className="mt-6 font-bold tracking-[-.025em]">{title}</h3><p className="mt-2 text-sm leading-6 text-[#6f798a]">{description}</p></article>)}</div></div></section>
 
-      {/* ROLE */}
-      <section id="role" className="py-16">
-        <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Berbagai Role yang ada di web kami
-          </h2>
-          <div className="mt-8 flex flex-col gap-4">
-            {ROLES.map((r) => (
-              <div
-                key={r.nama}
-                className="flex overflow-hidden rounded-2xl border border-black/5 shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div
-                  className="flex w-24 flex-shrink-0 items-center justify-center"
-                  style={{ background: BRAND }}
-                >
-                  <Icon>{r.icon}</Icon>
-                </div>
-                <div className="p-5">
-                  <p className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{r.nama}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-[#6B7280]">{r.desk}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <section id="role" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.16em] text-[#6B85F6]">Dibuat untuk setiap peran</p><h2 className="mt-3 text-3xl font-bold tracking-[-.045em] sm:text-4xl">Akses yang sesuai, informasi yang relevan.</h2></div><div className="mt-10 grid border-l border-t border-[#e1e5ed] sm:grid-cols-2 lg:grid-cols-5">{ROLES.map(([name, description], index) => <article key={name} className="min-h-56 border-b border-r border-[#e1e5ed] bg-white p-5 hover:bg-[#f6f7ff]"><div className="flex items-center justify-between"><span className="text-xs font-bold text-[#6B85F6]">0{index + 1}</span><span className="h-2 w-2 rounded-full bg-[#d7defd]" /></div><h3 className="mt-16 text-lg font-bold tracking-[-.03em]">{name}</h3><p className="mt-2 text-sm leading-6 text-[#707a8b]">{description}</p></article>)}</div></section>
 
-      {/* SYSTEM */}
-      <section id="system" className="py-16" style={{ background: BRAND }}>
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            System
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm text-white/90">
-            Classify menghubungkan guru, siswa, administrator, kurikulum, dan kepala
-            sekolah dalam satu sistem terintegrasi sehingga seluruh aktivitas
-            pembelajaran dapat berjalan lebih efektif, transparan, dan mudah dipantau,
-            serta kami menjamin keamanan data para pengguna.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SYSTEM_FEATURES.map((f) => (
-              <div key={f.judul} className="rounded-2xl bg-white p-5 shadow-md">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-lg"
-                  style={{ background: BRAND }}
-                >
-                  <Icon>{f.icon}</Icon>
-                </div>
-                <p className="mt-3 font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{f.judul}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">{f.desk}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <section id="jurusan" className="border-y border-[#e6e9f0] bg-white"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-20"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#6B85F6]">Lingkup pembelajaran</p><h2 className="mt-3 text-3xl font-bold tracking-[-.045em]">Ruang untuk setiap jurusan berkembang.</h2><p className="mt-4 text-sm leading-6 text-[#6d7788]">Classify mendukung struktur belajar lintas jurusan dalam satu lingkungan sekolah.</p></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{JURUSAN.map((major, index) => <div key={major} className={`flex min-h-28 items-end border p-4 text-sm font-bold tracking-[-.025em] ${index === 0 ? "border-[#6B85F6] bg-[#6B85F6] text-white" : "border-[#e1e5ed] bg-[#fafbfc]"}`}>{major}</div>)}</div></div></section>
 
-      {/* CONTACT US */}
-      <section id="contact" className="py-16">
-  <div className="mx-auto max-w-6xl px-6">
-    <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      Contact us
-          </h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="flex h-full flex-col justify-between space-y-4">
-              <div className="flex items-center justify-between rounded-2xl p-5 text-white" style={{ background: BRAND }}>
-                <div>
-                  <p className="text-xs opacity-80">No Telp :</p>
-                  <p className="text-sm font-semibold">+62-838-7127-4193</p>
-                  <p className="mt-1 text-xs opacity-80">Everyday, 10:00 WIB - 20:00 WIB</p>
-                </div>
-                <svg viewBox="0 0 24 24" fill="white" className="h-9 w-9">
-                  <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm5 14.4c-.2.6-1.2 1.1-1.7 1.2-.5.1-1 .1-1.6-.1a10.6 10.6 0 0 1-3.4-2.1 10.9 10.9 0 0 1-2.2-3.3c-.2-.5-.3-1.1-.1-1.6.1-.5.6-1.5 1.2-1.7.2-.1.5 0 .6.2l1 1.6c.1.2.1.4 0 .6l-.5.7c-.1.2-.1.4 0 .6.4.7 1 1.4 1.7 1.9.2.1.4.1.6 0l.7-.5c.2-.1.4-.1.6 0l1.6 1c.2.1.3.4.2.6Z" />
-                </svg>
-              </div>
+        <section id="contact" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="grid overflow-hidden border border-[#dfe4ef] lg:grid-cols-[.85fr_1.15fr]"><div className="bg-[#6B85F6] p-7 text-white sm:p-10"><p className="text-xs font-bold uppercase tracking-[.16em] text-white/70">Kontak</p><h2 className="mt-3 text-3xl font-bold tracking-[-.045em]">Mari terhubung.</h2><p className="mt-5 max-w-sm text-sm leading-6 text-white/80">Punya pertanyaan tentang Classify atau ingin mendiskusikan penerapannya di sekolah?</p><div className="mt-12 space-y-5 border-t border-white/20 pt-6 text-sm"><div><p className="text-xs text-white/65">Telepon</p><p className="mt-1 font-semibold">+62-838-7127-4193</p></div><div><p className="text-xs text-white/65">Email</p><p className="mt-1 break-words font-semibold">dhanitriadisaputra@gmail.com</p></div></div></div><div className="relative min-h-[300px] bg-[#edf0f5]"><Image src="/foto-kontak.png" alt="Kontak Classify" fill sizes="(max-width: 1024px) 100vw, 60vw" className="object-cover" /></div></div></section>
+      </main>
 
-              <div className="flex items-center justify-between rounded-2xl p-5 text-white" style={{ background: BRAND }}>
-                <div>
-                  <p className="text-xs opacity-80">Email :</p>
-                  <p className="text-sm font-semibold">dhanitriadisaputra@gmail.com</p>
-                  <p className="mt-1 text-xs opacity-80">Everyday, 10:00 WIB - 20:00 WIB</p>
-                </div>
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" className="h-9 w-9">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
-                </svg>
-              </div>
-
-              <div className="flex flex-1 flex-col rounded-2xl p-8 text-white" style={{ background: BRAND }}>
-  <p className="text-sm font-semibold opacity-80">Description</p>
-  <p className="mt-4 text-xl italic leading-loose md:text-2xl">
-    &quot;Ilmu bukan sekadar tentang apa yang dipelajari, tetapi bagaimana
-    pengetahuan dibagikan, dipahami, dan memberi manfaat bagi sesama.
-    Classify hadir untuk menjadi jembatan yang menghubungkan proses belajar
-    dengan masa depan yang lebih baik.&quot;
-  </p>
-  <div className="mt-auto pt-6">
-    <div className="h-1.5 w-full rounded-full bg-white/30">
-      <div className="h-1.5 w-4/5 rounded-full bg-white" />
-    </div>
-  </div>
-</div>
-            </div>
-
-            {/* ganti foto di /public/foto-kontak.jpg dengan foto lu sendiri */}
-            <div className="relative aspect-[3/4] w-full self-start overflow-hidden rounded-2xl border border-black/5 bg-[#F3F4F6]">
-  <Image
-    src="/foto-kontak.png"
-    alt="Foto Kontak Classify"
-    fill
-    sizes="(max-width: 768px) 100vw, 50vw"
-    className="object-cover"
-  />
-</div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="py-12 text-white" style={{ background: BRAND }}>
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-3">
-          <div>
-            <p className="text-lg font-bold">Classify</p>
-            <p className="mt-2 text-sm">Belajar Lebih Mudah, Mengajar Lebih Terarah.</p>
-            <p className="mt-3 max-w-xs text-xs leading-relaxed text-white/80">
-              Platform Learning Management System yang mendukung proses belajar mengajar
-              secara modern, efektif, dan terintegrasi.
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Quick Links</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li><a href="#tentang" className="hover:underline">About Us</a></li>
-              <li><a href="#jurusan" className="hover:underline">Jurusan</a></li>
-              <li><a href="#role" className="hover:underline">Role</a></li>
-              <li><a href="#tentang" className="hover:underline">Contact Us</a></li>
-              <li><Link href="/login" className="hover:underline">Login</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Social Media</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li>Instagram : @chronion999</li>
-              <li>Github : Dhanidev-838</li>
-              <li>LinkedIn : Dhani Triadi Saputra</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-10 border-t border-white/20 pt-6 text-center text-xs text-white/80">
-          © 2026 Classify. All Rights Reserved.
-        </p>
-      </footer>
+      <footer className="border-t border-[#e5e8ef] bg-white"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.3fr_.7fr_.9fr] lg:px-8"><div><div className="flex items-center gap-2"><Image src="/Logo1.png" alt="" width={28} height={28} className="rounded-[8px]" /><span className="font-bold tracking-[-.03em]">Classify</span></div><p className="mt-4 max-w-xs text-sm leading-6 text-[#6e7889]">Platform pembelajaran digital untuk sekolah yang lebih rapi, terarah, dan terintegrasi.</p></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#8b94a4]">Navigasi</p><div className="mt-4 grid gap-2 text-sm text-[#586376]"><a href="#tentang">Tentang</a><a href="#system">Sistem</a><a href="#role">Peran</a><Link href="/login">Masuk</Link></div></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#8b94a4]">Temukan kami</p><div className="mt-4 space-y-2 text-sm text-[#586376]"><p>Instagram · @chronion999</p><p>GitHub · Dhanidev-838</p><p>LinkedIn · Dhani Triadi Saputra</p></div></div></div><div className="border-t border-[#e9ecf2] py-5 text-center text-xs text-[#8b94a4]">© 2026 Classify. All rights reserved.</div></footer>
     </div>
   );
+}
+
+function DashboardPreview() {
+  const progress = [["Tugas Matematika", 78], ["Materi Pemrograman", 64], ["Asesmen Bahasa", 45]];
+  return <div className="relative mx-auto w-full max-w-[610px] lg:mx-0"><div className="absolute -right-8 top-9 hidden h-44 w-44 rounded-full bg-[#eef1ff] lg:block" /><div className="relative overflow-hidden rounded-xl border border-[#dfe4ef] bg-white p-3 shadow-[0_20px_60px_-36px_rgba(43,59,110,.45)] sm:p-4"><div className="flex items-center justify-between border-b border-[#edf0f5] pb-3"><div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#6B85F6]" /><span className="text-xs font-semibold text-[#465166]">Ringkasan pembelajaran</span></div><span className="rounded-md bg-[#f2f4ff] px-2 py-1 text-[10px] font-bold text-[#6078e9]">September 2026</span></div><div className="grid gap-3 pt-3 sm:grid-cols-[1.2fr_.8fr]"><div className="rounded-lg border border-[#e7eaf1] p-4"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold text-[#637086]">Aktivitas kelas</p><p className="mt-2 text-2xl font-bold tracking-[-.05em]">24 <span className="text-xs font-medium text-[#7d8797]">aktif</span></p></div><span className="rounded-md bg-[#e9edff] p-2 text-xs font-bold text-[#6B85F6]">✓</span></div><div className="mt-5 space-y-3">{progress.map(([item, value]) => <div key={item}><div className="flex justify-between text-[10px] text-[#7a8494]"><span>{item}</span><span>{value}%</span></div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#edf0f5]"><div className="h-full rounded-full bg-[#6B85F6]" style={{ width: `${value}%` }} /></div></div>)}</div></div><div className="rounded-lg bg-[#6B85F6] p-4 text-white"><p className="text-xs font-semibold text-white/75">Perlu perhatian</p><p className="mt-4 text-3xl font-bold tracking-[-.06em]">06</p><p className="mt-1 text-[11px] leading-4 text-white/80">Tugas menunggu penilaian hari ini.</p><div className="mt-7 border-t border-white/20 pt-3 text-[10px] font-semibold">Lihat detail →</div></div></div><div className="mt-3 grid grid-cols-2 gap-3"><div className="rounded-lg border border-[#e7eaf1] px-4 py-3"><p className="text-[10px] font-semibold uppercase tracking-[.08em] text-[#8992a2]">Materi dibagikan</p><p className="mt-1 text-lg font-bold">128</p></div><div className="rounded-lg border border-[#e7eaf1] px-4 py-3"><p className="text-[10px] font-semibold uppercase tracking-[.08em] text-[#8992a2]">Partisipasi siswa</p><p className="mt-1 text-lg font-bold">92%</p></div></div></div></div>;
 }
