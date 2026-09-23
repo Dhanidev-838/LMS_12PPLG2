@@ -168,6 +168,47 @@ export async function GET() {
     const tugasSudah = tugasList.filter((item) => item.statusSubmission === "SUDAH").length;
     const tugasBelum = totalTugas - tugasSudah;
 
+    const tujuhHariLalu = new Date();
+    tujuhHariLalu.setDate(tujuhHariLalu.getDate() - 7);
+
+    const pengumumanList = kelasIds.length
+      ? await db.pengumuman.findMany({
+          where: {
+            kelasId: { in: kelasIds },
+            createdAt: { gte: tujuhHariLalu },
+          },
+          select: {
+            id: true,
+            isi: true,
+            createdAt: true,
+            kelas: { select: { judul: true } },
+            author: { select: { nama: true } },
+            _count: { select: { lampiran: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        })
+      : [];
+
+    const hariIni = new Date();
+    const pengumumanTerbaru = pengumumanList.map((item) => {
+      const tanggalDibuat = new Date(item.createdAt);
+      const isToday =
+        tanggalDibuat.getFullYear() === hariIni.getFullYear() &&
+        tanggalDibuat.getMonth() === hariIni.getMonth() &&
+        tanggalDibuat.getDate() === hariIni.getDate();
+
+      return {
+        id: item.id,
+        isi: item.isi,
+        createdAt: item.createdAt,
+        kelasJudul: item.kelas.judul,
+        authorNama: item.author.nama,
+        isToday,
+        lampiranCount: item._count.lampiran,
+      };
+    });
+
     const nilaiAkhirList = await db.submission.findMany({
       where: { siswaId, nilaiAkhir: { not: null } },
       include: {
@@ -191,6 +232,33 @@ export async function GET() {
 
     const nilaiRataRata = rataRataNilai._avg.nilaiAkhir ?? null;
 
+    const siswaKelas = kelasIds.length
+      ? await db.kelasSiswa.findMany({
+          where: { kelasId: { in: kelasIds } },
+          select: { siswaId: true },
+          distinct: ["siswaId"],
+        })
+      : [];
+    const rataRataNilaiKelasAggregate = siswaKelas.length
+      ? await db.submission.aggregate({
+          where: {
+            siswaId: { in: siswaKelas.map((item) => item.siswaId) },
+            nilaiAkhir: { not: null },
+            asesmen: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } },
+          },
+          _avg: { nilaiAkhir: true },
+        })
+      : { _avg: { nilaiAkhir: null } };
+    const nilaiRataRataKelas = rataRataNilaiKelasAggregate._avg.nilaiAkhir ?? null;
+    const statusNilaiKelas =
+      nilaiRataRata !== null && nilaiRataRataKelas !== null
+        ? nilaiRataRata < nilaiRataRataKelas
+          ? "Di bawah rata-rata kelas"
+          : nilaiRataRata > nilaiRataRataKelas
+            ? "Di atas rata-rata kelas"
+            : "Sejajar rata-rata kelas"
+        : null;
+
     return NextResponse.json({
       data: {
         siswa: {
@@ -209,7 +277,10 @@ export async function GET() {
           tugasSudah,
           tugasBelum,
           rataRataNilai: nilaiRataRata !== null ? Number(nilaiRataRata.toFixed(1)) : null,
+          rataRataNilaiKelas: nilaiRataRataKelas !== null ? Number(nilaiRataRataKelas.toFixed(1)) : null,
+          statusNilaiKelas,
         },
+        pengumumanTerbaru,
         asesmenTerbaru: asesmenList.slice(0, 5),
         tugasTerbaru: tugasList.slice(0, 5),
         tugasBelumDikumpulkan: tugasList.filter((item) => item.statusSubmission !== "SUDAH").slice(0, 5),

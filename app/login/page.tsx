@@ -186,55 +186,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "Inter, sans-serif" }}>
-      {/* NAVBAR */}
-      <header className="border-b border-black/5 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-8 w-8 flex-shrink-0">
-              <Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-full object-contain" />
-            </div>
-            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Classify
-            </span>
-          </Link>
-
-          <Link
-            href="/"
-            className="rounded-full px-6 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
-            style={{ background: BRAND }}
-          >
-            Back
-          </Link>
+    <div className="flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+      <header className="border-b border-[#e8ebf2] bg-white">
+        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2.5"><Image src="/Logo1.png" alt="Logo Classify" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-.04em]">Classify</span></Link>
+          <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-[#dce1eb] px-3.5 py-2 text-sm font-semibold text-[#4b576b] transition-colors hover:bg-[#f7f8fb]"><span aria-hidden="true">←</span> Kembali</Link>
         </div>
       </header>
 
-      {/* HERO + CARD */}
-      <section
-        className="relative flex min-h-[640px] items-center justify-center bg-cover bg-center px-6 py-16"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(17,24,39,0.45), rgba(17,24,39,0.65)), url('/hero-sekolah.jpg')",
-          backgroundColor: "#1F2937",
-        }}
-      >
-        <h1
-          className="absolute top-16 text-center text-2xl font-bold text-white md:text-3xl opacity-0 animate-[fadeUp_0.6s_ease-out_forwards]"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", animationDelay: "0.1s" }}
-        >
-          Selamat Datang di Classify
-        </h1>
+      <section className="mx-auto grid w-full max-w-7xl flex-1 items-stretch px-4 py-6 sm:px-6 lg:grid-cols-[.92fr_1.08fr] lg:px-8 lg:py-10">
+        <aside className="hidden min-h-[620px] flex-col justify-between overflow-hidden border border-[#dfe4ef] bg-[#6B85F6] p-10 text-white lg:flex">
+          <div><p className="text-xs font-bold uppercase tracking-[.16em] text-white/70">Classify access</p><h1 className="mt-5 max-w-md text-4xl font-bold tracking-[-.055em]">Masuk dan lanjutkan pembelajaran.</h1><p className="mt-5 max-w-md text-sm leading-7 text-white/80">Satu akses untuk mengelola aktivitas belajar, materi, tugas, asesmen, hingga perkembangan akademik.</p></div>
+          <div className="border-t border-white/20 pt-6"><p className="text-sm font-semibold">Lebih terarah, dalam satu sistem.</p><div className="mt-4 grid grid-cols-3 gap-3 text-xs text-white/75"><span>Materi</span><span>Tugas</span><span>Penilaian</span></div></div>
+        </aside>
 
-        <div className="mt-20 w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl opacity-0 animate-[fadeUp_0.6s_ease-out_forwards]">
-          {/* header logo + tagline, tampil di semua view */}
-          <div className="flex flex-col items-center text-center">
-            <div className="relative h-8 w-8 flex-shrink-0">
-              <Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-full object-contain" />
-            </div>
-            <p className="mt-2 text-base font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Classify
-            </p>
-            <p className="mt-1 text-sm font-semibold text-[#111827]">Ayo Belajar Lebih Cerdas Bersama Classify</p>
+        <div className="flex min-h-[620px] items-center justify-center border border-t-0 border-[#dfe4ef] bg-white px-4 py-10 sm:px-8 lg:border-l-0 lg:border-t">
+          <div className="w-full max-w-md">
+          <div className="flex items-center gap-3 border-b border-[#edf0f5] pb-6">
+            <Image src="/Logo1.png" alt="Logo Classify" width={38} height={38} className="rounded-[11px] object-contain" />
+            <div><p className="font-bold tracking-[-.03em]">Classify</p><p className="mt-0.5 text-xs text-[#7a8495]">Learning Management System</p></div>
           </div>
 
           {/* ============ VIEW: LOGIN ============ */}
@@ -513,45 +483,11 @@ export default function LoginPage() {
               </button>
             </div>
           )}
+          </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="py-12 text-white" style={{ background: BRAND }}>
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-3">
-          <div>
-            <p className="text-lg font-bold">Classify</p>
-            <p className="mt-2 text-sm">Belajar Lebih Mudah, Mengajar Lebih Terarah.</p>
-            <p className="mt-3 max-w-xs text-xs leading-relaxed text-white/80">
-              Platform Learning Management System yang mendukung proses belajar mengajar
-              secara modern, efektif, dan terintegrasi.
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Quick Links</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li><Link href="/#tentang" className="hover:underline">About Us</Link></li>
-              <li><Link href="/#jurusan" className="hover:underline">Jurusan</Link></li>
-              <li><Link href="/#role" className="hover:underline">Role</Link></li>
-              <li><Link href="/#tentang" className="hover:underline">Contact Us</Link></li>
-              <li><Link href="/login" className="hover:underline">Login</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Social Media</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li>Instagram : @chronion999</li>
-              <li>Github : Dhanidev-838</li>
-              <li>LinkedIn : Dhani Triadi Saputra</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-10 border-t border-white/20 pt-6 text-center text-xs text-white/80">
-          © 2026 Classify. All Rights Reserved.
-        </p>
-      </footer>
+      <footer className="border-t border-[#e5e8ef] bg-white px-4 py-5 text-center text-xs text-[#8791a1] sm:px-6">© 2026 Classify. Belajar lebih mudah, mengajar lebih terarah.</footer>
     </div>
   );
 }

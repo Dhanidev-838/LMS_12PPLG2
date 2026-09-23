@@ -65,6 +65,8 @@ const TABS: { key: Tab; label: string }[] = [
 export default function AdminDashboard() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [activeTab, setActiveTab] = useState<Tab>("DASHBOARD");
   const [me, setMe] = useState<{ nama: string; role: string; fotoProfil: string | null } | null>(null);
 
@@ -148,7 +150,11 @@ export default function AdminDashboard() {
   }
 
   function toggleSidebar() {
-    setSidebarOpen((v) => !v);
+    if (window.innerWidth >= 1024) {
+      setSidebarCollapsed((value) => !value);
+      return;
+    }
+    setSidebarOpen((value) => !value);
   }
 
   async function handleLogout() {
@@ -244,30 +250,29 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F9FAFB]" style={{ fontFamily: "Inter, sans-serif" }}>
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-white">
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+    <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+      <header className="sticky top-0 z-40 border-b border-[#e6e9f0] bg-white">
+        <div className="flex h-[68px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg hover:bg-black/5"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-transparent text-[#4f5b70] transition-colors hover:border-[#dfe4ef] hover:bg-[#f7f8fb]"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
                 <path d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <div className="flex items-center gap-2">
-              <div className="relative h-8 w-8 flex-shrink-0">
-                <Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-full object-contain" />
-              </div>
-              <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                Classify
-              </span>
+              <Image src="/Logo1.png" alt="Logo Classify" width={32} height={32} className="rounded-[9px] object-contain" />
+              <span className="text-[17px] font-bold tracking-[-.04em]">Classify</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"} title={theme === "light" ? "Mode gelap" : "Mode terang"} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#576277] transition-colors hover:bg-[#f7f8fb]">
+              {theme === "light" ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]"><path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" /><circle cx="12" cy="12" r="4" /></svg> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]"><path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+            </button>
             {me && (
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-[#111827]">{me.nama}</p>
@@ -286,22 +291,20 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+      <div className="flex w-full flex-1 px-4 py-5 sm:px-6 lg:px-8">
         {sidebarOpen && (
           <div
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] lg:hidden"
           />
         )}
 
         <aside
           aria-label="Navigasi admin"
-          className={`fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto bg-[#F9FAFB] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-transform duration-300 ease-out ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`fixed inset-y-0 left-0 z-50 w-72 overflow-hidden bg-[#f6f7fb] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-[transform,width,padding] duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:sticky lg:top-[88px] lg:z-0 lg:h-[calc(100vh-108px)] lg:translate-x-0 lg:self-start lg:shadow-none ${sidebarCollapsed ? "lg:w-0 lg:border-0 lg:p-0" : "lg:w-72"}`}
         >
-          <div className="flex min-h-full flex-col border-r border-black/5 bg-white p-4 shadow-sm">
-            <p className="mb-3 px-2 pt-2 text-sm font-bold text-[#111827]">
+          <div className="flex min-h-full min-w-64 flex-col border border-[#e1e5ed] bg-white p-4">
+            <p className="mb-4 px-2 pt-2 text-sm font-bold text-[#182033]">
               Dashboard Admin
               <br />
               <span style={{ color: BRAND }}>- {TABS.find((t) => t.key === activeTab)?.label}</span>
@@ -315,11 +318,13 @@ export default function AdminDashboard() {
                     setSidebarOpen(false);
                   }}
                   title={tab.label}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm font-semibold transition-colors"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors"
                   style={
                     activeTab === tab.key
-                      ? { background: `${BRAND}1A`, color: BRAND }
-                      : { background: "transparent", color: "#374151" }
+                      ? theme === "dark"
+                        ? { background: "#202b47", color: "#91a5ff", boxShadow: "inset 3px 0 0 #6B85F6" }
+                        : { background: "#ffffff", color: BRAND, boxShadow: "inset 3px 0 0 #6B85F6" }
+                      : { background: "transparent", color: theme === "dark" ? "#aeb8c9" : "#435064" }
                   }
                 >
                   <TabIcon tab={tab.key} />
@@ -341,18 +346,17 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">
+          <main className="min-w-0 flex-1 lg:pl-6">
           {loading && <p className="text-sm text-[#9CA3AF]">Memuat...</p>}
 
           {!loading && activeTab === "DASHBOARD" && dashboardData && (
-            <div className="space-y-6">
-              <div className="rounded-2xl p-6 text-white shadow-sm" style={{ background: BRAND }}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/75">Dashboard Admin</p>
-                <h1 className="mt-2 text-2xl font-bold">Selamat Datang, {me?.nama ?? "Admin"}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-white/85">Kelola akun, kelas, dan aktivitas pembelajaran Classify dari satu tempat.</p>
-              </div>
+            <div className="space-y-5">
+              <section className="grid overflow-hidden border border-[#dfe4ef] bg-white lg:grid-cols-[1.35fr_.65fr]">
+                <div className="p-6 sm:p-7"><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Dashboard Admin</p><h1 className="mt-3 text-2xl font-bold tracking-[-.045em] text-[#182033] sm:text-3xl">Selamat datang, {me?.nama ?? "Admin"}.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-[#697589]">Kelola data sekolah dan pantau aktivitas pembelajaran dari satu ruang kerja yang terstruktur.</p><div className="mt-6 flex flex-wrap gap-2"><button type="button" onClick={() => openAdminTab("KELAS")} className="rounded-lg bg-[#6B85F6] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#5974ed]">Kelola kelas</button><button type="button" onClick={() => openAdminTab("SISWA")} className="rounded-lg border border-[#dfe4ef] px-3.5 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Kelola akun</button></div></div>
+                <div className="border-t border-[#e5e8ef] bg-[#f7f8fd] p-6 lg:border-l lg:border-t-0"><p className="text-xs font-semibold text-[#748096]">Menunggu tindak lanjut</p><p className="mt-3 text-4xl font-bold tracking-[-.06em] text-[#182033]">{dashboardData.statistik.laporanPending}</p><p className="mt-1 text-sm leading-5 text-[#707b8d]">Laporan perubahan password perlu ditinjau.</p><button type="button" onClick={() => openAdminTab("LAPORAN")} className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-[#6B85F6]">Buka laporan <span aria-hidden="true">→</span></button></div>
+              </section>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {[
                   ["Kelas", dashboardData.statistik.kelas, "Kelola kelas", "KELAS"],
                   ["Siswa", dashboardData.statistik.siswa, "Daftar siswa", "SISWA"],
@@ -362,19 +366,16 @@ export default function AdminDashboard() {
                   ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "GURU"],
                   ["Laporan Pending", dashboardData.statistik.laporanPending, "Perlu ditinjau", "LAPORAN"],
                   ["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Dari asesmen dinilai", "PERFORMA"],
-                ].map(([label, value, caption, tab]) => (
-                  <button key={label as string} type="button" onClick={() => openAdminTab(tab as Tab)} className="rounded-2xl border border-black/5 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p>
-                    <p className="mt-2 text-3xl font-bold text-[#111827]">{value}</p>
-                    <p className="mt-1 text-xs text-[#64748B]">{caption}</p>
+                ].map(([label, value, caption, tab], index) => (
+                  <button key={label as string} type="button" onClick={() => openAdminTab(tab as Tab)} className={`group border p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff] ${index === 0 ? "border-[#6B85F6] bg-white" : "border-[#e1e5ed] bg-white"}`}>
+                    <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.1em] text-[#8490a3]">{label}</p><span className="text-xs font-bold text-[#6B85F6] group-hover:translate-x-0.5">↗</span></div>
+                    <p className="mt-5 text-3xl font-bold tracking-[-.055em] text-[#182033]">{value}</p>
+                    <p className="mt-1 text-xs text-[#6f7b8d]">{caption}</p>
                   </button>
                 ))}
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between gap-3"><div><h2 className="text-sm font-bold text-[#111827]">Akun Terbaru</h2><p className="mt-1 text-xs text-[#64748B]">Lima akun siswa dan guru terakhir dibuat.</p></div><Button size="sm" variant="outline" onClick={() => openAdminTab("SISWA")}>Kelola Akun</Button></div>
-                <div className="mt-4 divide-y divide-[#F1F5F9]">{dashboardData.akunTerbaru.length === 0 ? <p className="text-sm text-[#94A3B8]">Belum ada akun.</p> : dashboardData.akunTerbaru.map((akun) => <button key={akun.id} type="button" onClick={() => router.push(`/profil/${akun.id}`)} className="flex w-full items-center justify-between gap-3 py-3 text-left hover:bg-[#F8FAFC]"><span><span className="block text-sm font-semibold text-[#111827]">{akun.nama}</span><span className="block text-xs text-[#64748B]">{akun.email}</span></span><span className="text-right"><Badge tone={akun.role === "GURU" ? "brand" : "gray"}>{akun.role === "GURU" ? "Guru" : "Siswa"}</Badge><span className="mt-1 block text-[11px] text-[#94A3B8]">{new Date(akun.createdAt).toLocaleDateString("id-ID")}</span></span></button>)}</div>
-              </div>
+              <section className="border border-[#e1e5ed] bg-white"><div className="flex items-center justify-between gap-3 border-b border-[#edf0f5] px-5 py-4"><div><h2 className="text-sm font-bold text-[#182033]">Akun terbaru</h2><p className="mt-1 text-xs text-[#748096]">Lima akun siswa dan guru terakhir dibuat.</p></div><Button size="sm" variant="outline" onClick={() => openAdminTab("SISWA")}>Kelola Akun</Button></div><div className="divide-y divide-[#edf0f5]">{dashboardData.akunTerbaru.length === 0 ? <p className="p-5 text-sm text-[#94A3B8]">Belum ada akun.</p> : dashboardData.akunTerbaru.map((akun) => <button key={akun.id} type="button" onClick={() => router.push(`/profil/${akun.id}`)} className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left transition-colors hover:bg-[#6B85F6]/10"><span><span className="block text-sm font-semibold text-[#182033]">{akun.nama}</span><span className="mt-0.5 block text-xs text-[#748096]">{akun.email}</span></span><span className="text-right"><Badge tone={akun.role === "GURU" ? "brand" : "gray"}>{akun.role === "GURU" ? "Guru" : "Siswa"}</Badge><span className="mt-1 block text-[11px] text-[#94A3B8]">{new Date(akun.createdAt).toLocaleDateString("id-ID")}</span></span></button>)}</div></section>
             </div>
           )}
 
@@ -402,11 +403,8 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "KELAS" && (
-            <div>
-              <div className="mb-4 flex justify-end">
-                <Button onClick={openBuatKelas}>Buat Kelas</Button>
-              </div>
-
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e1e5ed] pb-5"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Manajemen kelas</p><h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">Kelas pembelajaran</h1><p className="mt-1 text-sm text-[#6e798b]">Buat dan atur ruang belajar untuk setiap kelompok.</p></div><Button onClick={openBuatKelas}>Buat Kelas</Button></div>
               {kelasList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada kelas dibuat.</p>
               ) : (
@@ -427,7 +425,7 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "SISWA" && (
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+            <div className="border border-[#e1e5ed] bg-white p-5 sm:p-6">
               <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-[#111827]">Daftar Siswa</h2>
@@ -465,7 +463,7 @@ export default function AdminDashboard() {
                       <th className="pb-3 font-semibold">No</th><th className="pb-3 font-semibold">Profil</th><th className="pb-3 font-semibold">Nama</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">NIS</th><th className="pb-3 font-semibold">Status Siswa</th><th className="pb-3 font-semibold">Kelas/Rombel</th><th className="pb-3 font-semibold">Jurusan</th><th className="pb-3 text-right font-semibold">Aksi</th>
                     </tr></thead>
                     <tbody className="divide-y divide-[#F1F5F9]">{filteredSiswaList.map((s, index) => (
-                      <tr key={s.id} onClick={() => router.push(`/profil/${s.id}`)} className="cursor-pointer hover:bg-[#F8FAFC]">
+                      <tr key={s.id} onClick={() => router.push(`/profil/${s.id}`)} className="cursor-pointer hover:bg-[#6B85F6]/10">
                         <td className="py-3 text-xs text-[#64748B]">{index + 1}</td>
                         <td className="py-3"><div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#64748B]">{s.fotoProfil ? <img src={s.fotoProfil} alt={s.nama} className="h-full w-full object-cover" /> : s.nama.charAt(0)}</div></td>
                         <td className="py-3 font-semibold text-[#111827]">{s.nama}</td><td className="py-3 text-xs text-[#64748B]">{s.email}</td><td className="py-3 text-xs text-[#64748B]">{s.nis ?? "-"}</td>
@@ -477,7 +475,7 @@ export default function AdminDashboard() {
                           {s.kelasSiswa?.length ?? 0} Kelas
                         </td>
                         <td className="py-3 text-xs text-[#64748B]">{s.kelasReferensi?.label ?? "-"}</td>
-                        <td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(s.id); }} className="rounded-lg p-2 text-lg font-bold text-[#64748B] hover:bg-[#F1F5F9]">⋮</button>{openAkunMenuId === s.id && <div className="absolute right-2 top-11 z-20 w-28 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white py-1 text-left shadow-lg"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(s); }} className="block w-full px-3 py-2 text-xs hover:bg-[#F8FAFC]">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(s.id, "SISWA"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td>
+                        <td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(s.id); }} className="rounded-lg p-2 text-lg font-bold text-[#64748B] hover:bg-[#6B85F6]/10">⋮</button>{openAkunMenuId === s.id && <div className="absolute right-2 top-11 z-20 w-28 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white py-1 text-left shadow-lg"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(s); }} className="block w-full px-3 py-2 text-xs hover:bg-[#6B85F6]/10">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(s.id, "SISWA"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td>
                       </tr>
                     ))}</tbody>
                   </table>
@@ -487,7 +485,7 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "GURU" && (
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+            <div className="border border-[#e1e5ed] bg-white p-5 sm:p-6">
               <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold text-[#111827]">Daftar Guru</h2><p className="mt-1 text-xs text-[#64748B]">Kelola akun guru dan mapel yang diampu.</p></div><Button size="sm" onClick={() => openBuatAkun("GURU")}>+ Tambah Guru</Button></div>
               <div className="mb-5 grid gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
                 <label className="block text-xs font-semibold text-[#64748B]">
@@ -512,7 +510,7 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "LAPORAN" && (
-            <div className="space-y-3">
+            <div className="space-y-3"><div className="border-b border-[#e1e5ed] pb-5"><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Tindak lanjut</p><h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">Laporan password</h1><p className="mt-1 text-sm text-[#6e798b]">Tinjau laporan dan proses permintaan perubahan password.</p></div>
               {laporanList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Tidak ada laporan lupa password saat ini.</p>
               ) : (
@@ -523,29 +521,7 @@ export default function AdminDashboard() {
         </main>
       </div>
 
-      <footer className="py-10 text-white" style={{ background: BRAND }}>
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-3">
-          <div>
-            <p className="text-lg font-bold">Classify</p>
-            <p className="mt-2 text-sm">Belajar Lebih Mudah, Mengajar Lebih Terarah.</p>
-            <p className="mt-3 max-w-xs text-xs leading-relaxed text-white/80">
-              Platform Learning Management System yang mendukung proses belajar mengajar
-              secara modern, efektif, dan terintegrasi.
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold">Social Media</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li>Instagram : @chronion999</li>
-              <li>Github : Dhanidev-838</li>
-              <li>LinkedIn : Dhani Triadi Saputra</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-8 border-t border-white/20 pt-6 text-center text-xs text-white/80">
-          © 2026 Classify. All Rights Reserved.
-        </p>
-      </footer>
+      <footer className="border-t border-[#e1e5ed] bg-white px-4 py-5 text-center text-xs text-[#8290a3] sm:px-6">© 2026 Classify. Sistem pembelajaran yang lebih terarah.</footer>
 
       <ModalKelas
         open={showModalKelas}
@@ -587,6 +563,41 @@ export default function AdminDashboard() {
         defaultRole={akunDefaultRole}
         initialData={editingAkun}
       />
+      <style jsx global>{`
+        .admin-shell main .rounded-2xl { border-radius: 12px; }
+        .admin-shell main .shadow-sm { box-shadow: none; }
+        .admin-shell main table thead { background: #f8f9fc; }
+        .admin-shell main table th { padding: 12px 10px; }
+        .admin-shell main table td { padding-left: 10px; padding-right: 10px; }
+        .admin-shell main input:focus,
+        .admin-shell main select:focus { box-shadow: 0 0 0 3px rgba(107, 133, 246, .12); }
+        .admin-shell[data-admin-theme="dark"] { background: #10141d !important; color: #eef2f8; }
+        .admin-shell[data-admin-theme="dark"] header,
+        .admin-shell[data-admin-theme="dark"] .bg-white { background-color: #171d28 !important; }
+        .admin-shell[data-admin-theme="dark"] header,
+        .admin-shell[data-admin-theme="dark"] aside > div,
+        .admin-shell[data-admin-theme="dark"] .border { border-color: #2a3343 !important; }
+        .admin-shell[data-admin-theme="dark"] .bg-\[\#F9FAFB\],
+        .admin-shell[data-admin-theme="dark"] .bg-\[\#F8FAFC\],
+        .admin-shell[data-admin-theme="dark"] .bg-\[\#f7f8fd\],
+        .admin-shell[data-admin-theme="dark"] .bg-\[\#f6f7fb\] { background-color: #10141d !important; }
+        .admin-shell[data-admin-theme="dark"] input,
+        .admin-shell[data-admin-theme="dark"] select { background-color: #111722 !important; border-color: #344054 !important; color: #e9eef8 !important; }
+        .admin-shell[data-admin-theme="dark"] main table thead { background-color: #1b2230 !important; }
+        .admin-shell[data-admin-theme="dark"] main table tbody { color: #e9eef8 !important; }
+        .admin-shell[data-admin-theme="dark"] main table tbody tr:hover { background-color: rgba(107, 133, 246, .12) !important; }
+        .admin-shell[data-admin-theme="dark"] main table tbody td { color: #aeb8c9; }
+        .admin-shell[data-admin-theme="dark"] main table tbody td.text-\[\#111827\] { color: #f3f6fb !important; }
+        .admin-shell[data-admin-theme="dark"] main table tbody button:hover { background-color: rgba(107, 133, 246, .12) !important; }
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#748096]"],
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#707b8d]"] { color: #aeb8c9 !important; }
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#111827]"],
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#182033]"] { color: #f3f6fb !important; }
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#64748B]"],
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#6B7280]"],
+        .admin-shell[data-admin-theme="dark"] [class*="text-[#94A3B8]"] { color: #aeb8c9 !important; }
+        .admin-shell[data-admin-theme="dark"] footer { background: #121824 !important; border-color: #2a3343 !important; }
+      `}</style>
     </div>
   );
 }

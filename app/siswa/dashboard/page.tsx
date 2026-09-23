@@ -21,7 +21,18 @@ type DashboardData = {
     tugasSudah: number;
     tugasBelum: number;
     rataRataNilai: number | null;
+    rataRataNilaiKelas: number | null;
+    statusNilaiKelas: "Di bawah rata-rata kelas" | "Di atas rata-rata kelas" | "Sejajar rata-rata kelas" | null;
   };
+  pengumumanTerbaru: Array<{
+    id: string;
+    isi: string;
+    createdAt: string;
+    kelasJudul: string;
+    authorNama: string;
+    isToday: boolean;
+    lampiranCount: number;
+  }>;
   asesmenTerbaru: Array<{
     id: string;
     judul: string;
@@ -176,6 +187,17 @@ export default function SiswaDashboardPage() {
             {data.statistik.rataRataNilai !== null ? `${data.statistik.rataRataNilai}` : "Belum ada nilai"}
           </Badge>
         </div>
+        {data.statistik.rataRataNilai !== null && data.statistik.rataRataNilaiKelas !== null ? (
+          <p className="mt-3 text-sm text-[#475569]">
+            {data.statistik.statusNilaiKelas === "Di bawah rata-rata kelas"
+              ? `Nilai Anda masih di bawah rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`
+              : data.statistik.statusNilaiKelas === "Di atas rata-rata kelas"
+                ? `Nilai Anda di atas rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`
+                : `Nilai Anda sejajar dengan rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-[#64748B]">Belum ada pembanding rata-rata kelas untuk saat ini.</p>
+        )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -211,6 +233,38 @@ export default function SiswaDashboardPage() {
                   <Badge tone={item.nilai !== null && item.nilai >= 75 ? "green" : item.nilai !== null ? "amber" : "gray"}>
                     {item.nilai !== null ? `${item.nilai}` : "-"}
                   </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold text-[#111827]">Pengumuman Kelas</p>
+            <Badge tone="gray">7 hari terakhir</Badge>
+          </div>
+          <div className="mt-3 space-y-3">
+            {data.pengumumanTerbaru.length === 0 ? (
+              <p className="text-sm text-[#94A3B8]">Belum ada pengumuman aktif dalam 7 hari terakhir.</p>
+            ) : (
+              data.pengumumanTerbaru.map((item) => (
+                <div key={item.id} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#6B85F6]">{item.kelasJudul}</p>
+                    {item.isToday ? (
+                      <Badge tone="brand">Hari ini</Badge>
+                    ) : (
+                      <span className="text-[11px] text-[#64748B]">
+                        {new Date(item.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-[#111827]">{item.isi}</p>
+                  <div className="mt-2 flex items-center justify-between text-[11px] text-[#64748B]">
+                    <span>oleh {item.authorNama}</span>
+                    <span>{item.lampiranCount > 0 ? `${item.lampiranCount} lampiran` : "tanpa lampiran"}</span>
+                  </div>
                 </div>
               ))
             )}
