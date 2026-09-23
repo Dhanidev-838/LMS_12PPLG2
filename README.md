@@ -106,6 +106,12 @@ git push -u origin main
 
 Sebelum `git add .`, pastikan `account.txt`, `.env`, dan upload lokal tidak muncul pada `git status`.
 
+Checklist sebelum push:
+
+- Pastikan secret dan password hanya tersimpan di `.env` lokal.
+- Jalankan `git status` dan tinjau daftar file yang akan di-commit.
+- Jalankan `npm run lint` sebelum membuat commit.
+
 ## Dokumentasi Penting
 
 - [Next.js App Router](https://nextjs.org/docs/app)
