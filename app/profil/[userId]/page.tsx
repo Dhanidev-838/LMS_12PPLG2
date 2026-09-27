@@ -8,6 +8,7 @@ import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import ModalEditProfil from "@/components/ModalEditProfil";
+import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const BRAND = "#6B85F6";
 
@@ -37,15 +38,16 @@ const roleLabel: Record<Role, string> = {
 };
 
 // ---- sidebar nav per role viewer ----
-type AdminTab = "KELAS" | "AKUN" | "SISWA" | "GURU" | "LAPORAN";
+type AdminTab = "DASHBOARD" | "KELAS" | "SISWA" | "GURU" | "LAPORAN" | "PERFORMA";
 type GuruSiswaNav = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "PERFORMA" | "PROFILE";
 
 const ADMIN_TABS: { key: AdminTab; label: string }[] = [
+  { key: "DASHBOARD", label: "Dashboard" },
   { key: "KELAS", label: "Buat Kelas" },
-  { key: "AKUN", label: "Buat Akun" },
   { key: "SISWA", label: "Daftar Siswa" },
   { key: "GURU", label: "Daftar Guru" },
   { key: "LAPORAN", label: "Laporan" },
+  { key: "PERFORMA", label: "Performa Akademik" },
 ];
 const KEPSEK_TABS: { key: string; label: string; href: string }[] = [
   { key: "DASHBOARD", label: "Dashboard", href: "/kepsek" },
@@ -101,11 +103,12 @@ function GuruSiswaIcon({ nav }: { nav: GuruSiswaNav }) {
 }
 function AdminIcon({ tab }: { tab: AdminTab }) {
   const paths: Record<AdminTab, React.ReactNode> = {
+    DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-    AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19 8v6M22 11h-6" />,
     SISWA: <path d="M12 3 2 8l10 5 8-4v6M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />,
     GURU: <path d="M4 19V5a2 2 0 0 1 2-2h11l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M9 8h7 M9 12h7 M9 16h4" />,
     LAPORAN: <path d="M6 2h9l5 5v15H6V2Zm9 0v5h5M9 13h6M9 17h4" />,
+    PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px] flex-shrink-0">
@@ -121,6 +124,8 @@ export default function ProfilPage() {
 
   const [me, setMe] = useState<{ id: string; nama: string; role: Role; fotoProfil: string | null } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [theme, setTheme] = useAdminTheme();
 
   const [profil, setProfil] = useState<ProfilData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,6 +143,11 @@ export default function ProfilPage() {
     loadProfil();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    return () => document.documentElement.removeAttribute("data-admin-theme");
+  }, [theme]);
 
   async function loadProfil() {
     setLoading(true);
@@ -168,6 +178,14 @@ export default function ProfilPage() {
     router.push(`/admin?tab=${tab}`);
   }
 
+  function toggleSidebar() {
+    if (window.innerWidth >= 1024) {
+      setSidebarCollapsed((value) => !value);
+      return;
+    }
+    setSidebarOpen((value) => !value);
+  }
+
   const dashboardLabel = me
     ? me.role === "ADMIN"
       ? "Dashboard Admin"
@@ -184,287 +202,319 @@ export default function ProfilPage() {
   const isGuru = profil?.role === "GURU";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F9FAFB]" style={{ fontFamily: "Inter, sans-serif" }}>
-      <header className="no-print sticky top-0 z-40 border-b border-black/5 bg-white">
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen((v) => !v)}
-              aria-label="Toggle sidebar"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg hover:bg-black/5"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="relative h-8 w-8 flex-shrink-0">
-              <Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-full object-contain" />
-            </div>
-            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Classify
-            </span>
+    <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+      <header className="no-print sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-[#e6e9f0] bg-white px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-transparent text-[#4f5b70] transition-colors hover:border-[#dfe4ef] hover:bg-[#f7f8fb]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="relative h-8 w-8 flex-shrink-0">
+            <Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-[9px] object-contain" />
           </div>
+          <span className="text-[17px] font-bold tracking-[-.04em]">Classify</span>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {me && (
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-[#111827]">{me.nama}</p>
-                <p className="text-xs text-[#9CA3AF]">{me.role}</p>
-              </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}
+            aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
+            title={theme === "light" ? "Mode gelap" : "Mode terang"}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#576277] transition-colors hover:bg-[#f7f8fb]"
+          >
+            {theme === "light" ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+                <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="4" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+                <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             )}
-            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
-              {me?.fotoProfil ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
-              ) : (
-                me?.nama?.charAt(0) ?? "?"
-              )}
+          </button>
+          {me && (
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-semibold text-[#182033]">{me.nama}</p>
+              <p className="text-xs text-[#9CA3AF]">{me.role}</p>
             </div>
+          )}
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+            {me?.fotoProfil ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
+            ) : (
+              me?.nama?.charAt(0) ?? "?"
+            )}
+          </div>
+          {profil && !profil.isSelf && (
             <Button size="sm" variant="outline" onClick={() => router.back()}>
               Back
             </Button>
-          </div>
+          )}
         </div>
       </header>
 
-      {sidebarOpen && (
-        <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
-      )}
+      <div className="flex w-full flex-1 px-4 py-5 sm:px-6 lg:px-8">
+        {sidebarOpen && (
+          <div onClick={() => setSidebarOpen(false)} className="no-print fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] lg:hidden" />
+        )}
 
-      <aside
-        className={`no-print fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto bg-[#F9FAFB] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-transform duration-300 ease-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        aria-label="Navigasi"
-      >
-        <div className="flex min-h-full flex-col border-r border-black/5 bg-white p-4 shadow-sm">
-          <p className="mb-3 px-2 pt-2 text-sm font-bold text-[#111827]">
-            {dashboardLabel}
-            <br />
-            <span style={{ color: BRAND }}>- Profile</span>
-          </p>
-          <nav className="flex flex-col gap-1">
-            {me?.role === "ADMIN" &&
-              ADMIN_TABS.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => navigateAdminTab(tab.key)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-[#374151] hover:bg-black/5"
-                >
-                  <AdminIcon tab={tab.key} />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+        <aside
+          className={`no-print fixed inset-y-0 left-0 z-50 w-72 overflow-hidden bg-[#f6f7fb] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-[transform,width,padding] duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:sticky lg:top-[88px] lg:z-0 lg:h-[calc(100vh-108px)] lg:translate-x-0 lg:self-start lg:shadow-none ${sidebarCollapsed ? "lg:w-0 lg:border-0 lg:p-0" : "lg:w-72"}`}
+          aria-label="Navigasi"
+        >
+          <div className="flex min-h-full min-w-64 flex-col border border-[#e1e5ed] bg-white p-4">
+            <p className="mb-3 px-2 pt-2 text-sm font-bold text-[#182033]">
+              {dashboardLabel}
+              <br />
+              <span style={{ color: BRAND }}>- Profile</span>
+            </p>
+            <nav className="flex flex-col gap-1">
+              {me?.role === "ADMIN" &&
+                ADMIN_TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => navigateAdminTab(tab.key)}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[#435064] hover:bg-[#6B85F6]/10"
+                  >
+                    <AdminIcon tab={tab.key} />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
 
-            {(me?.role === "KEPSEK" ? KEPSEK_TABS : me?.role === "KURIKULUM" ? KURIKULUM_TABS : []).map((tab) => (
-              <Link
-                key={tab.key}
-                href={tab.href}
-                onClick={() => setSidebarOpen(false)}
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-semibold text-[#374151] hover:bg-black/5"
-              >
-                {me?.role === "KEPSEK" ? <KepsekIcon nav={tab.key as KepsekNav} /> : me?.role === "KURIKULUM" ? <KurikulumIcon nav={tab.key as KurikulumNav} /> : <AdminIcon tab={tab.key as AdminTab} />}
-                {tab.label}
-              </Link>
-            ))}
-
-            {(me?.role === "GURU" || me?.role === "SISWA") &&
-              (
-                [
-                  ["DASHBOARD", "Dashboard", me.role === "GURU" ? "/guru" : "/siswa"],
-                  ["KELAS", "Kelas", me.role === "GURU" ? "/guru/kelas" : "/siswa/kelas"],
-                  ["ASESMEN", "Asesmen", me.role === "GURU" ? "/guru/asesmen" : "/siswa/asesmen"],
-                  ["TUGAS", "Tugas", me.role === "GURU" ? "/guru/tugas" : "/siswa/tugas"],
-                  ["PERFORMA", "Performa Akademik", me.role === "GURU" ? "/guru/performa-akademik" : "/siswa/performa-akademik"],
-                  ["PROFILE", "Profile", `/profil/${me.id}`],
-                ] as [GuruSiswaNav, string, string][]
-              ).map(([nav, label, href]) => (
+              {(me?.role === "KEPSEK" ? KEPSEK_TABS : me?.role === "KURIKULUM" ? KURIKULUM_TABS : []).map((tab) => (
                 <Link
-                  key={nav}
-                  href={href}
+                  key={tab.key}
+                  href={tab.href}
                   onClick={() => setSidebarOpen(false)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
-                  style={nav === "PROFILE" ? { background: `${BRAND}1A`, color: BRAND } : { color: "#374151" }}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[#435064] hover:bg-[#6B85F6]/10"
                 >
-                  <GuruSiswaIcon nav={nav} />
-                  {label}
+                  {me?.role === "KEPSEK" ? <KepsekIcon nav={tab.key as KepsekNav} /> : me?.role === "KURIKULUM" ? <KurikulumIcon nav={tab.key as KurikulumNav} /> : <AdminIcon tab={tab.key as AdminTab} />}
+                  {tab.label}
                 </Link>
               ))}
-          </nav>
-          <Button
-            size="md"
-            onClick={handleLogout}
-            className="mt-auto w-full rounded-xl"
-            style={{ background: "#F8CDBD", color: "#7C4A3A" }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-              <path d="M10 17l5-5-5-5M15 12H3M21 4v16" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Keluar
-          </Button>
-        </div>
-      </aside>
 
-      <main className="profile-print-area mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6">
-        {loading ? (
-          <p className="text-sm text-[#9CA3AF]">Memuat...</p>
-        ) : error || !profil ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <p className="text-sm text-[#9CA3AF]">{error || "Profil tidak ditemukan."}</p>
-          </div>
-        ) : (
-          <>
-            <div className="profile-card overflow-hidden rounded-2xl shadow-sm">
-              <div className="profile-card-header" style={{ background: BRAND }}>
-              <div className="flex items-start justify-between gap-3 p-5 pb-0">
-                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-                  Profil {roleLabel[profil.role]}
-                </span>
-                <div className="no-print flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    title="Cetak profil"
-                    className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#6B85F6] shadow-sm hover:bg-white/90"
+              {(me?.role === "GURU" || me?.role === "SISWA") &&
+                (
+                  [
+                    ["DASHBOARD", "Dashboard", me.role === "GURU" ? "/guru" : "/siswa"],
+                    ["KELAS", "Kelas", me.role === "GURU" ? "/guru/kelas" : "/siswa/kelas"],
+                    ["ASESMEN", "Asesmen", me.role === "GURU" ? "/guru/asesmen" : "/siswa/asesmen"],
+                    ["TUGAS", "Tugas", me.role === "GURU" ? "/guru/tugas" : "/siswa/tugas"],
+                    ["PERFORMA", "Performa Akademik", me.role === "GURU" ? "/guru/performa-akademik" : "/siswa/performa-akademik"],
+                    ["PROFILE", "Profile", `/profil/${me.id}`],
+                  ] as [GuruSiswaNav, string, string][]
+                ).map(([nav, label, href]) => (
+                  <Link
+                    key={nav}
+                    href={href}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors"
+                    style={
+                      nav === "PROFILE"
+                        ? theme === "dark"
+                          ? { background: "#202b47", color: "#91a5ff", boxShadow: "inset 3px 0 0 #6B85F6" }
+                          : { background: "#ffffff", color: BRAND, boxShadow: "inset 3px 0 0 #6B85F6" }
+                        : { background: "transparent", color: theme === "dark" ? "#aeb8c9" : "#435064" }
+                    }
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5">
-                      <path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                      <path d="M6 14h12v7H6z" />
-                    </svg>
-                    Cetak
-                  </button>
-                  {profil.isSelf && (
-                    <button
-                      onClick={() => setShowEdit(true)}
-                      className="cursor-pointer rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#6B85F6] hover:bg-white/90"
-                    >
-                      Edit Profile
-                    </button>
-                  )}
-                </div>
+                    <GuruSiswaIcon nav={nav} />
+                    {label}
+                  </Link>
+                ))}
+            </nav>
+            <Button
+              size="md"
+              onClick={handleLogout}
+              className="mt-auto w-full rounded-xl"
+              style={{ background: "#F8CDBD", color: "#7C4A3A" }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                <path d="M10 17l5-5-5-5M15 12H3M21 4v16" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Keluar
+            </Button>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1 lg:pl-6">
+          <div className="profile-print-area mx-auto w-full max-w-5xl">
+            {loading ? (
+              <p className="text-sm text-[#9CA3AF]">Memuat...</p>
+            ) : error || !profil ? (
+              <div className="flex flex-col items-center gap-3 py-10">
+                <p className="text-sm text-[#9CA3AF]">{error || "Profil tidak ditemukan."}</p>
               </div>
-              <div className="p-5">
-                <p className="text-lg font-bold text-white">{profil.nama.split(" ")[0]}</p>
-                <div className="mt-3 h-32 w-32 overflow-hidden rounded-2xl bg-white/20">
-                  {profil.fotoProfil ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={profil.fotoProfil} alt={profil.nama} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-white">
-                      {profil.nama.charAt(0)}
+            ) : (
+              <>
+                <div className="profile-card grid gap-4 lg:grid-cols-[1.12fr_.88fr]">
+                  <div className="profile-card-header relative overflow-hidden rounded-[28px] p-6 text-white shadow-[0_20px_50px_rgba(48,64,145,0.18)] sm:p-8" style={{ background: BRAND }}>
+                    <div className="relative flex items-start justify-between gap-3">
+                      <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[.14em] text-white/90">
+                        Profil {roleLabel[profil.role]}
+                      </span>
+                      <div className="no-print flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => window.print()}
+                          title="Cetak profil"
+                          className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#526ce4] shadow-sm hover:bg-white/90"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5">
+                            <path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                            <path d="M6 14h12v7H6z" />
+                          </svg>
+                          Cetak
+                        </button>
+                        {profil.isSelf && (
+                          <button
+                            onClick={() => setShowEdit(true)}
+                            className="cursor-pointer rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#526ce4] hover:bg-white/90"
+                          >
+                            Edit Profile
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-              </div>
-
-            <div className="profile-card-details rounded-b-2xl border border-t-0 border-black/5 bg-white p-5 shadow-sm">
-              <p className="text-lg font-bold text-[#111827]">{profil.nama}</p>
-
-              <div className="mt-2 flex flex-wrap gap-2">
-                {profil.isSelf && <Badge tone="brand">Aktif</Badge>}
-                {profil.rombel && <Badge tone="gray">{profil.rombel}</Badge>}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {isSiswa && (
-                  <div className="rounded-xl bg-[#F9FAFB] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
-                      {profil.isSelf ? "NIS" : "Status"}
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-[#111827]">
-                      {profil.isSelf ? profil.nis ?? "-" : "Aktif"}
-                    </p>
+                    <div className="relative mt-16">
+                      <div className="h-36 w-36 overflow-hidden rounded-[24px] border border-white/30 bg-white/15 shadow-lg">
+                        {profil.fotoProfil ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={profil.fotoProfil} alt={profil.nama} className="h-full w-full object-cover" />
+                        ) : (
+                              <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                            {profil.nama.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-6 max-w-md text-3xl font-bold tracking-[-.04em] text-white sm:text-4xl">{profil.nama}</p>
+                      <p className="mt-2 max-w-sm text-sm leading-6 text-white/75">Profil pengguna Classify untuk informasi akademik dan identitas dasar.</p>
+                    </div>
                   </div>
-                )}
-                {isGuru && (
-                  <div className="rounded-xl bg-[#F9FAFB] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
-                      {profil.isSelf ? "NIK" : "Status"}
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-[#111827]">
-                      {profil.isSelf ? profil.nik ?? "-" : "Aktif"}
-                    </p>
-                  </div>
-                )}
 
-                <div className="rounded-xl bg-[#F9FAFB] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Status</p>
-                  <p className="mt-0.5 text-sm font-bold text-[#111827]">{roleLabel[profil.role]}</p>
-                </div>
+                  <div className="profile-card-details rounded-[28px] border border-[#e1e5ed] bg-white p-5 shadow-[0_12px_35px_rgba(15,23,42,0.06)] sm:p-6">
+                    <div className="flex items-center justify-between gap-3 border-b border-[#edf0f5] pb-4">
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#9CA3AF]">Ringkasan</p>
+                        <p className="mt-1 text-lg font-bold text-[#182033]">Informasi utama</p>
+                      </div>
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#43c59e] shadow-[0_0_0_5px_rgba(67,197,158,0.12)]" />
+                    </div>
 
-                {isSiswa && (
-                  <div className="rounded-xl bg-[#F9FAFB] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jurusan</p>
-                    <p className="mt-0.5 text-sm font-bold text-[#111827]">{profil.jurusan ?? "-"}</p>
-                  </div>
-                )}
-                {isGuru && (
-                  <div className="rounded-xl bg-[#F9FAFB] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Mapel</p>
-                    <p className="mt-0.5 text-sm font-bold text-[#111827]">
-                      {profil.mapel.length > 0 ? profil.mapel.join(", ") : "-"}
-                    </p>
-                  </div>
-                )}
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {profil.isSelf && <Badge tone="brand">Aktif</Badge>}
+                      {profil.rombel && <Badge tone="gray">{profil.rombel}</Badge>}
+                      <Badge tone="gray">{roleLabel[profil.role]}</Badge>
+                    </div>
 
-                <div className="col-span-2 rounded-xl bg-[#F9FAFB] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jenis Kelamin</p>
-                  <p className="mt-0.5 text-sm font-bold text-[#111827]">{profil.jenisKelamin ?? "-"}</p>
-                </div>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      {isSiswa && (
+                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
+                            {profil.isSelf ? "NIS" : "Status"}
+                          </p>
+                          <p className="mt-0.5 text-sm font-bold text-[#182033]">
+                            {profil.isSelf ? profil.nis ?? "-" : "Aktif"}
+                          </p>
+                        </div>
+                      )}
+                      {isGuru && (
+                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
+                            {profil.isSelf ? "NIK" : "Status"}
+                          </p>
+                          <p className="mt-0.5 text-sm font-bold text-[#182033]">
+                            {profil.isSelf ? profil.nik ?? "-" : "Aktif"}
+                          </p>
+                        </div>
+                      )}
 
-                <div className="col-span-2 rounded-xl bg-[#F9FAFB] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Deskripsi</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-[#374151]">{profil.deskripsi || "-"}</p>
-                </div>
-              </div>
-            </div>
-            </div>
+                      <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Peran</p>
+                        <p className="mt-0.5 text-sm font-bold text-[#182033]">{roleLabel[profil.role]}</p>
+                      </div>
 
-            <div className="print-only-card">
-              <div className="print-card-identity">
-                <span className="print-card-label">CLASSIFY · PROFIL {roleLabel[profil.role].toUpperCase()}</span>
-                <div className="print-card-photo">
-                  {profil.fotoProfil ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={profil.fotoProfil} alt={profil.nama} />
-                  ) : (
-                    <span>{profil.nama.charAt(0)}</span>
-                  )}
-                </div>
-              </div>
-              <div className="print-card-information">
-                <div className="print-card-heading">
-                  <p className="print-card-eyebrow">KARTU PROFIL</p>
-                  <p className="print-card-title">{profil.nama}</p>
-                </div>
-                <div className="print-card-fields">
-                  <div>
-                    <span>{isSiswa ? "NIS" : "NIK"}</span>
-                    <strong>{isSiswa ? profil.nis ?? "-" : profil.nik ?? "-"}</strong>
-                  </div>
-                  <div>
-                    <span>Status</span>
-                    <strong>{roleLabel[profil.role]}</strong>
-                  </div>
-                  <div>
-                    <span>{isSiswa ? "Jurusan" : "Mata Pelajaran"}</span>
-                    <strong>{isSiswa ? profil.jurusan ?? "-" : profil.mapel.join(", ") || "-"}</strong>
-                  </div>
-                  <div>
-                    <span>Jenis Kelamin</span>
-                    <strong>{profil.jenisKelamin ?? "-"}</strong>
+                      {isSiswa && (
+                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jurusan</p>
+                          <p className="mt-0.5 text-sm font-bold text-[#182033]">{profil.jurusan ?? "-"}</p>
+                        </div>
+                      )}
+                      {isGuru && (
+                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Mapel</p>
+                          <p className="mt-0.5 text-sm font-bold text-[#182033]">
+                            {profil.mapel.length > 0 ? profil.mapel.join(", ") : "-"}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="col-span-2 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jenis Kelamin</p>
+                        <p className="mt-0.5 text-sm font-bold text-[#182033]">{profil.jenisKelamin ?? "-"}</p>
+                      </div>
+
+                      <div className="col-span-2 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Deskripsi</p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm text-[#435064]">{profil.deskripsi || "-"}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="print-card-description">
-                  <span>Deskripsi</span>
-                  <strong>{profil.deskripsi || "-"}</strong>
+
+                <div className="print-only-card">
+                  <div className="print-card-identity">
+                    <span className="print-card-label">CLASSIFY · PROFIL {roleLabel[profil.role].toUpperCase()}</span>
+                    <div className="print-card-photo">
+                      {profil.fotoProfil ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={profil.fotoProfil} alt={profil.nama} />
+                      ) : (
+                        <span>{profil.nama.charAt(0)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="print-card-information">
+                    <div className="print-card-heading">
+                      <p className="print-card-eyebrow">KARTU PROFIL</p>
+                      <p className="print-card-title">{profil.nama}</p>
+                    </div>
+                    <div className="print-card-fields">
+                      <div>
+                        <span>{isSiswa ? "NIS" : "NIK"}</span>
+                        <strong>{isSiswa ? profil.nis ?? "-" : profil.nik ?? "-"}</strong>
+                      </div>
+                      <div>
+                        <span>Status</span>
+                        <strong>{roleLabel[profil.role]}</strong>
+                      </div>
+                      <div>
+                        <span>{isSiswa ? "Jurusan" : "Mata Pelajaran"}</span>
+                        <strong>{isSiswa ? profil.jurusan ?? "-" : profil.mapel.join(", ") || "-"}</strong>
+                      </div>
+                      <div>
+                        <span>Jenis Kelamin</span>
+                        <strong>{profil.jenisKelamin ?? "-"}</strong>
+                      </div>
+                    </div>
+                    <div className="print-card-description">
+                      <span>Deskripsi</span>
+                      <strong>{profil.deskripsi || "-"}</strong>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </>
-        )}
-      </main>
+              </>
+            )}
+          </div>
+        </main>
+      </div>
 
       {profil?.isSelf && (
         <ModalEditProfil
@@ -478,25 +528,43 @@ export default function ProfilPage() {
         />
       )}
 
-      <footer className="no-print py-10 text-white" style={{ background: BRAND }}>
-        <div className="mx-auto grid max-w-2xl gap-8 px-6 md:grid-cols-2">
-          <div>
-            <p className="text-lg font-bold">Classify</p>
-            <p className="mt-2 text-sm">Belajar Lebih Mudah, Mengajar Lebih Terarah.</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold">Social Media</p>
-            <ul className="mt-3 space-y-2 text-sm text-white/90">
-              <li>Instagram : @chronion999</li>
-              <li>Github : Dhanidev-838</li>
-              <li>LinkedIn : Dhani Triadi Saputra</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-8 border-t border-white/20 pt-6 text-center text-xs text-white/80">
-          © 2026 Classify. All Rights Reserved.
-        </p>
+      <footer className="no-print mt-10 border-t border-[#e1e5ed] bg-white">
+        <p className="px-4 py-5 text-center text-xs text-[#8290a3] sm:px-6">© 2026 Classify. Sistem pembelajaran yang lebih terarah.</p>
       </footer>
+
+      <style jsx global>{`
+        [data-admin-theme="dark"] { color-scheme: dark; }
+        .admin-shell[data-admin-theme="dark"] { background: #10141d !important; color: #eef2f8; }
+
+        [data-admin-theme="dark"] header,
+        [data-admin-theme="dark"] .bg-white { background-color: #171d28 !important; }
+        [data-admin-theme="dark"] [class~="bg-[#f6f7fb]"],
+        [data-admin-theme="dark"] [class~="bg-[#F9FAFB]"] { background-color: #10141d !important; }
+        [data-admin-theme="dark"] [class~="bg-[#f7f8fd]"] { background-color: #1b2230 !important; }
+        [data-admin-theme="dark"] [class~="bg-[#E5E7EB]"] { background-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] header,
+        [data-admin-theme="dark"] [class~="border-[#e1e5ed]"],
+        [data-admin-theme="dark"] [class~="border-[#dfe4ef]"],
+        [data-admin-theme="dark"] [class~="border-[#e6e9f0]"] { border-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] :is(
+          [class*="text-[#111827]" i], [class*="text-[#182033]" i]
+        ) { color: #f3f6fb !important; }
+
+        [data-admin-theme="dark"] :is(
+          [class*="text-[#64748B]" i], [class*="text-[#6B7280]" i], [class*="text-[#94A3B8]" i],
+          [class*="text-[#9CA3AF]" i], [class*="text-[#748096]" i], [class*="text-[#435064]" i]
+        ) { color: #aeb8c9 !important; }
+
+        [data-admin-theme="dark"] [class*="hover:bg-"]:hover:not([class~="hover:bg-white/90"]) {
+          background-color: rgba(107, 133, 246, .14) !important;
+        }
+
+        @media print {
+          [data-admin-theme="dark"] { color-scheme: light; background: #fff !important; color: #111827 !important; }
+        }
+      `}</style>
     </div>
   );
 }

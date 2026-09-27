@@ -214,12 +214,11 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
                 key={r}
                 type="button"
                 onClick={() => setRole(r)}
-                className="cursor-pointer rounded-lg border py-2 text-sm font-medium transition-colors"
-                style={
+                className={`cursor-pointer rounded-lg border py-2 text-sm font-medium transition-colors ${
                   role === r
-                    ? { background: "#6B85F6", borderColor: "#6B85F6", color: "white" }
-                    : { borderColor: "#D1D5DB", color: "#374151" }
-                }
+                    ? "border-[#6B85F6] bg-[#6B85F6] text-white"
+                    : "border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
+                }`}
               >
                 {r === "GURU" ? "Guru" : "Siswa"}
               </button>
@@ -235,7 +234,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
           required
         />
         {mode === "create" && (
-          <p className="-mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-relaxed text-blue-800">
+          <p className="-mt-2 rounded-lg border border-[#e5e8ef] bg-[#f7f8fd] px-3 py-2 text-xs leading-relaxed text-[#435064]">
             Password awal otomatis sama dengan {role === "SISWA" ? "NIS" : "NIK"}. Saat login pertama, akun akan diminta membuat password baru.
           </p>
         )}
@@ -289,11 +288,11 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
 
         {/* Pilih Kelas (opsional) -- fitur Walas dihapus total dari sini */}
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">
+          <label className="mb-1.5 block text-xs font-semibold text-[#435064]">
             Pilih Kelas (opsional, bisa lebih dari 1 — kosongkan kalau cuma mau simpan datanya dulu)
           </label>
           <select
-            className="w-full rounded-lg border border-[#D1D5DB] px-3.5 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+            className="w-full rounded-lg border border-[#dfe4ef] px-3.5 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
@@ -325,11 +324,11 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">
+          <label className="mb-1.5 block text-xs font-semibold text-[#435064]">
             Foto Profil {role === "SISWA" ? "/ Selfie" : ""} (opsional)
           </label>
           <div className="flex gap-2">
-            <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-[#D1D5DB] text-[#9CA3AF] transition-colors hover:border-[#6B85F6]">
+            <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-[#dfe4ef] text-[#9CA3AF] transition-colors hover:border-[#6B85F6]">
               {fotoProfil ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={fotoProfil} alt="Preview" className="h-full w-full object-cover" />
@@ -352,7 +351,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
               />
             </label>
 
-            <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-[#D1D5DB] text-[#9CA3AF] transition-colors hover:border-[#6B85F6]">
+            <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-[#dfe4ef] text-[#9CA3AF] transition-colors hover:border-[#6B85F6]">
               {uploadingFoto ? (
                 <span className="text-[10px] font-medium">Upload...</span>
               ) : (

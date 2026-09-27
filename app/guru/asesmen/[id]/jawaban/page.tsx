@@ -79,9 +79,9 @@ export default function GuruJawabanPage() {
         &larr; Kembali ke Asesmen
       </Link>
 
-      <div className="mt-4 rounded-xl border border-black/5 border-t-4 border-t-[#6B85F6] bg-white p-6 shadow-sm">
+      <div className="mt-4 border border-[#e1e5ed] border-t-4 border-t-[#6B85F6] bg-white p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">Jawaban Siswa</p>
-        <h1 className="mt-1 text-2xl font-bold text-[#111827]">{hasil.asesmen.judul}</h1>
+        <h1 className="mt-1 text-2xl font-bold text-[#182033]">{hasil.asesmen.judul}</h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="brand">{hasil.asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online"}</Badge>
           {hasil.asesmen.mapel && <Badge tone="gray">{hasil.asesmen.mapel}</Badge>}
@@ -92,7 +92,7 @@ export default function GuruJawabanPage() {
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
       <div className="mt-6">
-        <h2 className="mb-3 text-base font-bold text-[#111827]">Daftar Perkelas</h2>
+        <h2 className="mb-3 text-base font-bold text-[#182033]">Daftar Perkelas</h2>
         {kelasTujuan.length === 0 ? (
           <p className="text-sm text-[#94A3B8]">Belum ada kelas tujuan.</p>
         ) : (
@@ -104,10 +104,9 @@ export default function GuruJawabanPage() {
                 <button
                   key={kelas.id}
                   onClick={() => setSelectedKelasId(active ? null : kelas.id)}
-                  className="rounded-xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                  style={active ? { borderColor: "#6B85F6", boxShadow: "0 0 0 2px #6B85F633" } : { borderColor: "#E5E7EB" }}
+                  className={`border bg-white p-4 text-left transition-colors ${active ? "border-[#6B85F6]" : "border-[#dfe4ef] hover:border-[#bdc8f8] hover:bg-[#fafbff]"}`}
                 >
-                  <p className="font-bold text-[#111827]">{kelas.judul}</p>
+                  <p className="font-bold text-[#182033]">{kelas.judul}</p>
                   <p className="mt-1 text-xs text-[#64748B]">{count} siswa mengumpulkan jawaban</p>
                 </button>
               );

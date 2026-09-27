@@ -34,14 +34,14 @@ export default function Modal({ open, onClose, title, children, maxWidth = "max-
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl animate-[fadeUp_0.2s_ease-out]`}
+        className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-xl border border-[#e1e5ed] bg-white shadow-lg animate-[fadeUp_0.2s_ease-out]`}
       >
-        <div className="flex items-center justify-between border-b border-black/5 px-6 py-4">
-          <h3 className="text-sm font-bold text-[#111827]">{title}</h3>
+        <div className="flex items-center justify-between border-b border-[#e1e5ed] px-6 py-4">
+          <h3 className="text-sm font-bold text-[#182033]">{title}</h3>
           {dismissible && (
             <button
               onClick={onClose}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[#9CA3AF] transition-colors hover:bg-black/5 hover:text-[#111827]"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#6B85F6]/10 hover:text-[#182033]"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
                 <path d="M18 6 6 18M6 6l12 12" />

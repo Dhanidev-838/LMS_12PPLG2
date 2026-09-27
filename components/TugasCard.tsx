@@ -198,7 +198,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
   }
 
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+    <div className="border border-black/5 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
@@ -253,7 +253,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
               rel={isImageUrl(l.url) ? undefined : "noopener noreferrer"}
               download={l.tipe === "FILE" ? l.judul || undefined : undefined}
               onClick={isImageUrl(l.url) ? (e) => { e.preventDefault(); setPreviewImage({ url: l.url, title: l.judul || "Preview gambar" }); } : undefined}
-              className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white p-3 transition-colors hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
+              className="group flex min-w-0 items-center gap-3 border border-[#E2E8F0] bg-white p-3 transition-colors hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
             >
               <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF2FF] text-[#6B85F6]">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
@@ -368,7 +368,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
                   s.siswa.nama.charAt(0)
                 )}
               </button>
-              <div className="relative flex-1 rounded-lg bg-[#F9FAFB] p-2.5" data-options-menu>
+              <div className="relative flex-1 bg-[#F9FAFB] p-2.5" data-options-menu>
                 {(role === "GURU" || (role === "SISWA" && s.siswa.id === currentUserId)) && (
                   <div className="absolute right-2 top-2" data-options-menu>
                     <button
@@ -422,7 +422,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
                       rel={isImageUrl(l.url) ? undefined : "noopener noreferrer"}
                       download={l.tipe === "FILE" ? l.judul || undefined : undefined}
                       onClick={isImageUrl(l.url) ? (e) => { e.preventDefault(); setPreviewImage({ url: l.url, title: l.judul || "Preview gambar" }); } : undefined}
-                      className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white p-3 transition-colors hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
+                      className="group flex min-w-0 items-center gap-3 border border-[#E2E8F0] bg-white p-3 transition-colors hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
                     >
                       <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF2FF] text-[#6B85F6]">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">

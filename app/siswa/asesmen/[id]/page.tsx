@@ -179,6 +179,9 @@ export default function SiswaAsesmenKerjakanPage() {
   const jawabanSaatIni = currentSoal ? jawabanMap[currentSoal.id] : null;
   const isKuis = asesmen?.tipe === "KUIS";
 
+  const dijawabCount = soalTerfilter.filter((s) => (jawabanMap[s.id]?.opsiIds.length ?? 0) > 0 || !!jawabanMap[s.id]?.jawabanEssay).length;
+  const raguCount = soalTerfilter.filter((s) => jawabanMap[s.id]?.raguRagu).length;
+
   async function simpanJawaban(soalId: string, patch: Partial<JawabanLokal>) {
     setJawabanMap((prev) => ({ ...prev, [soalId]: { ...prev[soalId], ...patch } }));
     const body: { soalId: string; opsiIds?: string[]; jawabanEssay?: string; raguRagu?: boolean } = { soalId };
@@ -253,6 +256,15 @@ export default function SiswaAsesmenKerjakanPage() {
     return [j, m, d].map((n) => String(n).padStart(2, "0")).join(":");
   }
 
+  function soalPillStyle(index: number, s: Soal): React.CSSProperties {
+    const dijawab = (jawabanMap[s.id]?.opsiIds.length ?? 0) > 0 || !!jawabanMap[s.id]?.jawabanEssay;
+    const ragu = jawabanMap[s.id]?.raguRagu;
+    if (index === activeIndex) return { background: "#6B85F6", color: "white" };
+    if (ragu) return { background: "#FEF3C7", color: "#92400E" };
+    if (dijawab) return { background: "#DCFCE7", color: "#166534" };
+    return { background: "#F3F4F6", color: "#374151" };
+  }
+
   if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
   if (error || !asesmen) {
     return (
@@ -267,10 +279,10 @@ export default function SiswaAsesmenKerjakanPage() {
 
   if (sudahSelesai) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-black/5 bg-white p-10 text-center shadow-sm">
+      <div className="flex flex-col items-center gap-3 border border-[#e1e5ed] bg-white p-10 text-center">
         <Badge tone="green">Sudah Dikumpulkan</Badge>
-        <p className="text-lg font-bold text-[#111827]">{asesmen.judul}</p>
-        <p className="text-sm text-[#6B7280]">Jawabanmu sudah tersimpan. Nilai akan diumumkan oleh guru.</p>
+        <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
+        <p className="text-sm text-[#64748B]">Jawabanmu sudah tersimpan. Nilai akan diumumkan oleh guru.</p>
         <Button onClick={() => router.push("/siswa/asesmen")}>Kembali ke Asesmen</Button>
       </div>
     );
@@ -278,49 +290,86 @@ export default function SiswaAsesmenKerjakanPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border border-[#e1e5ed] bg-white p-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-lg font-bold text-[#111827]">{asesmen.judul}</p>
+            <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
             <Badge tone="amber">Sedang Mengerjakan {isKuis ? "Kuis" : "Ujian Online"}</Badge>
           </div>
-          <p className="mt-0.5 text-sm text-[#6B7280]">Mapel - {asesmen.mapel?.nama ?? "-"}</p>
+          <p className="mt-0.5 text-sm text-[#64748B]">Mapel - {asesmen.mapel?.nama ?? "-"}</p>
         </div>
         {asesmen.durasiMenit && (
-          <div className={`rounded-xl border px-4 py-2 text-right ${sisaDetik <= 300 ? "border-red-300 bg-red-50" : "border-black/5 bg-[#F9FAFB]"}`}>
+          <div className={`rounded-xl border px-4 py-2 text-right ${sisaDetik <= 300 ? "border-red-300 bg-red-50" : "border-[#e1e5ed] bg-[#f7f8fd]"}`}>
             <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Sisa Waktu</p>
-            <p className={`text-lg font-bold ${sisaDetik <= 300 ? "text-red-600" : "text-[#111827]"}`}>{formatTimer(sisaDetik)}</p>
+            <p className={`text-lg font-bold ${sisaDetik <= 300 ? "text-red-600" : "text-[#182033]"}`}>{formatTimer(sisaDetik)}</p>
             {sisaDetik <= 300 && <p className="text-[10px] font-semibold text-red-500">Waktu hampir habis!</p>}
           </div>
         )}
       </div>
 
-      {(
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setActiveIndex(0);
-            }}
-            placeholder="Cari soal..."
-            className="min-w-[140px] flex-1 rounded-lg border border-[#D1D5DB] px-3 py-1.5 text-sm outline-none focus:border-[#6B85F6]"
-          />
-          <div className="flex items-center gap-1">
-            <button onClick={() => setActiveIndex((i) => Math.max(0, i - 1))} disabled={activeIndex === 0} className="cursor-pointer rounded-lg border border-[#D1D5DB] px-2 py-1.5 text-xs font-semibold text-[#374151] disabled:opacity-40">
-              {"<<"}
-            </button>
-            <span className="px-2 text-xs font-semibold text-[#6B7280]">
-              {soalTerfilter.length === 0 ? "0/0" : `${activeIndex + 1}/${soalTerfilter.length}`}
+      {/* Baris 1: pencarian soal */}
+      <div className="mt-4">
+        <input
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setActiveIndex(0);
+          }}
+          placeholder="Cari soal..."
+          className="w-full rounded-lg border border-[#dfe4ef] px-3 py-1.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+        />
+      </div>
+
+      {/* Baris 2: strip halaman — scroll ke samping, tap untuk lompat langsung */}
+      {soalTerfilter.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            aria-label="Soal sebelumnya"
+            onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
+            disabled={activeIndex === 0}
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {"<<"}
+          </button>
+
+          <div className="min-w-0 flex-1 overflow-x-auto">
+            <div className="flex gap-2 pb-1">
+              {soalTerfilter.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveIndex(i)}
+                  className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-xs font-semibold transition-colors"
+                  style={soalPillStyle(i, s)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            aria-label="Soal berikutnya"
+            onClick={() => setActiveIndex((i) => Math.min(soalTerfilter.length - 1, i + 1))}
+            disabled={activeIndex >= soalTerfilter.length - 1}
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {">>"}
+          </button>
+        </div>
+      )}
+
+      {/* Card soal — tombol daftar soal di pojok kanan atas, buka overlay terpusat */}
+      <div className="mt-4 min-h-[280px] border border-[#e1e5ed] bg-white p-5">
+        {soalTerfilter.length > 0 && (
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#435064]">
+              {soalTerfilter.length === 0 ? "0/0" : `Soal ${activeIndex + 1}/${soalTerfilter.length}`}
             </span>
-            <button onClick={() => setActiveIndex((i) => Math.min(soalTerfilter.length - 1, i + 1))} disabled={activeIndex >= soalTerfilter.length - 1} className="cursor-pointer rounded-lg border border-[#D1D5DB] px-2 py-1.5 text-xs font-semibold text-[#374151] disabled:opacity-40">
-              {">>"}
-            </button>
             <button
-              onClick={() => setShowGrid((v) => !v)}
-              title={showGrid ? "Tutup daftar soal" : "Buka daftar soal"}
-              aria-label={showGrid ? "Tutup daftar soal" : "Buka daftar soal"}
-              className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[#374151] transition-colors ${showGrid ? "border-[#6B85F6] bg-[#EEF2FF] text-[#6B85F6]" : "border-[#D1D5DB] bg-white hover:bg-black/5"}`}
+              onClick={() => setShowGrid(true)}
+              title="Buka daftar soal"
+              aria-label="Buka daftar soal"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -330,40 +379,8 @@ export default function SiswaAsesmenKerjakanPage() {
               </svg>
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {showGrid && (
-        <div className="mt-2 grid grid-cols-6 gap-1.5 rounded-xl border border-black/5 bg-white p-3 shadow-sm sm:grid-cols-10">
-          {soalTerfilter.map((s, i) => {
-            const dijawab = (jawabanMap[s.id]?.opsiIds.length ?? 0) > 0 || !!jawabanMap[s.id]?.jawabanEssay;
-            const ragu = jawabanMap[s.id]?.raguRagu;
-            return (
-              <button
-                key={s.id}
-                onClick={() => {
-                  setActiveIndex(i);
-                  setShowGrid(false);
-                }}
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-xs font-semibold"
-                style={
-                  i === activeIndex
-                    ? { background: "#6B85F6", color: "white" }
-                    : ragu
-                    ? { background: "#FEF3C7", color: "#92400E" }
-                    : dijawab
-                    ? { background: "#DCFCE7", color: "#166534" }
-                    : { background: "#F3F4F6", color: "#374151" }
-                }
-              >
-                {i + 1}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="mt-4 min-h-[280px] rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
         {!currentSoal ? (
           <p className="text-sm text-[#9CA3AF]">Belum ada soal.</p>
         ) : (
@@ -375,19 +392,16 @@ export default function SiswaAsesmenKerjakanPage() {
               {!isKuis && (
                 <button
                   onClick={() => handleToggleRagu(currentSoal.id)}
-                  className="cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-semibold"
-                  style={
-                    jawabanSaatIni?.raguRagu
-                      ? { background: "#FEF3C7", borderColor: "#FDE68A", color: "#92400E" }
-                      : { borderColor: "#D1D5DB", color: "#374151" }
-                  }
+                  className={`cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-semibold ${
+                    jawabanSaatIni?.raguRagu ? "border-[#FDE68A] bg-[#FEF3C7] text-[#92400E]" : "border-[#dfe4ef] text-[#435064]"
+                  }`}
                 >
                   Ragu-ragu
                 </button>
               )}
             </div>
 
-            <p className="mt-3 text-sm font-semibold text-[#111827]">
+            <p className="mt-3 text-sm font-semibold text-[#182033]">
               {activeIndex + 1}. {currentSoal.pertanyaan}
             </p>
 
@@ -403,14 +417,14 @@ export default function SiswaAsesmenKerjakanPage() {
                 onBlur={() => !isKuis && simpanJawaban(currentSoal.id, { jawabanEssay: jawabanMap[currentSoal.id]?.jawabanEssay ?? "" })}
                 rows={5}
                 placeholder="Tulis jawabanmu di sini..."
-                className="mt-4 w-full rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#6B85F6]"
+                className="mt-4 w-full rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
               />
             ) : (
               <div className="mt-4 space-y-2">
                 {currentSoal.opsi.map((o) => {
                   const dipilih = jawabanSaatIni?.opsiIds.includes(o.id) ?? false;
                   return (
-                    <label key={o.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-sm ${dipilih ? "border-[#6B85F6] bg-[#6B85F6]/5" : "border-black/5"}`}>
+                    <label key={o.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-sm ${dipilih ? "border-[#6B85F6] bg-[#6B85F6]/5" : "border-[#dfe4ef]"}`}>
                       <input
                         type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"}
                         checked={dipilih}
@@ -450,6 +464,36 @@ export default function SiswaAsesmenKerjakanPage() {
           Jawab soal untuk otomatis lanjut ke soal berikutnya. Kamu tidak bisa kembali ke soal sebelumnya.
         </p>
       )}
+
+      {/* Overlay daftar soal — terpusat, seperti di RuangGuru */}
+      <Modal open={showGrid} onClose={() => setShowGrid(false)} title={`Soal yang terisi : ${dijawabCount}/${soalTerfilter.length}`} maxWidth="max-w-lg">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-[#EEF2FF] p-3 text-center">
+            <p className="text-xs font-semibold text-[#4338CA]">Terjawab</p>
+            <p className="mt-1 text-lg font-bold text-[#4338CA]">{dijawabCount}/{soalTerfilter.length}</p>
+          </div>
+          <div className="rounded-lg bg-[#FEF3C7] p-3 text-center">
+            <p className="text-xs font-semibold text-[#92400E]">Ragu-ragu</p>
+            <p className="mt-1 text-lg font-bold text-[#92400E]">{raguCount}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6">
+          {soalTerfilter.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                setActiveIndex(i);
+                setShowGrid(false);
+              }}
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+              style={soalPillStyle(i, s)}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       <Modal
         open={!!pelanggaranModal}

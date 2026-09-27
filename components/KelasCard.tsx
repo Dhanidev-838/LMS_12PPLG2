@@ -44,11 +44,11 @@ export default function KelasCard({
   return (
     <div
       onClick={() => router.push(`${basePath}/${data.id}`)}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group relative cursor-pointer border border-[#e1e5ed] bg-white transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
     >
       <div className="flex items-center justify-between px-4 pt-4">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-[#111827]">{label}</p>
+          <p className="text-sm font-bold text-[#182033]">{label}</p>
           <Badge tone="brand">{data._count?.siswa ?? 0} Siswa</Badge>
         </div>
 
@@ -56,7 +56,7 @@ export default function KelasCard({
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[#9CA3AF] transition-colors hover:bg-black/5"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#6B85F6]/10 hover:text-[#6B85F6]"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                 <circle cx="12" cy="5" r="1.5" />
@@ -66,13 +66,13 @@ export default function KelasCard({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-8 z-20 w-32 overflow-hidden rounded-lg border border-black/5 bg-white shadow-lg">
+              <div className="absolute right-0 top-8 z-20 w-32 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white shadow-md">
                 <button
                   onClick={() => {
                     setMenuOpen(false);
                     onEdit?.(data);
                   }}
-                  className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-[#374151] hover:bg-black/5"
+                  className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10"
                 >
                   Edit Kelas
                 </button>
@@ -93,16 +93,16 @@ export default function KelasCard({
 
       {/* deskripsi -- strip walas dihapus total */}
       <div className="px-4 py-3">
-        <p className="line-clamp-2 text-xs italic text-[#6B7280]">
+        <p className="line-clamp-2 text-xs italic text-[#748096]">
           {data.deskripsi ? `"${data.deskripsi}"` : "Belum ada deskripsi."}
         </p>
       </div>
 
       {isEditable && (
-        <div className="flex items-center gap-1 border-t border-black/5 px-4 py-2.5">
+        <div className="flex items-center gap-1 border-t border-[#edf0f5] px-4 py-2.5">
           <button
             onClick={handleCopyInvite}
-            className="flex cursor-pointer items-center gap-1 text-[11px] font-medium text-[#6B7280] hover:text-[#6B85F6]"
+            className="flex cursor-pointer items-center gap-1 text-[11px] font-medium text-[#748096] hover:text-[#6B85F6]"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5">
               <rect x="9" y="9" width="12" height="12" rx="2" />

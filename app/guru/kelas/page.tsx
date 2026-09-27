@@ -28,7 +28,7 @@ export default function GuruKelasPage() {
     <div>
       <div className="mb-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">Manajemen Kelas</p>
-        <h1 className="mt-1 text-2xl font-bold text-[#111827]">Kelas yang Diampu</h1>
+        <h1 className="mt-1 text-2xl font-bold text-[#182033]">Kelas yang Diampu</h1>
         <p className="mt-1 text-sm text-[#64748B]">Lihat kelas dan siswa yang menjadi tanggung jawabmu.</p>
       </div>
       <JoinClassForm onSuccess={loadKelas} />

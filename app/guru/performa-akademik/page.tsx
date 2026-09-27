@@ -49,9 +49,9 @@ const RANGE_OPTIONS: Array<{ key: RangeKey; label: string }> = [
 
 function StatCard({ label, value, helper }: { label: string; value: string; helper: string }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+    <div className="border border-[#e1e5ed] bg-white p-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-[#111827]">{value}</p>
+      <p className="mt-2 text-3xl font-bold text-[#182033]">{value}</p>
       <p className="mt-1 text-xs text-[#64748B]">{helper}</p>
     </div>
   );
@@ -74,16 +74,16 @@ function ChartBar({ label, value, max, color }: { label: string; value: number; 
 
   return (
     <div className="flex flex-1 flex-col items-center gap-3">
-      <div className="flex h-36 w-full items-end justify-center rounded-xl border border-[#EEF2FF] bg-[#F8FAFF] p-3">
+      <div className="flex h-36 w-full items-end justify-center border border-[#edf0f5] bg-[#f7f8fd] p-3">
         <div
-          className="w-14 rounded-t-xl transition-all duration-300"
+          className="w-14 rounded-t-md transition-all duration-300"
           style={{ height: `${height}%`, background: color }}
           title={`${label}: ${value}`}
         />
       </div>
       <div className="text-center">
         <p className="text-xs font-semibold text-[#64748B]">{label}</p>
-        <p className="text-sm font-bold text-[#111827]">{value}</p>
+        <p className="text-sm font-bold text-[#182033]">{value}</p>
       </div>
     </div>
   );
@@ -100,12 +100,12 @@ function HorizontalBars({ items, suffix = "" }: { items: Array<{ label: string; 
         items.map((item, index) => (
           <div key={`${item.label}-${index}`} className="space-y-2">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="truncate font-medium text-[#334155]">{item.label}</span>
-              <span className="font-semibold text-[#111827]">{item.value}{suffix}</span>
+              <span className="truncate font-medium text-[#435064]">{item.label}</span>
+              <span className="font-semibold text-[#182033]">{item.value}{suffix}</span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
+            <div className="h-2 w-full overflow-hidden bg-[#eef1f8]">
               <div
-                className="h-full rounded-full bg-[#6B85F6]"
+                className="h-full bg-[#6B85F6]"
                 style={{ width: `${(item.value / maxValue) * 100}%` }}
               />
             </div>
@@ -194,14 +194,14 @@ export default function GuruPerformaAkademikPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+      <div className="guru-performance-page space-y-6">
+        <div className="border border-[#e1e5ed] bg-white p-5">
           <div className="h-6 w-40 animate-pulse rounded bg-slate-200" />
           <div className="mt-4 h-10 w-72 animate-pulse rounded bg-slate-200" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-32 animate-pulse rounded-2xl bg-white p-5 shadow-sm" />
+            <div key={index} className="h-32 animate-pulse border border-[#e1e5ed] bg-white p-5" />
           ))}
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function GuruPerformaAkademikPage() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
+      <div className="guru-performance-page border border-red-200 bg-red-50 p-6 text-red-700">
         <p className="text-lg font-bold">Gagal memuat data performa akademik</p>
         <p className="mt-2 text-sm">{error}</p>
         <Button className="mt-4" size="sm" onClick={() => setSelectedRange((current) => current)}>
@@ -222,16 +222,16 @@ export default function GuruPerformaAkademikPage() {
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#CBD5E1] bg-white p-6 text-center shadow-sm">
-        <p className="text-lg font-semibold text-[#111827]">Belum ada data performa</p>
+      <div className="guru-performance-page border border-dashed border-[#dfe4ef] bg-white p-6 text-center">
+        <p className="text-lg font-semibold text-[#182033]">Belum ada data performa</p>
         <p className="mt-2 text-sm text-[#64748B]">Data akan muncul setelah Anda membuat dan mengirim asesmen atau tugas.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl p-6 text-white shadow-sm" style={{ background: "#6B85F6" }}>
+    <div className="guru-performance-page space-y-6">
+      <div className="border border-[#dfe4ef] p-6 text-white" style={{ background: "#6B85F6" }}>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-white/75">Performa Akademik</p>
@@ -269,41 +269,41 @@ export default function GuruPerformaAkademikPage() {
       </div>
 
       {!hasData ? (
-        <div className="rounded-2xl border border-dashed border-[#CBD5E1] bg-white p-6 text-center shadow-sm">
-          <p className="text-lg font-semibold text-[#111827]">Belum ada data pada rentang waktu ini.</p>
+        <div className="border border-dashed border-[#dfe4ef] bg-white p-6 text-center">
+          <p className="text-lg font-semibold text-[#182033]">Belum ada data pada rentang waktu ini.</p>
           <p className="mt-2 text-sm text-[#64748B]">Buat kuis, ujian, atau tugas untuk melihat performa akdemik di sini.</p>
         </div>
       ) : (
         <>
           <div className="grid gap-5 xl:grid-cols-2">
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-              <p className="text-sm font-bold text-[#111827]">Perbandingan Kuis & Ujian</p>
+            <div className="border border-[#e1e5ed] bg-white p-5">
+              <p className="text-sm font-bold text-[#182033]">Perbandingan Kuis & Ujian</p>
               <div className="mt-5 flex items-end gap-6">
                 <ChartBar label="Kuis" value={data.summary.totalKuis} max={comparisonMax} color="#6B85F6" />
-                <ChartBar label="Ujian" value={data.summary.totalUjian} max={comparisonMax} color="#A78BFA" />
+                <ChartBar label="Ujian" value={data.summary.totalUjian} max={comparisonMax} color="#b7c3fb" />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-              <p className="text-sm font-bold text-[#111827]">Progress Tugas Dibuat vs Dikumpulkan</p>
+            <div className="border border-[#e1e5ed] bg-white p-5">
+              <p className="text-sm font-bold text-[#182033]">Progress Tugas Dibuat vs Dikumpulkan</p>
               <div className="mt-5 space-y-4">
                 <div>
-                  <div className="mb-2 flex items-center justify-between text-sm text-[#334155]">
+                  <div className="mb-2 flex items-center justify-between text-sm text-[#435064]">
                     <span>Tugas dibuat</span>
                     <strong>{data.summary.totalTugasDibuat}</strong>
                   </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-[#E2E8F0]">
-                    <div className="h-full rounded-full bg-[#6B85F6]" style={{ width: "100%" }} />
+                  <div className="h-2 overflow-hidden bg-[#eef1f8]">
+                    <div className="h-full bg-[#6B85F6]" style={{ width: "100%" }} />
                   </div>
                 </div>
                 <div>
-                  <div className="mb-2 flex items-center justify-between text-sm text-[#334155]">
+                  <div className="mb-2 flex items-center justify-between text-sm text-[#435064]">
                     <span>Tugas dikumpulkan</span>
                     <strong>{data.summary.totalTugasDikumpulkan}</strong>
                   </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-[#E2E8F0]">
+                  <div className="h-2 overflow-hidden bg-[#eef1f8]">
                     <div
-                      className="h-full rounded-full bg-[#4ADE80]"
+                      className="h-full bg-[#4ADE80]"
                       style={{ width: `${data.summary.totalTugasDibuat > 0 ? (data.summary.totalTugasDikumpulkan / data.summary.totalTugasDibuat) * 100 : 0}%` }}
                     />
                   </div>
@@ -317,38 +317,40 @@ export default function GuruPerformaAkademikPage() {
           </div>
 
           <div className="grid gap-5 xl:grid-cols-2">
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-              <p className="text-sm font-bold text-[#111827]">Rata-rata Nilai per Kelas</p>
+            <div className="border border-[#e1e5ed] bg-white p-5">
+              <p className="text-sm font-bold text-[#182033]">Rata-rata Nilai per Kelas</p>
               <div className="mt-5">
                 <HorizontalBars items={classChart} suffix="" />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-              <p className="text-sm font-bold text-[#111827]">Rata-rata Nilai per Mata Pelajaran</p>
+            <div className="border border-[#e1e5ed] bg-white p-5">
+              <p className="text-sm font-bold text-[#182033]">Rata-rata Nilai per Mata Pelajaran</p>
               <div className="mt-5">
                 <HorizontalBars items={mapelChart} suffix="" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-bold text-[#111827]">Siswa dengan tugas atau essay belum dinilai</p>
-              <Badge tone="amber">{data.summary.siswaBelumDinilai.length} siswa</Badge>
+          <div className="border border-[#e1e5ed] bg-white p-5">
+            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+              <p className="min-w-0 text-sm font-bold text-[#182033]">Siswa dengan tugas atau essay belum dinilai</p>
+              <Badge tone="amber" className="shrink-0 whitespace-nowrap">
+                {data.summary.siswaBelumDinilai.length} siswa
+              </Badge>
             </div>
 
             {data.summary.siswaBelumDinilai.length === 0 ? (
-              <div className="mt-4 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-4 text-sm text-[#64748B]">
+              <div className="mt-4 border border-dashed border-[#dfe4ef] bg-[#f7f8fd] p-4 text-sm text-[#64748B]">
                 Tidak ada siswa dengan tugas atau essay yang menunggu penilaian.
               </div>
             ) : (
               <div className="mt-4 space-y-3">
                 {data.summary.siswaBelumDinilai.map((student) => (
-                  <div key={student.id} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                  <div key={student.id} className="border border-[#edf0f5] bg-[#f7f8fd] p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-semibold text-[#111827]">{student.nama}</p>
+                        <p className="font-semibold text-[#182033]">{student.nama}</p>
                         <p className="text-xs text-[#64748B]">{student.kelas}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -359,9 +361,9 @@ export default function GuruPerformaAkademikPage() {
                         ))}
                       </div>
                     </div>
-                    <ul className="mt-3 space-y-2 text-sm text-[#334155]">
+                    <ul className="mt-3 space-y-2 text-sm text-[#435064]">
                       {student.items.map((item, index) => (
-                        <li key={`${student.id}-${index}`} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2">
+                        <li key={`${student.id}-${index}`} className="flex flex-wrap items-center justify-between gap-3 border border-[#edf0f5] bg-white px-3 py-2">
                           <span>{item.label}</span>
                           <span className="text-xs text-[#64748B]">
                             {item.type === "TUGAS" && item.submittedAt ? new Date(item.submittedAt).toLocaleDateString("id-ID") : "Essay menunggu review"}

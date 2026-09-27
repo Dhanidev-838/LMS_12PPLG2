@@ -2,8 +2,6 @@
 
 import { ButtonHTMLAttributes, ReactNode } from "react";
 
-const BRAND = "#6B85F6";
-
 type Variant = "primary" | "outline" | "danger" | "ghost";
 type Size = "sm" | "md" | "lg";
 
@@ -20,6 +18,13 @@ const sizeClasses: Record<Size, string> = {
   lg: "px-6 py-3 text-sm",
 };
 
+const variantClasses: Record<Variant, string> = {
+  primary: "bg-[#6B85F6] text-white hover:brightness-95",
+  outline: "border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10",
+  danger: "bg-red-500 text-white hover:bg-red-600",
+  ghost: "text-[#748096] hover:bg-[#6B85F6]/10",
+};
+
 export default function Button({
   variant = "primary",
   size = "md",
@@ -27,36 +32,15 @@ export default function Button({
   disabled,
   children,
   className = "",
-  style,
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60";
-
-  const variantStyle: Record<Variant, { className: string; style?: React.CSSProperties }> = {
-    primary: {
-      className: "text-white hover:scale-[1.02] active:scale-[0.98]",
-      style: { background: BRAND },
-    },
-    outline: {
-      className: "border text-[#374151] hover:bg-black/5",
-      style: { borderColor: "#D1D5DB" },
-    },
-    danger: {
-      className: "bg-red-500 text-white hover:bg-red-600",
-    },
-    ghost: {
-      className: "text-[#6B7280] hover:bg-black/5",
-    },
-  };
-
-  const v = variantStyle[variant];
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
   return (
     <button
       disabled={disabled || loading}
-      className={`${base} ${sizeClasses[size]} ${v.className} ${className}`}
-      style={{ ...v.style, ...style }}
+      className={`${base} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {loading ? (

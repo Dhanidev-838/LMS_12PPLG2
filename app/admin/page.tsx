@@ -12,6 +12,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { showConfirm } from "@/lib/dialog";
+import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const BRAND = "#6B85F6";
 
@@ -62,11 +63,14 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
 
+const FIELD_CLASS = "mt-1 w-full rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-sm font-normal text-[#182033] outline-none focus:border-[#6B85F6]";
+const FIELD_LABEL_CLASS = "block text-xs font-semibold text-[#748096]";
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useAdminTheme();
   const [activeTab, setActiveTab] = useState<Tab>("DASHBOARD");
   const [me, setMe] = useState<{ nama: string; role: string; fotoProfil: string | null } | null>(null);
 
@@ -80,6 +84,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
 
   const [openAkunMenuId, setOpenAkunMenuId] = useState<string | null>(null);
+  const [akunMenuPos, setAkunMenuPos] = useState({ top: 0, right: 0 });
   const [jurusanFilter, setJurusanFilter] = useState("");
   const [kelasFilter, setKelasFilter] = useState("");
   const [siswaSearch, setSiswaSearch] = useState("");
@@ -106,6 +111,24 @@ export default function AdminDashboard() {
     const requestedTab = new URLSearchParams(window.location.search).get("tab");
     if (TABS.some((tab) => tab.key === requestedTab)) setActiveTab(requestedTab as Tab);
   }, []);
+
+  useEffect(() => {
+  if (!openAkunMenuId) return;
+  const close = () => setOpenAkunMenuId(null);
+  window.addEventListener("scroll", close, true);
+  window.addEventListener("resize", close);
+  window.addEventListener("click", close);
+  return () => {
+    window.removeEventListener("scroll", close, true);
+    window.removeEventListener("resize", close);
+    window.removeEventListener("click", close);
+  };
+}, [openAkunMenuId]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    return () => document.documentElement.removeAttribute("data-admin-theme");
+  }, [theme]);
 
   useEffect(() => {
     loadTabData(activeTab);
@@ -218,9 +241,16 @@ export default function AdminDashboard() {
     if (res.ok) loadTabData(tab);
   }
 
-  function toggleAkunMenu(id: string) {
-    setOpenAkunMenuId((current) => (current === id ? null : id));
-  }
+  function toggleAkunMenu(id: string, trigger: HTMLElement) {
+  const rect = trigger.getBoundingClientRect();
+  const menuHeight = 80;
+  const openUp = rect.bottom + menuHeight > window.innerHeight;
+  setAkunMenuPos({
+    top: openUp ? rect.top - menuHeight - 4 : rect.bottom + 4,
+    right: window.innerWidth - rect.right,
+  });
+  setOpenAkunMenuId((current) => (current === id ? null : id));
+}
 
   const jurusanOptions = Array.from(new Set(kelasReferensiList.map((kelas) => kelas.jurusan?.nama).filter(Boolean))) as string[];
   const kelasOptions = ["SMP", "SMA", "10", "11", "12"];
@@ -380,31 +410,166 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "PERFORMA" && dashboardData && (
-            <div className="space-y-6">
-              <div><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">Analitik LMS</p><h1 className="mt-1 text-2xl font-bold text-[#111827]">Performa Akademik & Data</h1><p className="mt-1 text-sm text-[#64748B]">Pantau nilai, aktivitas pembelajaran, dan pengguna aktif berdasarkan data nyata sistem.</p></div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Nilai asesmen dinilai"], ["Asesmen Dinilai", dashboardData.statistik.submissionDinilai, "Submission dengan nilai"], ["Tugas Dibuat", dashboardData.statistik.tugasDibuat, "Total tugas guru"], ["Tugas Dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Submission siswa"]].map(([label, value, caption]) => <div key={label as string} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p><p className="mt-2 text-3xl font-bold text-[#111827]">{value}</p><p className="mt-1 text-xs text-[#64748B]">{caption}</p></div>)}
-              </div>
-              <div className="grid gap-5 lg:grid-cols-2">
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Kuis dan Ujian</h2><div className="mt-5 space-y-4">{[["Kuis", dashboardData.statistik.kuis, "#6B85F6"], ["Ujian Online", dashboardData.statistik.ujian, "#8B5CF6"]].map(([label, value, color]) => { const max = Math.max(dashboardData.statistik.kuis, dashboardData.statistik.ujian, 1); return <div key={label as string}><div className="mb-1 flex justify-between text-xs font-semibold text-[#475569]"><span>{label}</span><span>{value}</span></div><div className="h-3 rounded-full bg-[#EEF2FF]"><div className="h-3 rounded-full" style={{ width: `${((value as number) / max) * 100}%`, background: color as string }} /></div></div>; })}</div></div>
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Tugas Dibuat vs Dikumpulkan</h2><div className="mt-5 space-y-4">{[["Tugas dibuat", dashboardData.statistik.tugasDibuat, "#6B85F6"], ["Dikumpulkan siswa", dashboardData.statistik.tugasDikumpulkan, "#16A34A"]].map(([label, value, color]) => { const max = Math.max(dashboardData.statistik.tugasDibuat, dashboardData.statistik.tugasDikumpulkan, 1); return <div key={label as string}><div className="mb-1 flex justify-between text-xs font-semibold text-[#475569]"><span>{label}</span><span>{value}</span></div><div className="h-3 rounded-full bg-[#F1F5F9]"><div className="h-3 rounded-full" style={{ width: `${Math.min(((value as number) / max) * 100, 100)}%`, background: color as string }} /></div></div>; })}</div></div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[["User aktif 14 hari", dashboardData.aktivitas.userAktif, "User dengan aktivitas nyata"], ["Siswa aktif", dashboardData.aktivitas.siswaAktif, "Mengerjakan atau mengumpulkan"], ["Guru aktif", dashboardData.aktivitas.guruAktif, "Membuat asesmen atau tugas"], ["Total user", dashboardData.statistik.siswa + dashboardData.statistik.guru, "Siswa dan guru terdaftar"]].map(([label, value, caption]) => <div key={label as string} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p><p className="mt-2 text-3xl font-bold text-[#111827]">{value}</p><p className="mt-1 text-xs text-[#64748B]">{caption}</p></div>)}
+            <div className="space-y-5">
+              <PageHeader
+                eyebrow="Analitik LMS"
+                title="Performa Akademik & Data"
+                desc="Pantau nilai, aktivitas pembelajaran, dan pengguna aktif berdasarkan data nyata sistem."
+                action={<span className="border border-[#dfe4ef] bg-white px-3 py-1.5 text-xs font-semibold text-[#536076]">Aktivitas 14 hari terakhir</span>}
+              />
+
+              <section className="grid gap-3 lg:grid-cols-[.7fr_1.3fr]">
+                <div className="flex flex-col justify-between gap-8 border border-[#6B85F6] bg-white p-6">
+                  <p className="text-xs font-semibold text-[#748096]">Rata-rata nilai</p>
+                  <div>
+                    <p className="text-5xl font-bold tracking-[-.06em] text-[#182033]">{dashboardData.statistik.rataRataNilai}</p>
+                    <p className="mt-1 text-xs text-[#6f7b8d]">Nilai asesmen dinilai</p>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    ["Asesmen dinilai", dashboardData.statistik.submissionDinilai, "Submission dengan nilai"],
+                    ["Tugas dibuat", dashboardData.statistik.tugasDibuat, "Total tugas guru"],
+                    ["Tugas dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Submission siswa"],
+                  ].map(([label, value, caption]) => (
+                    <div key={label as string} className="flex flex-col justify-between gap-8 border border-[#e1e5ed] bg-white p-4">
+                      <p className="text-xs font-semibold text-[#748096]">{label}</p>
+                      <div>
+                        <p className="text-3xl font-bold tracking-[-.055em] text-[#182033]">{value}</p>
+                        <p className="mt-1 text-xs text-[#6f7b8d]">{caption}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="border border-[#e1e5ed] bg-white">
+                <div className="grid grid-cols-2 divide-x divide-y divide-[#edf0f5] border-b border-[#edf0f5] lg:grid-cols-4 lg:divide-y-0">
+                  {[
+                    ["User aktif 14 hari", dashboardData.aktivitas.userAktif, "User dengan aktivitas nyata"],
+                    ["Siswa aktif", dashboardData.aktivitas.siswaAktif, "Mengerjakan atau mengumpulkan"],
+                    ["Guru aktif", dashboardData.aktivitas.guruAktif, "Membuat asesmen atau tugas"],
+                    ["Total user", dashboardData.statistik.siswa + dashboardData.statistik.guru, "Siswa dan guru terdaftar"],
+                  ].map(([label, value, caption]) => (
+                    <div key={label as string} className="p-4 sm:p-5">
+                      <p className="text-xs font-semibold text-[#748096]">{label}</p>
+                      <p className="mt-3 text-2xl font-bold tracking-[-.05em] text-[#182033]">{value}</p>
+                      <p className="mt-1 text-xs leading-5 text-[#6f7b8d]">{caption}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-5">
+                  <h2 className="text-sm font-bold text-[#182033]">User aktif per hari</h2>
+                  <p className="mt-1 text-xs text-[#748096]">Jumlah user yang melakukan aktivitas nyata setiap hari.</p>
+                  <ActiveUsersLineChart items={dashboardData.aktivitas.aktivitasHarian} />
+                </div>
+              </section>
+
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="space-y-3">
+                  <section className="border border-[#e1e5ed] bg-white p-5">
+                    <h2 className="text-sm font-bold text-[#182033]">Kuis dan ujian</h2>
+                    <div className="mt-4 space-y-4">
+                      {(() => {
+                        const max = Math.max(dashboardData.statistik.kuis, dashboardData.statistik.ujian, 1);
+                        return (
+                          <>
+                            <BarRow label="Kuis" value={dashboardData.statistik.kuis} max={max} />
+                            <BarRow label="Ujian online" value={dashboardData.statistik.ujian} max={max} color="#b7c3fb" />
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </section>
+                  <section className="border border-[#e1e5ed] bg-white p-5">
+                    <h2 className="text-sm font-bold text-[#182033]">Tugas dibuat vs dikumpulkan</h2>
+                    <div className="mt-4 space-y-4">
+                      {(() => {
+                        const max = Math.max(dashboardData.statistik.tugasDibuat, dashboardData.statistik.tugasDikumpulkan, 1);
+                        return (
+                          <>
+                            <BarRow label="Tugas dibuat" value={dashboardData.statistik.tugasDibuat} max={max} />
+                            <BarRow label="Dikumpulkan siswa" value={dashboardData.statistik.tugasDikumpulkan} max={max} color="#b7c3fb" />
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </section>
+                </div>
+
+                <section className="border border-[#e1e5ed] bg-white p-5">
+                  <h2 className="text-sm font-bold text-[#182033]">Distribusi data</h2>
+                  <p className="mt-1 text-xs text-[#748096]">Perbandingan data utama yang tersimpan di sistem.</p>
+                  <div className="mt-5 space-y-4">
+                    {(() => {
+                      const s = dashboardData.statistik;
+                      const max = Math.max(s.siswa, s.guru, s.kelas, s.asesmen, s.tugas, 1);
+                      return (
+                        <>
+                          <BarRow label="Siswa" value={s.siswa} max={max} />
+                          <BarRow label="Guru" value={s.guru} max={max} />
+                          <BarRow label="Kelas" value={s.kelas} max={max} />
+                          <BarRow label="Asesmen" value={s.asesmen} max={max} />
+                          <BarRow label="Tugas" value={s.tugas} max={max} />
+                        </>
+                      );
+                    })()}
+                  </div>
+                </section>
               </div>
 
-              <div className="grid gap-5 lg:grid-cols-2">
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Grafik Linear User Aktif</h2><p className="mt-1 text-xs text-[#64748B]">Jumlah user yang melakukan aktivitas nyata setiap hari.</p><ActiveUsersLineChart items={dashboardData.aktivitas.aktivitasHarian} /></div>
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Grafik Batang Distribusi Data</h2><p className="mt-1 text-xs text-[#64748B]">Perbandingan data utama yang tersimpan di sistem.</p><div className="mt-5 space-y-3">{[["Siswa", dashboardData.statistik.siswa, "#6B85F6"], ["Guru", dashboardData.statistik.guru, "#8B5CF6"], ["Kelas", dashboardData.statistik.kelas, "#14B8A6"], ["Asesmen", dashboardData.statistik.asesmen, "#F59E0B"], ["Tugas", dashboardData.statistik.tugas, "#F97316"]].map(([label, value, color]) => { const max = Math.max(dashboardData.statistik.siswa, dashboardData.statistik.guru, dashboardData.statistik.kelas, dashboardData.statistik.asesmen, dashboardData.statistik.tugas, 1); return <div key={label as string}><div className="mb-1 flex justify-between text-xs font-semibold text-[#475569]"><span>{label}</span><span>{value}</span></div><div className="h-3 rounded-full bg-[#F1F5F9]"><div className="h-3 rounded-full" style={{ width: `${((value as number) / max) * 100}%`, background: color as string }} /></div></div>; })}</div></div>
-              </div>
+              <div className="grid gap-3 lg:grid-cols-[1.2fr_.8fr]">
+                <section className="border border-[#e1e5ed] bg-white">
+                  <div className="border-b border-[#edf0f5] px-5 py-4">
+                    <h2 className="text-sm font-bold text-[#182033]">Rincian data sistem</h2>
+                  </div>
+                  <div className="divide-y divide-[#edf0f5]">
+                    {[
+                      ["Mata pelajaran", dashboardData.statistik.mapel, "Mapel tersedia"],
+                      ["Kuis", dashboardData.statistik.kuis, "Asesmen tipe kuis"],
+                      ["Ujian online", dashboardData.statistik.ujian, "Asesmen tipe ujian"],
+                      ["Submission dinilai", dashboardData.statistik.submissionDinilai, "Memiliki nilai akhir"],
+                      ["Tugas dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Status submission sudah"],
+                    ].map(([label, value, detail]) => (
+                      <div key={label as string} className="flex items-center justify-between gap-4 px-5 py-3">
+                        <div>
+                          <p className="text-sm font-semibold text-[#182033]">{label}</p>
+                          <p className="text-xs text-[#748096]">{detail}</p>
+                        </div>
+                        <span className="text-lg font-bold tracking-[-.04em] text-[#182033]">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
 
-              <div className="grid gap-5 lg:grid-cols-2"><div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Rincian Data Sistem</h2><div className="mt-4 divide-y divide-[#F1F5F9]">{[["Mata pelajaran", dashboardData.statistik.mapel, "Mapel tersedia"], ["Kuis", dashboardData.statistik.kuis, "Asesmen tipe kuis"], ["Ujian online", dashboardData.statistik.ujian, "Asesmen tipe ujian"], ["Submission dinilai", dashboardData.statistik.submissionDinilai, "Memiliki nilai akhir"], ["Tugas dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Status submission sudah"]].map(([label, value, detail]) => <div key={label as string} className="flex items-center justify-between gap-4 py-3"><div><p className="text-sm font-semibold text-[#334155]">{label}</p><p className="text-xs text-[#94A3B8]">{detail}</p></div><strong className="text-lg text-[#111827]">{value}</strong></div>)}</div></div><div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"><h2 className="text-sm font-bold text-[#111827]">Definisi User Aktif</h2><p className="mt-3 text-sm leading-6 text-[#475569]">User aktif bukan dihitung dari login karena sistem belum menyimpan log login. Angka ini menghitung siswa yang mengerjakan asesmen atau mengumpulkan tugas, serta guru yang membuat asesmen atau tugas dalam 14 hari terakhir.</p><div className="mt-4 rounded-xl bg-[#F8FAFC] p-4 text-sm text-[#475569]"><p><strong className="text-[#111827]">Periode:</strong> 14 hari terakhir</p><p className="mt-2"><strong className="text-[#111827]">Sumber:</strong> asesmen, tugas, submission asesmen, dan submission tugas</p></div></div></div>
+                <section className="border border-[#e1e5ed] bg-[#f7f8fd] p-5">
+                  <h2 className="text-sm font-bold text-[#182033]">Definisi user aktif</h2>
+                  <p className="mt-3 text-sm leading-6 text-[#697589]">
+                    User aktif bukan dihitung dari login karena sistem belum menyimpan log login. Angka ini menghitung siswa yang mengerjakan asesmen atau mengumpulkan tugas, serta guru yang membuat asesmen atau tugas dalam 14 hari terakhir.
+                  </p>
+                  <dl className="mt-4 space-y-3 border-t border-[#e5e8ef] pt-4 text-sm">
+                    <div>
+                      <dt className="text-xs font-semibold text-[#748096]">Periode</dt>
+                      <dd className="mt-0.5 font-semibold text-[#182033]">14 hari terakhir</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-semibold text-[#748096]">Sumber</dt>
+                      <dd className="mt-0.5 font-semibold text-[#182033]">Asesmen, tugas, submission asesmen, dan submission tugas</dd>
+                    </div>
+                  </dl>
+                </section>
+              </div>
             </div>
           )}
 
           {!loading && activeTab === "KELAS" && (
             <div className="space-y-5">
-              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e1e5ed] pb-5"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Manajemen kelas</p><h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">Kelas pembelajaran</h1><p className="mt-1 text-sm text-[#6e798b]">Buat dan atur ruang belajar untuk setiap kelompok.</p></div><Button onClick={openBuatKelas}>Buat Kelas</Button></div>
+              <PageHeader
+                eyebrow="Manajemen kelas"
+                title="Kelas pembelajaran"
+                desc="Buat dan atur ruang belajar untuk setiap kelompok."
+                action={<Button onClick={openBuatKelas}>Buat Kelas</Button>}
+              />
               {kelasList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada kelas dibuat.</p>
               ) : (
@@ -425,57 +590,56 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "SISWA" && (
-            <div className="border border-[#e1e5ed] bg-white p-5 sm:p-6">
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-bold text-[#111827]">Daftar Siswa</h2>
-                  <p className="mt-1 text-xs text-[#64748B]">Kelola akun dan kelas siswa.</p>
-                </div>
-                <Button size="sm" onClick={() => openBuatAkun("SISWA")}>+ Buat Akun</Button>
-              </div>
-              <div className="mb-5 grid gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
-                <label className="block text-xs font-semibold text-[#64748B]">
+            <div className="space-y-5">
+              <PageHeader
+                eyebrow="Manajemen akun"
+                title="Daftar Siswa"
+                desc="Kelola akun dan kelas siswa."
+                action={<Button size="sm" onClick={() => openBuatAkun("SISWA")}>+ Buat Akun</Button>}
+              />
+              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
+                <label className={FIELD_LABEL_CLASS}>
                   Jurusan
-                  <select value={jurusanFilter} onChange={(event) => setJurusanFilter(event.target.value)} className="mt-1 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-normal text-[#334155] outline-none focus:border-[#6B85F6]">
+                  <select value={jurusanFilter} onChange={(event) => setJurusanFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">Semua Jurusan</option>
                     {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
                   </select>
                 </label>
-                <label className="block text-xs font-semibold text-[#64748B]">
+                <label className={FIELD_LABEL_CLASS}>
                   Kelas
-                  <select value={kelasFilter} onChange={(event) => setKelasFilter(event.target.value)} className="mt-1 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-normal text-[#334155] outline-none focus:border-[#6B85F6]">
+                  <select value={kelasFilter} onChange={(event) => setKelasFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">Semua Kelas</option>
                     {kelasOptions.map((kelas) => <option key={kelas} value={kelas}>{kelas}</option>)}
                   </select>
                 </label>
-                <label className="block text-xs font-semibold text-[#64748B]">
+                <label className={FIELD_LABEL_CLASS}>
                   Search
-                  <input value={siswaSearch} onChange={(event) => setSiswaSearch(event.target.value)} placeholder="Nama, email, atau NIS..." className="mt-1 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-normal text-[#334155] outline-none focus:border-[#6B85F6]" />
+                  <input value={siswaSearch} onChange={(event) => setSiswaSearch(event.target.value)} placeholder="Nama, email, atau NIS..." className={FIELD_CLASS} />
                 </label>
-                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setSiswaSearch(""); }} className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold text-[#64748B] hover:bg-white hover:text-[#111827]">Reset</button>
+                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setSiswaSearch(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
               </div>
               {filteredSiswaList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada siswa terdaftar.</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto border border-[#e1e5ed] bg-white">
                   <table className="w-full min-w-[850px] text-left text-sm">
-                    <thead className="border-b border-[#E2E8F0] text-xs text-[#94A3B8]"><tr>
+                    <thead className="border-b border-[#e1e5ed] text-xs text-[#748096]"><tr>
                       <th className="pb-3 font-semibold">No</th><th className="pb-3 font-semibold">Profil</th><th className="pb-3 font-semibold">Nama</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">NIS</th><th className="pb-3 font-semibold">Status Siswa</th><th className="pb-3 font-semibold">Kelas/Rombel</th><th className="pb-3 font-semibold">Jurusan</th><th className="pb-3 text-right font-semibold">Aksi</th>
                     </tr></thead>
-                    <tbody className="divide-y divide-[#F1F5F9]">{filteredSiswaList.map((s, index) => (
+                    <tbody className="divide-y divide-[#edf0f5]">{filteredSiswaList.map((s, index) => (
                       <tr key={s.id} onClick={() => router.push(`/profil/${s.id}`)} className="cursor-pointer hover:bg-[#6B85F6]/10">
-                        <td className="py-3 text-xs text-[#64748B]">{index + 1}</td>
-                        <td className="py-3"><div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#64748B]">{s.fotoProfil ? <img src={s.fotoProfil} alt={s.nama} className="h-full w-full object-cover" /> : s.nama.charAt(0)}</div></td>
-                        <td className="py-3 font-semibold text-[#111827]">{s.nama}</td><td className="py-3 text-xs text-[#64748B]">{s.email}</td><td className="py-3 text-xs text-[#64748B]">{s.nis ?? "-"}</td>
+                        <td className="py-3 text-xs text-[#748096]">{index + 1}</td>
+                        <td className="py-3"><Avatar foto={s.fotoProfil} nama={s.nama} /></td>
+                        <td className="py-3 font-semibold text-[#111827]">{s.nama}</td><td className="py-3 text-xs text-[#748096]">{s.email}</td><td className="py-3 text-xs text-[#748096]">{s.nis ?? "-"}</td>
                         <td className="py-3"><Badge tone="green">Aktif</Badge></td>
                         <td
-                          className="py-3 text-xs text-[#64748B]"
+                          className="py-3 text-xs text-[#748096]"
                           title={s.kelasSiswa?.map((item) => item.kelas.judul).join(", ") || "Belum ada kelas"}
                         >
                           {s.kelasSiswa?.length ?? 0} Kelas
                         </td>
-                        <td className="py-3 text-xs text-[#64748B]">{s.kelasReferensi?.label ?? "-"}</td>
-                        <td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(s.id); }} className="rounded-lg p-2 text-lg font-bold text-[#64748B] hover:bg-[#6B85F6]/10">⋮</button>{openAkunMenuId === s.id && <div className="absolute right-2 top-11 z-20 w-28 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white py-1 text-left shadow-lg"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(s); }} className="block w-full px-3 py-2 text-xs hover:bg-[#6B85F6]/10">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(s.id, "SISWA"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td>
+                        <td className="py-3 text-xs text-[#748096]">{s.kelasReferensi?.label ?? "-"}</td>
+                        <td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(s.id, event.currentTarget); }} aria-label="Menu aksi" className="rounded-lg p-2 text-lg font-bold text-[#748096] hover:bg-[#6B85F6]/10">⋮</button>{openAkunMenuId === s.id && <div style={{ top: akunMenuPos.top, right: akunMenuPos.right }} className="fixed z-50 w-28 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 text-left shadow-md"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(s); }} className="block w-full px-3 py-2 text-xs hover:bg-[#6B85F6]/10">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(s.id, "SISWA"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td>
                       </tr>
                     ))}</tbody>
                   </table>
@@ -485,32 +649,58 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === "GURU" && (
-            <div className="border border-[#e1e5ed] bg-white p-5 sm:p-6">
-              <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold text-[#111827]">Daftar Guru</h2><p className="mt-1 text-xs text-[#64748B]">Kelola akun guru dan mapel yang diampu.</p></div><Button size="sm" onClick={() => openBuatAkun("GURU")}>+ Tambah Guru</Button></div>
-              <div className="mb-5 grid gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
-                <label className="block text-xs font-semibold text-[#64748B]">
+            <div className="space-y-5">
+              <PageHeader
+                eyebrow="Manajemen akun"
+                title="Daftar Guru"
+                desc="Kelola akun guru dan mapel yang diampu."
+                action={<Button size="sm" onClick={() => openBuatAkun("GURU")}>+ Tambah Guru</Button>}
+              />
+              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
+                <label className={FIELD_LABEL_CLASS}>
                   Mapel
-                  <select value={mapelFilter} onChange={(event) => setMapelFilter(event.target.value)} className="mt-1 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-normal text-[#334155] outline-none focus:border-[#6B85F6]">
+                  <select value={mapelFilter} onChange={(event) => setMapelFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">Semua Mapel</option>
                     {mapelOptions.map((mapel) => <option key={mapel} value={mapel}>{mapel}</option>)}
                   </select>
                 </label>
-                <label className="block text-xs font-semibold text-[#64748B]">
+                <label className={FIELD_LABEL_CLASS}>
                   Search
-                  <input value={guruSearch} onChange={(event) => setGuruSearch(event.target.value)} placeholder="Nama, email, atau NIK..." className="mt-1 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-normal text-[#334155] outline-none focus:border-[#6B85F6]" />
+                  <input value={guruSearch} onChange={(event) => setGuruSearch(event.target.value)} placeholder="Nama, email, atau NIK..." className={FIELD_CLASS} />
                 </label>
-                <button type="button" onClick={() => { setMapelFilter(""); setGuruSearch(""); }} className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold text-[#64748B] hover:bg-white hover:text-[#111827]">Reset</button>
+                <button type="button" onClick={() => { setMapelFilter(""); setGuruSearch(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
               </div>
               {filteredGuruList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada guru terdaftar.</p>
               ) : (
-                <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="border-b border-[#E2E8F0] text-xs text-[#94A3B8]"><tr><th className="pb-3 font-semibold">No</th><th className="pb-3 font-semibold">Profil</th><th className="pb-3 font-semibold">Nama</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">NIK</th><th className="pb-3 font-semibold">Status Guru</th><th className="pb-3 font-semibold">Mapel</th><th className="pb-3 text-right font-semibold">Aksi</th></tr></thead><tbody className="divide-y divide-[#F1F5F9]">{filteredGuruList.map((g, index) => (<tr key={g.id} onClick={() => router.push(`/profil/${g.id}`)} className="cursor-pointer hover:bg-[#F8FAFC]"><td className="py-3 text-xs text-[#64748B]">{index + 1}</td><td className="py-3"><div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#64748B]">{g.fotoProfil ? <img src={g.fotoProfil} alt={g.nama} className="h-full w-full object-cover" /> : g.nama.charAt(0)}</div></td><td className="py-3 font-semibold text-[#111827]">{g.nama}</td><td className="py-3 text-xs text-[#64748B]">{g.email}</td><td className="py-3 text-xs text-[#64748B]">{g.nik ?? "-"}</td><td className="py-3"><Badge tone="green">Aktif</Badge></td><td className="py-3 text-xs text-[#64748B]">{Array.from(new Set(g.kelasGuruMapel?.map((item) => item.mapel.nama) ?? [])).join(", ") || "Belum ada mapel"}</td><td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(g.id); }} className="rounded-lg p-2 text-lg font-bold text-[#64748B] hover:bg-[#F1F5F9]">⋮</button>{openAkunMenuId === g.id && <div className="absolute right-2 top-11 z-20 w-28 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white py-1 text-left shadow-lg"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(g); }} className="block w-full px-3 py-2 text-xs hover:bg-[#F8FAFC]">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(g.id, "GURU"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td></tr>))}</tbody></table></div>
+                <div className="overflow-x-auto border border-[#e1e5ed] bg-white">
+                  <table className="w-full min-w-[760px] text-left text-sm">
+                    <thead className="border-b border-[#e1e5ed] text-xs text-[#748096]"><tr>
+                      <th className="pb-3 font-semibold">No</th><th className="pb-3 font-semibold">Profil</th><th className="pb-3 font-semibold">Nama</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">NIK</th><th className="pb-3 font-semibold">Status Guru</th><th className="pb-3 font-semibold">Mapel</th><th className="pb-3 text-right font-semibold">Aksi</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-[#edf0f5]">{filteredGuruList.map((g, index) => (
+                      <tr key={g.id} onClick={() => router.push(`/profil/${g.id}`)} className="cursor-pointer hover:bg-[#6B85F6]/10">
+                        <td className="py-3 text-xs text-[#748096]">{index + 1}</td>
+                        <td className="py-3"><Avatar foto={g.fotoProfil} nama={g.nama} /></td>
+                        <td className="py-3 font-semibold text-[#111827]">{g.nama}</td><td className="py-3 text-xs text-[#748096]">{g.email}</td><td className="py-3 text-xs text-[#748096]">{g.nik ?? "-"}</td>
+                        <td className="py-3"><Badge tone="green">Aktif</Badge></td>
+                        <td className="py-3 text-xs text-[#748096]">{Array.from(new Set(g.kelasGuruMapel?.map((item) => item.mapel.nama) ?? [])).join(", ") || "Belum ada mapel"}</td>
+                        <td className="relative whitespace-nowrap py-3 text-right"><button type="button" onClick={(event) => { event.stopPropagation(); toggleAkunMenu(g.id, event.currentTarget); }} aria-label="Menu aksi" className="rounded-lg p-2 text-lg font-bold text-[#748096] hover:bg-[#6B85F6]/10">⋮</button>{openAkunMenuId === g.id && <div style={{ top: akunMenuPos.top, right: akunMenuPos.right }} className="fixed z-50 w-28 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 text-left shadow-md"><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); openEditAkun(g); }} className="block w-full px-3 py-2 text-xs hover:bg-[#6B85F6]/10">Edit</button><button type="button" onClick={(event) => { event.stopPropagation(); setOpenAkunMenuId(null); void handleDeleteAkun(g.id, "GURU"); }} className="block w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50">Hapus</button></div>}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
 
           {!loading && activeTab === "LAPORAN" && (
-            <div className="space-y-3"><div className="border-b border-[#e1e5ed] pb-5"><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Tindak lanjut</p><h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">Laporan password</h1><p className="mt-1 text-sm text-[#6e798b]">Tinjau laporan dan proses permintaan perubahan password.</p></div>
+            <div className="space-y-3">
+              <PageHeader
+                eyebrow="Tindak lanjut"
+                title="Laporan password"
+                desc="Tinjau laporan dan proses permintaan perubahan password."
+              />
               {laporanList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Tidak ada laporan lupa password saat ini.</p>
               ) : (
@@ -564,40 +754,139 @@ export default function AdminDashboard() {
         initialData={editingAkun}
       />
       <style jsx global>{`
-        .admin-shell main .rounded-2xl { border-radius: 12px; }
-        .admin-shell main .shadow-sm { box-shadow: none; }
-        .admin-shell main table thead { background: #f8f9fc; }
-        .admin-shell main table th { padding: 12px 10px; }
-        .admin-shell main table td { padding-left: 10px; padding-right: 10px; }
-        .admin-shell main input:focus,
-        .admin-shell main select:focus { box-shadow: 0 0 0 3px rgba(107, 133, 246, .12); }
-        .admin-shell[data-admin-theme="dark"] { background: #10141d !important; color: #eef2f8; }
-        .admin-shell[data-admin-theme="dark"] header,
-        .admin-shell[data-admin-theme="dark"] .bg-white { background-color: #171d28 !important; }
-        .admin-shell[data-admin-theme="dark"] header,
-        .admin-shell[data-admin-theme="dark"] aside > div,
-        .admin-shell[data-admin-theme="dark"] .border { border-color: #2a3343 !important; }
-        .admin-shell[data-admin-theme="dark"] .bg-\[\#F9FAFB\],
-        .admin-shell[data-admin-theme="dark"] .bg-\[\#F8FAFC\],
-        .admin-shell[data-admin-theme="dark"] .bg-\[\#f7f8fd\],
-        .admin-shell[data-admin-theme="dark"] .bg-\[\#f6f7fb\] { background-color: #10141d !important; }
-        .admin-shell[data-admin-theme="dark"] input,
-        .admin-shell[data-admin-theme="dark"] select { background-color: #111722 !important; border-color: #344054 !important; color: #e9eef8 !important; }
-        .admin-shell[data-admin-theme="dark"] main table thead { background-color: #1b2230 !important; }
-        .admin-shell[data-admin-theme="dark"] main table tbody { color: #e9eef8 !important; }
-        .admin-shell[data-admin-theme="dark"] main table tbody tr:hover { background-color: rgba(107, 133, 246, .12) !important; }
-        .admin-shell[data-admin-theme="dark"] main table tbody td { color: #aeb8c9; }
-        .admin-shell[data-admin-theme="dark"] main table tbody td.text-\[\#111827\] { color: #f3f6fb !important; }
-        .admin-shell[data-admin-theme="dark"] main table tbody button:hover { background-color: rgba(107, 133, 246, .12) !important; }
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#748096]"],
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#707b8d]"] { color: #aeb8c9 !important; }
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#111827]"],
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#182033]"] { color: #f3f6fb !important; }
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#64748B]"],
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#6B7280]"],
-        .admin-shell[data-admin-theme="dark"] [class*="text-[#94A3B8]"] { color: #aeb8c9 !important; }
-        .admin-shell[data-admin-theme="dark"] footer { background: #121824 !important; border-color: #2a3343 !important; }
-      `}</style>
+  /* ---------- Light: sisa aturan lama ---------- */
+  .admin-shell main .rounded-2xl { border-radius: 12px; }
+  .admin-shell main .shadow-sm { box-shadow: none; }
+  .admin-shell main table thead { background: #f8f9fc; }
+  .admin-shell main table th { padding: 12px 10px; }
+  .admin-shell main table td { padding-left: 10px; padding-right: 10px; }
+  .admin-shell main input:focus,
+  .admin-shell main select:focus { box-shadow: 0 0 0 3px rgba(107, 133, 246, .12); }
+
+  /* ---------- Dark ---------- */
+  [data-admin-theme="dark"] { color-scheme: dark; }
+  .admin-shell[data-admin-theme="dark"] { background: #10141d !important; color: #eef2f8; }
+
+  /* Permukaan */
+  [data-admin-theme="dark"] header,
+  [data-admin-theme="dark"] .bg-white { background-color: #171d28 !important; }
+  [data-admin-theme="dark"] [class~="bg-[#F9FAFB]"],
+  [data-admin-theme="dark"] [class~="bg-[#F8FAFC]"],
+  [data-admin-theme="dark"] [class~="bg-[#f7f8fd]"],
+  [data-admin-theme="dark"] [class~="bg-[#f6f7fb]"],
+  [data-admin-theme="dark"] [class~="bg-[#f8f9fc]"],
+  [data-admin-theme="dark"] [class~="bg-gray-50"],
+  [data-admin-theme="dark"] [class~="bg-slate-50"] { background-color: #10141d !important; }
+  [data-admin-theme="dark"] [class~="bg-gray-100"],
+  [data-admin-theme="dark"] [class~="bg-slate-100"] { background-color: #1b2230 !important; }
+  [data-admin-theme="dark"] [class~="bg-[#eef1f8]"] { background-color: #232c3d !important; }
+  [data-admin-theme="dark"] [class~="bg-[#E5E7EB]"] { background-color: #2a3343 !important; }
+
+  /* Border (border brand #6B85F6 tetap dipertahankan) */
+  [data-admin-theme="dark"] header,
+  [data-admin-theme="dark"] .border:not([class~="border-[#6B85F6]"]),
+  [data-admin-theme="dark"] [class~="border-[#e1e5ed]"],
+  [data-admin-theme="dark"] [class~="border-[#dfe4ef]"],
+  [data-admin-theme="dark"] [class~="border-[#e6e9f0]"],
+  [data-admin-theme="dark"] [class~="border-[#edf0f5]"],
+  [data-admin-theme="dark"] [class~="border-[#e5e8ef]"],
+  [data-admin-theme="dark"] [class~="border-[#E2E8F0]"],
+  [data-admin-theme="dark"] [class~="border-[#F1F5F9]"] { border-color: #2a3343 !important; }
+  [data-admin-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]),
+  [data-admin-theme="dark"] .divide-x > :not([hidden]) ~ :not([hidden]) { border-color: #2a3343 !important; }
+
+  /* Teks utama */
+  [data-admin-theme="dark"] :is(
+    [class*="text-[#111827]" i], [class*="text-[#182033]" i], [class*="text-[#0F172A]" i],
+    [class*="text-[#1E293B]" i], [class*="text-[#1F2937]" i], [class*="text-[#334155]" i],
+    [class*="text-[#374151]" i], [class*="text-black"],
+    [class~="text-gray-900"], [class~="text-gray-800"], [class~="text-gray-700"],
+    [class~="text-slate-900"], [class~="text-slate-800"], [class~="text-slate-700"]
+  ) { color: #f3f6fb !important; }
+
+  /* Teks sekunder */
+  [data-admin-theme="dark"] :is(
+    [class*="text-[#64748B]" i], [class*="text-[#6B7280]" i], [class*="text-[#94A3B8]" i],
+    [class*="text-[#9CA3AF]" i], [class*="text-[#475569]" i], [class*="text-[#4B5563]" i],
+    [class*="text-[#748096]" i], [class*="text-[#707b8d]" i], [class*="text-[#435064]" i],
+    [class*="text-[#6e798b]" i], [class*="text-[#6f7b8d]" i], [class*="text-[#697589]" i],
+    [class*="text-[#536076]" i], [class*="text-[#4f5b70]" i], [class*="text-[#576277]" i],
+    [class*="text-[#8490a3]" i], [class*="text-[#8290a3]" i],
+    [class~="text-gray-600"], [class~="text-gray-500"], [class~="text-gray-400"],
+    [class~="text-slate-600"], [class~="text-slate-500"], [class~="text-slate-400"]
+  ) { color: #aeb8c9 !important; }
+
+  /* Hover: selalu ungu transparan, teks tidak berubah */
+  [data-admin-theme="dark"] [class*="hover:bg-"]:hover:not([class~="hover:bg-[#5974ed]"]):not([class~="hover:bg-red-50"]) { background-color: rgba(107, 133, 246, .14) !important; }
+  [data-admin-theme="dark"] [class~="hover:bg-red-50"]:hover { background-color: rgba(239, 68, 68, .14) !important; }
+  [data-admin-theme="dark"] [class~="hover:border-[#bdc8f8]"]:hover { border-color: #6B85F6 !important; }
+  [data-admin-theme="dark"] .admin-shell main table tbody tr:hover,
+  .admin-shell[data-admin-theme="dark"] main table tbody tr:hover { background-color: rgba(107, 133, 246, .12) !important; }
+
+  /* Form */
+  [data-admin-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  [data-admin-theme="dark"] select,
+  [data-admin-theme="dark"] textarea { background-color: #111722 !important; border-color: #344054 !important; color: #e9eef8 !important; }
+  [data-admin-theme="dark"] input::placeholder,
+  [data-admin-theme="dark"] textarea::placeholder { color: #7d889b !important; }
+  [data-admin-theme="dark"] option { background-color: #111722; color: #e9eef8; }
+
+  /* Tabel */
+  .admin-shell[data-admin-theme="dark"] main table thead { background-color: #1b2230 !important; }
+  .admin-shell[data-admin-theme="dark"] main table tbody td { color: #aeb8c9; }
+
+  /* Grafik SVG */
+  [data-admin-theme="dark"] svg line[stroke="#e6e9f0"] { stroke: #2a3343; }
+  [data-admin-theme="dark"] svg circle[fill="#ffffff"] { fill: #171d28; }
+  [data-admin-theme="dark"] svg text[fill="#8490a3"] { fill: #aeb8c9; }
+
+  /* Kotak peringatan (modal hapus) */
+  [data-admin-theme="dark"] [class~="bg-red-50"] { background-color: rgba(239, 68, 68, .12) !important; }
+  [data-admin-theme="dark"] [class~="border-red-100"] { border-color: rgba(239, 68, 68, .35) !important; }
+  [data-admin-theme="dark"] :is([class~="text-red-700"], [class~="text-red-600"]) { color: #fca5a5 !important; }
+
+  [data-admin-theme="dark"] footer { background: #121824 !important; border-color: #2a3343 !important; }
+`}</style>
+    </div>
+  );
+}
+
+function PageHeader({ eyebrow, title, desc, action }: { eyebrow: string; title: string; desc: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e1e5ed] pb-5">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">{eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">{title}</h1>
+        <p className="mt-1 text-sm text-[#6e798b]">{desc}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function Avatar({ foto, nama }: { foto: string | null | undefined; nama: string }) {
+  return (
+    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#64748B]">
+      {foto ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={foto} alt={nama} className="h-full w-full object-cover" />
+      ) : (
+        nama.charAt(0)
+      )}
+    </div>
+  );
+}
+
+function BarRow({ label, value, max, color = BRAND }: { label: string; value: number; max: number; color?: string }) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between text-xs">
+        <span className="font-semibold text-[#435064]">{label}</span>
+        <span className="font-bold text-[#182033]">{value}</span>
+      </div>
+      <div className="h-2 bg-[#eef1f8]">
+        <div className="h-2" style={{ width: `${Math.min((value / max) * 100, 100)}%`, background: color }} />
+      </div>
     </div>
   );
 }
@@ -606,7 +895,7 @@ type ActivityDay = AdminDashboardData["aktivitas"]["aktivitasHarian"][number];
 
 function ActiveUsersLineChart({ items }: { items: ActivityDay[] }) {
   if (items.length === 0) {
-    return <p className="mt-5 text-sm text-[#94A3B8]">Data user aktif belum tersedia.</p>;
+    return <p className="mt-5 text-sm text-[#748096]">Data user aktif belum tersedia.</p>;
   }
 
   const width = 640;
@@ -628,17 +917,17 @@ function ActiveUsersLineChart({ items }: { items: ActivityDay[] }) {
       <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[560px]" role="img" aria-label="Jumlah user aktif per hari">
         {gridValues.map((value) => (
           <g key={value}>
-            <line x1={left} x2={width - right} y1={yFor(value)} y2={yFor(value)} stroke="#E2E8F0" strokeDasharray="4 4" />
-            <text x={left - 8} y={yFor(value) + 4} textAnchor="end" fontSize="11" fill="#94A3B8">{value}</text>
+            <line x1={left} x2={width - right} y1={yFor(value)} y2={yFor(value)} stroke="#e6e9f0" />
+            <text x={left - 8} y={yFor(value) + 4} textAnchor="end" fontSize="11" fill="#8490a3">{value}</text>
           </g>
         ))}
-        <polyline points={points} fill="none" stroke="#6B85F6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points={points} fill="none" stroke="#6B85F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         {items.map((item, index) => (
           <g key={item.tanggal}>
-            <circle cx={xFor(index)} cy={yFor(item.userAktif)} r="4" fill="#ffffff" stroke="#6B85F6" strokeWidth="3">
+            <circle cx={xFor(index)} cy={yFor(item.userAktif)} r="3.5" fill="#ffffff" stroke="#6B85F6" strokeWidth="2">
               <title>{`${item.tanggal}: ${item.userAktif} user aktif`}</title>
             </circle>
-            <text x={xFor(index)} y={height - 14} textAnchor="middle" fontSize="10" fill="#94A3B8">{item.tanggal.slice(5)}</text>
+            <text x={xFor(index)} y={height - 14} textAnchor="middle" fontSize="10" fill="#8490a3">{item.tanggal.slice(5)}</text>
           </g>
         ))}
       </svg>

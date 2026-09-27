@@ -70,7 +70,7 @@ export default function GuruTugasPage() {
 
   return (
     <div>
-      <div className="rounded-2xl p-5 text-white shadow-sm" style={{ background: BRAND }}>
+      <div className="border border-[#dfe4ef] p-5 text-white" style={{ background: BRAND }}>
         <p className="text-sm font-bold">Selamat Datang di Tab Tugas</p>
         <p className="mt-1 text-sm text-white/85">Buat Tugas kemudian kirim ke suatu kelas untuk memulai tugas.</p>
       </div>
@@ -78,7 +78,7 @@ export default function GuruTugasPage() {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <Button onClick={openBuat}>+ Buat Tugas</Button>
         <select
-          className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#6B85F6]"
+          className="rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
           value={filterKelasId}
           onChange={(e) => setFilterKelasId(e.target.value)}
         >
@@ -96,7 +96,7 @@ export default function GuruTugasPage() {
       ) : (
         <>
           <div className="mt-6">
-            <p className="mb-3 text-sm font-bold text-[#111827]">Tugas Hari Ini</p>
+            <p className="mb-3 text-sm font-bold text-[#182033]">Tugas Hari Ini</p>
             {hariIni.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Belum ada tugas dibuat hari ini.</p>
             ) : (
@@ -109,7 +109,7 @@ export default function GuruTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#111827]">History</p>
+            <p className="mb-3 text-sm font-bold text-[#182033]">History</p>
             {history.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Belum ada riwayat tugas.</p>
             ) : (

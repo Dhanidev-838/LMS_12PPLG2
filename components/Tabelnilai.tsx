@@ -109,9 +109,9 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
   }
 
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+    <div className="border border-[#e1e5ed] bg-white p-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-[#111827]">Nilai Siswa</p>
+        <p className="text-sm font-bold text-[#182033]">Nilai Siswa</p>
         <div className="flex gap-2">
           <Button size="sm" loading={downloading} onClick={handleDownload}>
             Generate Excel
@@ -123,16 +123,16 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
         <p className="mt-6 text-center text-xs text-[#9CA3AF]">Belum ada siswa yang mengumpulkan.</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-black/5 text-xs text-[#9CA3AF]">
-                <th className="pb-2 font-semibold">Nama</th>
-                <th className="pb-2 font-semibold">NIS</th>
-                <th className="pb-2 font-semibold">Kelas/Jurusan</th>
-                <th className="pb-2 font-semibold">Soal Terjawab</th>
-                <th className="pb-2 text-right font-semibold">Nilai Objektif</th>
-                <th className="pb-2 text-right font-semibold">Nilai Akhir</th>
-                <th className="pb-2 text-right font-semibold">{readOnly ? "Detail" : "Aksi"}</th>
+              <tr className="border-b border-[#e1e5ed] text-xs text-[#9CA3AF]">
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Nama</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">NIS</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Kelas/Jurusan</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Soal Terjawab</th>
+                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">Nilai Objektif</th>
+                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">Nilai Akhir</th>
+                <th className="whitespace-nowrap pb-2 text-right font-semibold">{readOnly ? "Detail" : "Aksi"}</th>
               </tr>
             </thead>
             <tbody>
@@ -140,45 +140,49 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
                 <tr
                   key={row.submissionId}
                   onClick={() => router.push(`${basePath}/${asesmenId}/jawaban/${row.submissionId}`)}
-                  className="cursor-pointer border-b border-black/5 transition-colors hover:bg-[#F8FAFC] last:border-0"
+                  className="cursor-pointer border-b border-[#edf0f5] transition-colors hover:bg-[#6B85F6]/10 last:border-0"
                 >
-                  <td className="py-2.5 font-medium text-[#111827]">{row.nama}</td>
-                  <td className="py-2.5 text-xs text-[#6B7280]">{row.nis}</td>
-                  <td className="py-2.5 text-xs text-[#6B7280]">{row.kelasReferensi}</td>
-                  <td className="py-2.5 text-xs text-[#6B7280]">{row.totalSoalTerjawab}</td>
-                  <td className="py-2.5 text-right">
+                  <td className="whitespace-nowrap py-2.5 pr-4 font-medium text-[#182033]">{row.nama}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.nis}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.kelasReferensi}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.totalSoalTerjawab}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-right">
                     <Badge tone={row.nilaiObjektif >= 75 ? "green" : row.nilaiObjektif >= 50 ? "amber" : "red"}>
                       {row.nilaiObjektif}
                     </Badge>
                   </td>
-                  <td className="py-2.5 text-right">
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-right">
                     <Badge tone={(row.nilaiAkhir ?? row.nilaiObjektif) >= 75 ? "green" : (row.nilaiAkhir ?? row.nilaiObjektif) >= 50 ? "amber" : "red"}>
                       {row.nilaiAkhir ?? "-"}
                     </Badge>
                   </td>
-                  <td className="py-2.5 text-right">
-                    {!readOnly && <Button
-                      size="sm"
-                      variant="outline"
-                      loading={resettingSubmissionId === row.submissionId}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setResetRequest({ type: "asesmen", submissionId: row.submissionId, nama: row.nama });
-                      }}
-                    >
-                      Reset Asesmen
-                    </Button>}
-                    {!readOnly && <Button
-                      size="sm"
-                      variant="outline"
-                      loading={resettingSubmissionId === row.submissionId}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setResetRequest({ type: "nilai", submissionId: row.submissionId, nama: row.nama });
-                      }}
-                    >
-                      Reset Nilai
-                    </Button>}
+                  <td className="whitespace-nowrap py-2.5 text-right">
+                    {!readOnly && (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          loading={resettingSubmissionId === row.submissionId}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setResetRequest({ type: "asesmen", submissionId: row.submissionId, nama: row.nama });
+                          }}
+                        >
+                          Reset Asesmen
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          loading={resettingSubmissionId === row.submissionId}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setResetRequest({ type: "nilai", submissionId: row.submissionId, nama: row.nama });
+                          }}
+                        >
+                          Reset Nilai
+                        </Button>
+                      </div>
+                    )}
                     {readOnly && <span className="text-xs font-semibold text-[#6B85F6]">Lihat jawaban</span>}
                   </td>
                 </tr>
@@ -194,11 +198,11 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
         title={resetRequest?.type === "asesmen" ? "Reset Asesmen Siswa" : "Reset Nilai Siswa"}
       >
         {resetRequest?.type === "asesmen" ? (
-          <p className="text-sm leading-6 text-[#475569]">
+          <p className="text-sm leading-6 text-[#435064]">
             Semua jawaban <strong>{resetRequest.nama}</strong> akan dihapus dan siswa dapat mengerjakan asesmen ini dari awal.
           </p>
         ) : (
-          <p className="text-sm leading-6 text-[#475569]">
+          <p className="text-sm leading-6 text-[#435064]">
             Nilai akhir <strong>{resetRequest?.nama}</strong> akan dikosongkan. Jawaban siswa tetap tersimpan.
           </p>
         )}

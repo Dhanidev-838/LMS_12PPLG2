@@ -105,13 +105,13 @@ export default function SiswaAsesmenPage() {
       ) : (
         <div className="space-y-5">
           {kelompok.map((group) => group.data.length > 0 && (
-            <section key={group.key} className="overflow-hidden rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+            <section key={group.key} className="border border-[#e1e5ed] bg-white p-4 sm:p-5">
               <button
                 type="button"
                 onClick={() => setVisibleGroups((current) => ({ ...current, [group.key]: !current[group.key] }))}
                 className="flex w-full cursor-pointer items-center justify-between text-left"
               >
-                <span className="text-sm font-bold text-[#111827]">{group.judul}</span>
+                <span className="text-sm font-bold text-[#182033]">{group.judul}</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" className={`h-4 w-4 transition-transform ${visibleGroups[group.key] ? "rotate-180" : ""}`}>
                   <path d="m6 9 6 6 6-6" />
                 </svg>

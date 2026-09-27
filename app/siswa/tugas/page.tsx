@@ -40,7 +40,7 @@ export default function SiswaTugasPage() {
       ) : (
         <>
           <div>
-            <p className="mb-3 text-sm font-bold text-[#111827]">Hari Ini</p>
+            <p className="mb-3 text-sm font-bold text-[#182033]">Hari Ini</p>
             {hariIni.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Tidak ada tugas baru hari ini.</p>
             ) : (
@@ -53,7 +53,7 @@ export default function SiswaTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#111827]">Belum Dikerjakan</p>
+            <p className="mb-3 text-sm font-bold text-[#182033]">Belum Dikerjakan</p>
             {belumDikerjakan.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Semua tugas sudah dikerjakan. Mantap!</p>
             ) : (
@@ -66,7 +66,7 @@ export default function SiswaTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#111827]">Sudah Dikerjakan</p>
+            <p className="mb-3 text-sm font-bold text-[#182033]">Sudah Dikerjakan</p>
             {sudahDikerjakan.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Belum ada tugas yang kamu kumpulkan.</p>
             ) : (

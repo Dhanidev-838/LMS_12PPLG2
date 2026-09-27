@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,9 +19,36 @@ const PORTAL_CONFIG: Record<
   SISWA: { label: "Siswa", title: "Login Sebagai Siswa", identifierLabel: "NIS", identifierPlaceholder: "Nis" },
 };
 
+function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
+      title={theme === "light" ? "Mode gelap" : "Mode terang"}
+      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#dce1eb] text-[#576277] transition-colors hover:bg-[#f7f8fb]"
+    >
+      {theme === "light" ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+          <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+          <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [view, setView] = useState<View>("LOGIN");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return window.localStorage.getItem("admin-theme") === "dark" ? "dark" : "light";
+  });
 
   // ===== state login =====
   const [portal, setPortal] = useState<Portal>("ADMIN");
@@ -41,6 +68,12 @@ export default function LoginPage() {
   const [info, setInfo] = useState("");
 
   const config = PORTAL_CONFIG[portal];
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    window.localStorage.setItem("admin-theme", theme);
+    return () => document.documentElement.removeAttribute("data-admin-theme");
+  }, [theme]);
 
   function resetLupaState() {
     setIdentifier("");
@@ -186,11 +219,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+    <div data-admin-theme={theme} className="public-shell flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
       <header className="border-b border-[#e8ebf2] bg-white">
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5"><Image src="/Logo1.png" alt="Logo Classify" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-.04em]">Classify</span></Link>
-          <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-[#dce1eb] px-3.5 py-2 text-sm font-semibold text-[#4b576b] transition-colors hover:bg-[#f7f8fb]"><span aria-hidden="true">←</span> Kembali</Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle theme={theme} onToggle={() => setTheme((v) => (v === "light" ? "dark" : "light"))} />
+            <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-[#dce1eb] px-3.5 py-2 text-sm font-semibold text-[#4b576b] transition-colors hover:bg-[#f7f8fb]"><span aria-hidden="true">←</span> Kembali</Link>
+          </div>
         </div>
       </header>
 
@@ -217,12 +253,11 @@ export default function LoginPage() {
                     key={key}
                     type="button"
                     onClick={() => handlePortalChange(key)}
-                    className="cursor-pointer rounded-lg border py-2 text-sm font-medium transition-colors"
-                    style={
+                    className={`cursor-pointer rounded-lg border py-2 text-sm font-medium transition-colors ${
                       portal === key
-                        ? { background: BRAND, borderColor: BRAND, color: "white" }
-                        : { borderColor: "#D1D5DB", color: "#374151" }
-                    }
+                        ? "border-[#6B85F6] bg-[#6B85F6] text-white"
+                        : "border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
+                    }`}
                   >
                     {PORTAL_CONFIG[key].label}
                   </button>
@@ -239,7 +274,7 @@ export default function LoginPage() {
                   placeholder={config.identifierPlaceholder}
                   value={loginIdentifier}
                   onChange={(e) => setLoginIdentifier(e.target.value)}
-                  className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                 />
                 <input
                   type="password"
@@ -247,7 +282,7 @@ export default function LoginPage() {
                   placeholder="Password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                 />
 
                 {error && <p className="text-xs font-medium text-red-500">{error}</p>}
@@ -308,7 +343,7 @@ export default function LoginPage() {
                     placeholder="NIS / NIK"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                    className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                   />
                   <input
                     type="email"
@@ -316,14 +351,14 @@ export default function LoginPage() {
                     placeholder="Email"
                     value={lupaEmail}
                     onChange={(e) => setLupaEmail(e.target.value)}
-                    className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                    className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                   />
                   <input
                     type="date"
                     required
                     value={tanggalLahir}
                     onChange={(e) => setTanggalLahir(e.target.value)}
-                    className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                    className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                   />
                   <textarea
                     required
@@ -331,7 +366,7 @@ export default function LoginPage() {
                     value={alasan}
                     onChange={(e) => setAlasan(e.target.value)}
                     rows={3}
-                    className="w-full resize-none rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                    className="w-full resize-none rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                   />
 
                   {error && <p className="text-xs font-medium text-red-500">{error}</p>}
@@ -377,7 +412,7 @@ export default function LoginPage() {
                   placeholder="NIS / NIK"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                 />
 
                 <div className="flex justify-center gap-3">
@@ -390,7 +425,7 @@ export default function LoginPage() {
                       maxLength={1}
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
-                      className="h-12 w-12 rounded-lg border border-[#D1D5DB] text-center text-lg font-bold outline-none focus:border-[#6B85F6]"
+                      className="h-12 w-12 rounded-lg border border-[#dfe4ef] text-center text-lg font-bold text-[#182033] outline-none focus:border-[#6B85F6]"
                     />
                   ))}
                 </div>
@@ -437,7 +472,7 @@ export default function LoginPage() {
                   placeholder="Password Baru"
                   value={passwordBaru}
                   onChange={(e) => setPasswordBaru(e.target.value)}
-                  className="w-full rounded-lg border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
                 />
 
                 {error && <p className="text-xs font-medium text-red-500">{error}</p>}
@@ -488,6 +523,43 @@ export default function LoginPage() {
       </section>
 
       <footer className="border-t border-[#e5e8ef] bg-white px-4 py-5 text-center text-xs text-[#8791a1] sm:px-6">© 2026 Classify. Belajar lebih mudah, mengajar lebih terarah.</footer>
+
+      <style jsx global>{`
+        [data-admin-theme="dark"] { color-scheme: dark; }
+        .public-shell[data-admin-theme="dark"] { background-color: #10141d !important; color: #f3f6fb; }
+
+        [data-admin-theme="dark"] .public-shell header,
+        [data-admin-theme="dark"] .public-shell footer,
+        [data-admin-theme="dark"] .public-shell [class~="bg-white"] { background-color: #171d28 !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#f8f9fc]"] { background-color: #10141d !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="border-[#e8ebf2]"], [class~="border-[#dce1eb]"], [class~="border-[#dfe4ef]"],
+          [class~="border-[#edf0f5]"], [class~="border-[#e5e8ef]"]
+        ):not([class~="border-[#6B85F6]"]) { border-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="text-[#182033]"], [class~="text-[#111827]"]
+        ) { color: #f3f6fb !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="text-[#4b576b]"], [class~="text-[#7a8495]"], [class~="text-[#6B7280]"],
+          [class~="text-[#9CA3AF]"], [class~="text-[#8791a1]"], [class~="text-[#435064]"]
+        ) { color: #aeb8c9 !important; }
+
+        [data-admin-theme="dark"] .public-shell input,
+        [data-admin-theme="dark"] .public-shell textarea {
+          background-color: #111722 !important;
+          border-color: #344054 !important;
+          color: #e9eef8 !important;
+        }
+        [data-admin-theme="dark"] .public-shell input::placeholder,
+        [data-admin-theme="dark"] .public-shell textarea::placeholder { color: #7d889b !important; }
+
+        [data-admin-theme="dark"] .public-shell [class*="hover:bg-"]:hover {
+          background-color: rgba(107, 133, 246, .14) !important;
+        }
+      `}</style>
     </div>
   );
 }

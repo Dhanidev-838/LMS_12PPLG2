@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -22,14 +23,51 @@ function ArrowIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-4 w-4"><path d="M4 10h11M11 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
-export default function Home() {
+function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
   return (
-    <div className="min-h-screen bg-[#fcfcfd] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
+      title={theme === "light" ? "Mode gelap" : "Mode terang"}
+      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#dce1eb] text-[#576277] transition-colors hover:bg-[#f7f8fb]"
+    >
+      {theme === "light" ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+          <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+          <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+export default function Home() {
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return window.localStorage.getItem("admin-theme") === "dark" ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    window.localStorage.setItem("admin-theme", theme);
+    return () => document.documentElement.removeAttribute("data-admin-theme");
+  }, [theme]);
+
+  return (
+    <div data-admin-theme={theme} className="public-shell min-h-screen bg-[#fcfcfd] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
       <header className="sticky top-0 z-50 border-b border-[#e8ebf2] bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <a href="#beranda" className="flex shrink-0 items-center gap-2.5" aria-label="Classify beranda"><Image src="/Logo1.png" alt="" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-0.04em]">Classify</span></a>
           <nav className="hidden items-center gap-6 text-sm font-medium text-[#697386] lg:flex" aria-label="Navigasi utama"><a href="#tentang" className="hover:text-[#6B85F6]">Tentang</a><a href="#system" className="hover:text-[#6B85F6]">Sistem</a><a href="#role" className="hover:text-[#6B85F6]">Peran</a><a href="#jurusan" className="hover:text-[#6B85F6]">Jurusan</a><a href="#contact" className="hover:text-[#6B85F6]">Kontak</a></nav>
-          <Link href="/login" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#6B85F6] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5974ed]">Masuk <ArrowIcon /></Link>
+          <div className="flex shrink-0 items-center gap-3">
+            <ThemeToggle theme={theme} onToggle={() => setTheme((v) => (v === "light" ? "dark" : "light"))} />
+            <Link href="/login" className="inline-flex items-center gap-2 rounded-lg bg-[#6B85F6] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5974ed]">Masuk <ArrowIcon /></Link>
+          </div>
         </div>
       </header>
 
@@ -53,6 +91,45 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-[#e5e8ef] bg-white"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.3fr_.7fr_.9fr] lg:px-8"><div><div className="flex items-center gap-2"><Image src="/Logo1.png" alt="" width={28} height={28} className="rounded-[8px]" /><span className="font-bold tracking-[-.03em]">Classify</span></div><p className="mt-4 max-w-xs text-sm leading-6 text-[#6e7889]">Platform pembelajaran digital untuk sekolah yang lebih rapi, terarah, dan terintegrasi.</p></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#8b94a4]">Navigasi</p><div className="mt-4 grid gap-2 text-sm text-[#586376]"><a href="#tentang">Tentang</a><a href="#system">Sistem</a><a href="#role">Peran</a><Link href="/login">Masuk</Link></div></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#8b94a4]">Temukan kami</p><div className="mt-4 space-y-2 text-sm text-[#586376]"><p>Instagram · @chronion999</p><p>GitHub · Dhanidev-838</p><p>LinkedIn · Dhani Triadi Saputra</p></div></div></div><div className="border-t border-[#e9ecf2] py-5 text-center text-xs text-[#8b94a4]">© 2026 Classify. All rights reserved.</div></footer>
+
+      <style jsx global>{`
+        [data-admin-theme="dark"] { color-scheme: dark; }
+        .public-shell[data-admin-theme="dark"] { background-color: #10141d !important; color: #f3f6fb; }
+
+        [data-admin-theme="dark"] .public-shell header,
+        [data-admin-theme="dark"] .public-shell [class~="bg-white"],
+        [data-admin-theme="dark"] .public-shell [class~="bg-white/95"] { background-color: #171d28 !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#fcfcfd]"],
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#f7f8fb]"] { background-color: #10141d !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#fafbfc]"] { background-color: #171d28 !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#f5f6ff]"] { background-color: #1b2230 !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#edf0f5]"] { background-color: #232c3d !important; }
+        [data-admin-theme="dark"] .public-shell [class~="bg-[#eef1ff]"] { background-color: rgba(107,133,246,.1) !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="border-[#e8ebf2]"], [class~="border-[#dce1eb]"], [class~="border-[#e5e8ef]"],
+          [class~="border-[#e3e7ef]"], [class~="border-[#e6e9f0]"], [class~="border-[#dfe4ef]"],
+          [class~="border-[#e1e5ed]"], [class~="border-[#e7eaf1]"], [class~="border-[#e9ecf2]"],
+          [class~="border-[#edf0f5]"]
+        ):not([class~="border-[#6B85F6]"]) { border-color: #2a3343 !important; }
+        [data-admin-theme="dark"] .public-shell [class~="divide-[#e5e8ef]"] > :not([hidden]) ~ :not([hidden]) { border-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="text-[#182033]"], [class~="text-[#3f4a5e]"]
+        ) { color: #f3f6fb !important; }
+
+        [data-admin-theme="dark"] .public-shell :is(
+          [class~="text-[#697386]"], [class~="text-[#657084]"], [class~="text-[#7b8495]"],
+          [class~="text-[#647084]"], [class~="text-[#465166]"], [class~="text-[#6f798a]"],
+          [class~="text-[#6d7788]"], [class~="text-[#707a8b]"], [class~="text-[#6e7889]"],
+          [class~="text-[#8b94a4]"], [class~="text-[#586376]"], [class~="text-[#637086]"],
+          [class~="text-[#7a8494]"], [class~="text-[#7d8797]"], [class~="text-[#8992a2]"]
+        ) { color: #aeb8c9 !important; }
+
+        [data-admin-theme="dark"] .public-shell [class*="hover:bg-"]:hover:not([class~="hover:bg-[#5974ed]"]) {
+          background-color: rgba(107, 133, 246, .14) !important;
+        }
+      `}</style>
     </div>
   );
 }

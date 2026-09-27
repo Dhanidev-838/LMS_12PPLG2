@@ -106,7 +106,7 @@ export default function SiswaKelasDetailPage() {
 
   return (
     <div>
-      <div className="overflow-hidden rounded-2xl text-white shadow-sm" style={{ background: BRAND }}>
+      <div className="border border-[#dfe4ef] text-white" style={{ background: BRAND }}>
         <div className="p-5">
           <p className="text-lg font-bold">{kelas.judul}</p>
           {kelas.deskripsi && <p className="mt-1 text-sm text-white/85">&quot;{kelas.deskripsi}&quot;</p>}
@@ -130,10 +130,10 @@ export default function SiswaKelasDetailPage() {
             Object.entries(siswaGrouped).map(([label, list]) => {
               const isOpen = expandedRombel === label;
               return (
-                <div key={label} className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+                <div key={label} className="border border-[#e1e5ed] bg-white">
                   <button onClick={() => setExpandedRombel(isOpen ? null : label)} className="flex w-full cursor-pointer items-center justify-between px-5 py-3.5 text-left">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#111827]">{label}</p>
+                      <p className="text-sm font-bold text-[#182033]">{label}</p>
                       <Badge tone="brand">{list.length} Siswa</Badge>
                     </div>
                     <svg viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}>
@@ -141,12 +141,12 @@ export default function SiswaKelasDetailPage() {
                     </svg>
                   </button>
                   {isOpen && (
-                    <div className="space-y-2 border-t border-black/5 p-4">
+                    <div className="space-y-2 border-t border-[#edf0f5] p-4">
                       {list.map((ks) => (
                         <button
                           key={ks.siswaId}
                           onClick={() => router.push(`/profil/${ks.siswa.id}`)}
-                          className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-black/5 p-3 text-left hover:bg-black/5"
+                          className="flex w-full cursor-pointer items-center gap-3 border border-[#edf0f5] p-3 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
                         >
                           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
                             {ks.siswa.fotoProfil ? (
@@ -157,7 +157,7 @@ export default function SiswaKelasDetailPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-[#111827]">{ks.siswa.nama}</p>
+                            <p className="truncate text-sm font-semibold text-[#182033]">{ks.siswa.nama}</p>
                             <p className="text-xs text-[#9CA3AF]">NIS: {ks.siswa.nis}</p>
                           </div>
                         </button>
@@ -184,7 +184,7 @@ export default function SiswaKelasDetailPage() {
                     <button
                       key={gm.id}
                       onClick={() => router.push(`/profil/${gm.guru.id}`)}
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-black/5 bg-white p-3 text-left shadow-sm hover:bg-black/5"
+                      className="flex w-full cursor-pointer items-center gap-3 border border-[#e1e5ed] bg-white p-3 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
                     >
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
                         {gm.guru.fotoProfil ? (
@@ -194,7 +194,7 @@ export default function SiswaKelasDetailPage() {
                           gm.guru.nama.charAt(0)
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-[#111827]">{gm.guru.nama}</p>
+                      <p className="text-sm font-semibold text-[#182033]">{gm.guru.nama}</p>
                     </button>
                   ))}
                 </div>
@@ -206,7 +206,7 @@ export default function SiswaKelasDetailPage() {
 
       {section === null && (
         <div className="mt-6">
-          <p className="mb-3 text-sm font-bold text-[#111827]">Aktivitas Kelas</p>
+          <p className="mb-3 text-sm font-bold text-[#182033]">Aktivitas Kelas</p>
           <div className="space-y-3">
             {kelas.feed.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">Belum ada aktivitas di kelas ini.</p>
@@ -222,7 +222,7 @@ export default function SiswaKelasDetailPage() {
                 // ASESMEN: murni tampilan, gak diklik dari feed -- siswa ngerjain dari tab Asesmen
                 const a = item.data;
                 return (
-                  <div key={`a-${i}`} className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                  <div key={`a-${i}`} className="border border-[#e1e5ed] bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Badge tone="brand">{a.tipe === "KUIS" ? "Kuis" : "Ujian Online"}</Badge>
@@ -231,12 +231,12 @@ export default function SiswaKelasDetailPage() {
                       <button
                         type="button"
                         onClick={() => router.push(`/siswa/asesmen/${a.id}`)}
-                        className="flex-shrink-0 rounded-lg bg-[#6B85F6] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#5873E8]"
+                        className="flex-shrink-0 rounded-lg bg-[#6B85F6] px-3 py-1.5 text-xs font-semibold text-white hover:brightness-95"
                       >
                         {a.statusSubmission === "SUDAH" ? "Sudah Dikerjakan" : "Kerjakan"}
                       </button>
                     </div>
-                    <p className="mt-2 text-sm font-bold text-[#111827]">{a.judul}</p>
+                    <p className="mt-2 text-sm font-bold text-[#182033]">{a.judul}</p>
                     <p className="mt-1 text-xs text-[#9CA3AF]">oleh {a.guru?.nama}</p>
                   </div>
                 );
