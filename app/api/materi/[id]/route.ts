@@ -14,7 +14,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const { id } = await params;
     const body = await req.json();
-    const { judul, url, deskripsi, kelasIds } = body;
+    const { judul, tipe, url, deskripsi, kelasIds } = body;
+
+    if (tipe !== undefined && !["PDF", "FILE", "IMAGE", "LINK"].includes(tipe)) {
+      return NextResponse.json({ error: "Tipe materi tidak valid." }, { status: 400 });
+    }
 
     const existing = await db.materi.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Materi tidak ditemukan." }, { status: 404 });
@@ -27,6 +31,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         where: { id },
         data: {
           judul: judul || undefined,
+          tipe: tipe || undefined,
           url: url || undefined,
           deskripsi: deskripsi !== undefined ? deskripsi || null : undefined,
         },

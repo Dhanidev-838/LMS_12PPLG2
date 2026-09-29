@@ -8,6 +8,8 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import PengumumanCard from "@/components/PengumumanCard";
 import TugasCard from "@/components/TugasCard";
+import MateriCard from "@/components/MateriCard";
+import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 
 const BRAND = "#6B85F6";
 type KurikulumTab = "DASHBOARD" | "KELAS" | "SISWA" | "GURU" | "ASESMEN" | "PERFORMA";
@@ -34,7 +36,7 @@ interface GuruDiKelas {
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
-  tipe: "PENGUMUMAN" | "ASESMEN" | "TUGAS";
+  tipe: "PENGUMUMAN" | "ASESMEN" | "TUGAS" | "MATERI";
   timestamp: string;
   data: any;
 }
@@ -73,6 +75,8 @@ export default function KurikulumKelasDetailPage() {
   const [section, setSection] = useState<"SISWA" | "GURU" | null>(null);
   const [expandedRombel, setExpandedRombel] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [feedFilter, setFeedFilter] = useState<KelasFeedFilterValue>("SEMUA");
+  const filteredFeed = kelas?.feed.filter((item) => feedFilter === "SEMUA" || item.tipe === feedFilter) ?? [];
 
   useEffect(() => {
     fetch("/api/me").then((r) => r.json()).then((d) => setMe(d.data)).catch(() => {});
@@ -177,7 +181,7 @@ export default function KurikulumKelasDetailPage() {
             )}
           </button>
           {me && <div className="hidden text-right sm:block"><p className="text-sm font-semibold text-[#182033]">{me.nama}</p><p className="text-xs text-[#9CA3AF]">{me.role}</p></div>}
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+          <div className="hidden h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280] sm:flex">
             {me?.fotoProfil ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
@@ -299,10 +303,12 @@ export default function KurikulumKelasDetailPage() {
             {section === null && (
               <div className="mt-6">
                 <p className="mb-3 text-sm font-bold text-[#182033]">Aktivitas Kelas</p>
+                <KelasFeedFilter value={feedFilter} onChange={setFeedFilter} />
                 <div className="space-y-3">
-                  {kelas.feed.length === 0 ? <p className="text-sm text-[#9CA3AF]">Belum ada aktivitas di kelas ini.</p> : kelas.feed.map((item, i) => {
+                  {filteredFeed.length === 0 ? <p className="text-sm text-[#9CA3AF]">{kelas.feed.length === 0 ? "Belum ada aktivitas di kelas ini." : "Tidak ada konten untuk filter ini."}</p> : filteredFeed.map((item, i) => {
                     if (item.tipe === "PENGUMUMAN") return <PengumumanCard key={`p-${i}`} data={item.data} currentUserId={me?.id ?? ""} />;
                     if (item.tipe === "TUGAS") return <TugasCard key={`t-${i}`} data={item.data} currentUserId={me?.id ?? ""} role="KURIKULUM" />;
+                    if (item.tipe === "MATERI") return <MateriCard key={`m-${i}`} data={item.data} />;
                     const a = item.data;
                     return (
                       <button

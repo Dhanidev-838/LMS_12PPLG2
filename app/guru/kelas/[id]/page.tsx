@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import PengumumanCard, { PengumumanData } from "@/components/PengumumanCard";
 import TugasCard, { TugasData } from "@/components/TugasCard";
+import MateriCard from "@/components/MateriCard";
 import ModalPengumuman from "@/components/ModalPengumuman";
 import ModalBuatAsesmen from "@/components/Modalbuatasesmen";
 import ModalEditAsesmen from "@/components/ModalEditAsesmen";
@@ -13,6 +14,7 @@ import ModalTugas from "@/components/ModalTugas";
 import ModalKirimTugas from "@/components/ModalKirimTugas";
 import ModalKirimAsesmen from "@/components/ModalKirimAsesmen";
 import ModalKirimPengumuman from "@/components/ModalKirimPengumuman";
+import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 import type { AsesmenData } from "@/components/Asesmencard";
 import { showAlert, showConfirm } from "@/lib/dialog";
 
@@ -28,7 +30,7 @@ interface GuruDiKelas {
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
-  tipe: "PENGUMUMAN" | "ASESMEN" | "TUGAS";
+  tipe: "PENGUMUMAN" | "ASESMEN" | "TUGAS" | "MATERI";
   timestamp: string;
   data: any;
 }
@@ -67,6 +69,8 @@ export default function GuruKelasDetailPage() {
   const [sendingAsesmen, setSendingAsesmen] = useState<AsesmenData | null>(null);
   const [sendingPengumuman, setSendingPengumuman] = useState<PengumumanData | null>(null);
   const [openAsesmenOptionsId, setOpenAsesmenOptionsId] = useState<string | null>(null);
+  const [feedFilter, setFeedFilter] = useState<KelasFeedFilterValue>("SEMUA");
+  const filteredFeed = kelas?.feed.filter((item) => feedFilter === "SEMUA" || item.tipe === feedFilter) ?? [];
 
   useEffect(() => {
     if (!openAsesmenOptionsId) return;
@@ -301,7 +305,7 @@ export default function GuruKelasDetailPage() {
         <>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => setShowModalPengumuman(true)}>
-              + Buat Pengumuman
+              + Buat Konten
             </Button>
             <Button size="sm" variant="outline" onClick={openBuatQuiz}>
               + Buat Quiz
@@ -315,10 +319,11 @@ export default function GuruKelasDetailPage() {
           </div>
 
           <div className="mt-4 space-y-3">
-        {kelas.feed.length === 0 ? (
-          <p className="text-sm text-[#9CA3AF]">Belum ada aktivitas di kelas ini.</p>
+        <KelasFeedFilter value={feedFilter} onChange={setFeedFilter} />
+        {filteredFeed.length === 0 ? (
+          <p className="text-sm text-[#9CA3AF]">{kelas.feed.length === 0 ? "Belum ada aktivitas di kelas ini." : "Tidak ada konten untuk filter ini."}</p>
         ) : (
-          kelas.feed.map((item, i) => {
+          filteredFeed.map((item, i) => {
             if (item.tipe === "PENGUMUMAN") {
               return (
                 <PengumumanCard
@@ -343,6 +348,9 @@ export default function GuruKelasDetailPage() {
                   onSend={setSendingTugas}
                 />
               );
+            }
+            if (item.tipe === "MATERI") {
+              return <MateriCard key={`m-${i}`} data={item.data} />;
             }
             const a = item.data;
             return (

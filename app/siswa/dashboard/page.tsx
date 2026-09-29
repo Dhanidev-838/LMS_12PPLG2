@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import MateriCard, { MateriData } from "@/components/MateriCard";
 
 type DashboardData = {
   siswa: {
@@ -33,6 +34,7 @@ type DashboardData = {
     isToday: boolean;
     lampiranCount: number;
   }>;
+  materiTerbaru: MateriData[];
   asesmenTerbaru: Array<{
     id: string;
     judul: string;
@@ -158,6 +160,9 @@ export default function SiswaDashboardPage() {
     );
   }
 
+  const today = new Date().toDateString();
+  const materiHariIni = data.materiTerbaru.filter((materi) => new Date(materi.createdAt).toDateString() === today).slice(0, 4);
+
   return (
     <div className="student-dashboard space-y-6">
       <div className="border border-[#dfe4ef] p-6 text-white" style={{ background: "#6B85F6" }}>
@@ -270,6 +275,20 @@ export default function SiswaDashboardPage() {
             )}
           </div>
         </div>
+
+        <section className="student-card lg:col-span-2 border border-[#e1e5ed] bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold text-[#182033]">Materi Hari Ini</p>
+            <Link href="/siswa/materi" className="text-xs font-semibold text-[#6B85F6] hover:underline">Lihat semua</Link>
+          </div>
+          {materiHariIni.length === 0 ? (
+            <p className="mt-3 text-sm text-[#94A3B8]">Belum ada materi baru hari ini.</p>
+          ) : (
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {materiHariIni.map((materi) => <MateriCard key={materi.id} data={materi} />)}
+            </div>
+          )}
+        </section>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

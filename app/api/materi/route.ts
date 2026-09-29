@@ -3,29 +3,53 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
 
-// GET /api/materi?kelasId=xxx -> daftar materi (filter per kelas, buat siswa/guru liat di halaman kelas)
-// tanpa query kelasId -> daftar materi milik guru yang login (buat tab Materi guru)
+// GET /api/materi -> daftar materi yang boleh dilihat oleh role yang login
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
     requireRole(session, ["GURU", "SISWA", ...ADMIN_TIER]);
 
     const kelasId = req.nextUrl.searchParams.get("kelasId");
+    let kelasSiswaIds: string[] = [];
 
-    if (kelasId) {
-      const materiList = await db.materi.findMany({
-        where: { kelasTujuan: { some: { kelasId } } },
-        include: { guru: { select: { id: true, nama: true } } },
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json({ data: materiList });
+    if (!kelasId && ADMIN_TIER.includes(session!.role)) {
+      requireRole(session, ["GURU"]);
     }
 
-    // tanpa kelasId -> harus guru, nampilin materi punya dia sendiri
-    requireRole(session, ["GURU"]);
+    if (session!.role === "SISWA") {
+      const keanggotaan = await db.kelasSiswa.findMany({
+        where: { siswaId: session!.userId },
+        select: { kelasId: true },
+      });
+      kelasSiswaIds = keanggotaan.map((item) => item.kelasId);
+
+      if (kelasId && !kelasSiswaIds.includes(kelasId)) {
+        return NextResponse.json({ error: "Anda bukan anggota kelas ini." }, { status: 403 });
+      }
+    }
+
+    const kelasTerlihatIds = session!.role === "SISWA"
+      ? kelasId ? [kelasId] : kelasSiswaIds
+      : kelasId ? [kelasId] : undefined;
+    const filterKelas = kelasTerlihatIds ? { kelasId: { in: kelasTerlihatIds } } : undefined;
+    const where = session!.role === "GURU"
+      ? {
+          guruId: session!.userId,
+          ...(kelasId ? { kelasTujuan: { some: { kelasId } } } : {}),
+        }
+      : kelasTerlihatIds
+        ? { kelasTujuan: { some: { kelasId: { in: kelasTerlihatIds } } } }
+        : {};
+
     const materiList = await db.materi.findMany({
-      where: { guruId: session!.userId },
-      include: { kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } } }, // kelasReferensi dihapus, pakai judul
+      where,
+      include: {
+        guru: { select: { id: true, nama: true } },
+        kelasTujuan: {
+          where: filterKelas,
+          include: { kelas: { select: { id: true, judul: true } } },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ data: materiList });
@@ -51,7 +75,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (!["PDF", "LINK"].includes(tipe)) {
+      if (!["PDF", "FILE", "IMAGE", "LINK"].includes(tipe)) {
       return NextResponse.json({ error: "Tipe materi tidak valid." }, { status: 400 });
     }
 

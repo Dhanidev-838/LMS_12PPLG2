@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
-import { Input, Select, Textarea } from "./ui/Input";
+import { Input, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { MateriData } from "./MateriCard";
@@ -22,12 +22,14 @@ interface ModalMateriProps {
 
 export default function ModalMateri({ open, onClose, onSuccess, mode, initialData }: ModalMateriProps) {
   const [judul, setJudul] = useState("");
-  const [tipe, setTipe] = useState<"PDF" | "LINK">("LINK");
+  const [tipe, setTipe] = useState<"PDF" | "FILE" | "IMAGE" | "LINK">("LINK");
+  const [sumber, setSumber] = useState<"LINK" | "FILE">("LINK");
   const [url, setUrl] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [kelasList, setKelasList] = useState<KelasOption[]>([]);
   const [selectedKelasIds, setSelectedKelasIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -35,20 +37,23 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
 
     fetch("/api/kelas")
       .then((res) => res.json())
-      .then((data) =>
-        setKelasList((data.data ?? []).map((k: any) => ({ id: k.id, label: k.judul || "Tanpa Judul", })))
+      .then((data: { data?: { id: string; judul: string | null }[] }) =>
+        setKelasList((data.data ?? []).map((kelas) => ({ id: kelas.id, label: kelas.judul || "Tanpa Judul" })))
       )
       .catch(() => {});
 
     if (mode === "edit" && initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setJudul(initialData.judul);
       setTipe(initialData.tipe);
+      setSumber(initialData.tipe === "LINK" ? "LINK" : "FILE");
       setUrl(initialData.url);
       setDeskripsi(initialData.deskripsi ?? "");
-      setSelectedKelasIds((initialData.kelasTujuan ?? []).map((kt: any) => kt.kelas.id).filter(Boolean));
+      setSelectedKelasIds((initialData.kelasTujuan ?? []).map((kelasTujuan) => kelasTujuan.kelas.id).filter(Boolean));
     } else {
       setJudul("");
       setTipe("LINK");
+      setSumber("LINK");
       setUrl("");
       setDeskripsi("");
       setSelectedKelasIds([]);
@@ -60,12 +65,50 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
     setSelectedKelasIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
   }
 
+  function isValidLink(value: string) {
+    try {
+      const link = new URL(value);
+      return link.protocol === "http:" || link.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  async function handleUpload(file: File) {
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload?kategori=materi", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "File gagal diunggah.");
+        return;
+      }
+      setTipe(file.type === "application/pdf" ? "PDF" : file.type.startsWith("image/") ? "IMAGE" : "FILE");
+      setUrl(data.url);
+    } catch {
+      setError("File gagal diunggah.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
     if (selectedKelasIds.length === 0) {
       setError("Pilih minimal 1 kelas tujuan.");
+      return;
+    }
+    if (sumber === "LINK" && !isValidLink(url.trim())) {
+      setError("Masukkan link yang diawali http:// atau https://.");
+      return;
+    }
+    if (sumber === "FILE" && !url) {
+      setError("Pilih file materi terlebih dahulu.");
       return;
     }
 
@@ -102,18 +145,50 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Judul Materi" value={judul} onChange={(e) => setJudul(e.target.value)} required />
 
-        <Select label="Tipe" value={tipe} onChange={(e) => setTipe(e.target.value as "PDF" | "LINK")}>
-          <option value="LINK">Link</option>
-          <option value="PDF">PDF</option>
-        </Select>
+        <div>
+          <p className="mb-1.5 text-xs font-semibold text-[#374151]">Sumber Materi</p>
+          <div className="mb-2 grid grid-cols-2 border border-[#dfe4ef] bg-white p-1" role="group" aria-label="Pilih sumber materi">
+            {(["LINK", "FILE"] as const).map((source) => (
+              <button
+                key={source}
+                type="button"
+                aria-pressed={sumber === source}
+                onClick={() => {
+                  setSumber(source);
+                  setTipe(source);
+                  setUrl("");
+                  setError("");
+                }}
+                className="cursor-pointer px-3 py-2 text-sm font-semibold transition-colors"
+                style={sumber === source ? { background: "#6B85F6", color: "#ffffff" } : { color: "#536076" }}
+              >
+                {source === "LINK" ? "Link" : "File / Foto"}
+              </button>
+            ))}
+          </div>
 
-        <Input
-          label={tipe === "PDF" ? "URL File PDF" : "URL Link"}
-          placeholder="https://..."
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          required
-        />
+          {sumber === "LINK" ? (
+            <Input label="Tautan Materi" placeholder="https://..." value={url} onChange={(e) => setUrl(e.target.value)} required />
+          ) : (
+            <div className="border border-dashed border-[#D1D5DB] p-3">
+              {url && <p className="mb-2 truncate text-xs text-[#64748B]">File sudah dipilih. Pilih file lain untuk mengganti.</p>}
+              <label className="cursor-pointer border border-[#D1D5DB] px-3 py-2 text-sm font-medium text-[#374151] hover:bg-black/5">
+                {uploading ? "Mengunggah..." : url ? "Ganti File / Foto" : "+ Upload File / Foto"}
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) handleUpload(file);
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
 
         <Textarea label="Deskripsi (opsional)" value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} />
 

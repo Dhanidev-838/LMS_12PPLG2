@@ -40,7 +40,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       }
     }
 
-    const [pengumumanList, asesmenKelasList, tugasKelasList] = await Promise.all([
+    const [pengumumanList, asesmenKelasList, tugasKelasList, materiKelasList] = await Promise.all([
       db.pengumuman.findMany({
         where: { kelasId: id },
         include: {
@@ -77,6 +77,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
           },
         },
       }),
+      db.materiKelas.findMany({
+        where: { kelasId: id },
+        include: {
+          materi: {
+            include: { guru: { select: { id: true, nama: true } } },
+          },
+        },
+      }),
     ]);
 
     const feedPengumuman = pengumumanList.map((p) => ({
@@ -103,7 +111,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
       },
     }));
 
-    const feed = [...feedPengumuman, ...feedAsesmen, ...feedTugas].sort(
+    const feedMateri = materiKelasList.map((mk) => ({
+      tipe: "MATERI" as const,
+      timestamp: mk.materi.createdAt,
+      data: mk.materi,
+    }));
+
+    const feed = [...feedPengumuman, ...feedAsesmen, ...feedTugas, ...feedMateri].sort(
       (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
     );
 

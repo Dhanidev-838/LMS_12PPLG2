@@ -7,10 +7,11 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { showConfirm } from "@/lib/dialog";
+import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const BRAND = "#6B85F6";
 
-type NavKey = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "PERFORMA" | "PROFILE";
+type NavKey = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "MATERI" | "PERFORMA" | "PROFILE";
 
 function NavIcon({ nav }: { nav: NavKey }) {
   const paths: Record<NavKey, React.ReactNode> = {
@@ -18,6 +19,7 @@ function NavIcon({ nav }: { nav: NavKey }) {
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
     ASESMEN: <path d="M12 2l3 6 6.5.9-4.7 4.6L18 20l-6-3.4L6 20l1.2-6.5L2.5 8.9 9 8l3-6Z" />,
     TUGAS: <path d="M9 3h6l1 3H8l1-3ZM6 6h12v15H6zM9 11h6M9 15h6" />,
+    MATERI: <path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6" />,
     PERFORMA: <path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16V4" />,
     PROFILE: <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />,
   };
@@ -33,17 +35,8 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useAdminTheme();
   const [me, setMe] = useState<{ id: string; nama: string; role: string; fotoProfil: string | null } | null>(null);
-
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("admin-theme");
-    if (savedTheme === "dark" || savedTheme === "light") {
-      setTheme(savedTheme);
-    }
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     fetch("/api/me")
@@ -53,11 +46,9 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
     document.documentElement.setAttribute("data-admin-theme", theme);
-    window.localStorage.setItem("admin-theme", theme);
     return () => document.documentElement.removeAttribute("data-admin-theme");
-  }, [mounted, theme]);
+  }, [theme]);
 
   async function handleLogout() {
     if (isAssessmentPage()) {
@@ -105,6 +96,7 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
     { key: "KELAS", label: "Kelas", href: "/siswa/kelas" },
     { key: "ASESMEN", label: "Asesmen", href: "/siswa/asesmen" },
     { key: "TUGAS", label: "Tugas", href: "/siswa/tugas" },
+    { key: "MATERI", label: "Materi", href: "/siswa/materi" },
     { key: "PERFORMA", label: "Performa Akademik", href: "/siswa/performa-akademik" },
     { key: "PROFILE", label: "Profile", href: me ? `/profil/${me.id}` : "#" },
   ];
@@ -115,7 +107,7 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div data-admin-theme={mounted ? theme : "light"} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
       <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-[#e6e9f0] bg-white px-4 sm:px-6">
         <div className="flex items-center gap-3">
           <button
@@ -153,14 +145,6 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
             )}
           </button>
           {me && <span className="hidden text-sm font-semibold text-[#182033] sm:block">{me.nama}</span>}
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
-            {me?.fotoProfil ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
-            ) : (
-              me?.nama?.charAt(0) ?? "S"
-            )}
-          </div>
         </div>
       </header>
 
@@ -174,6 +158,16 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
           className={`fixed inset-y-0 left-0 z-50 w-72 overflow-hidden bg-[#f6f7fb] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-[transform,width,padding] duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:sticky lg:top-[88px] lg:z-0 lg:h-[calc(100vh-108px)] lg:translate-x-0 lg:self-start lg:shadow-none ${sidebarCollapsed ? "lg:w-0 lg:border-0 lg:p-0" : "lg:w-72"}`}
         >
           <div className="flex min-h-full min-w-64 flex-col border border-[#e1e5ed] bg-white p-4">
+            <div className="mb-3 px-2 pt-2">
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-base font-bold text-[#6B7280]">
+                {me?.fotoProfil ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
+                ) : (
+                  me?.nama?.charAt(0) ?? "S"
+                )}
+              </div>
+            </div>
             <p className="mb-3 px-2 pt-2 text-sm font-bold text-[#182033]">
               Dashboard Siswa
               <br />

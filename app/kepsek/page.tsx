@@ -12,7 +12,8 @@ import Badge from "@/components/ui/Badge";
 
 const BRAND = "#6B85F6";
 
-type Tab = "DASHBOARD" | "KELAS" | "SISWA" | "GURU" | "ASESMEN" | "PERFORMA";
+type AccountRole = "SISWA" | "GURU";
+type Tab = "DASHBOARD" | "KELAS" | "AKUN" | "ASESMEN" | "PERFORMA";
 type KepsekAsesmen = AsesmenData & { guru: { id: string; nama: string } };
 
 interface AdminDashboardData {
@@ -37,8 +38,7 @@ function TabIcon({ tab }: { tab: Tab }) {
   const paths: Record<Tab, React.ReactNode> = {
     DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-    SISWA: <path d="M12 3 2 8l10 5 8-4v6M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />,
-    GURU: <path d="M4 19V5a2 2 0 0 1 2-2h11l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M9 8h7 M9 12h7 M9 16h4" />,
+    AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7.87a4 4 0 0 1 0 7.75" />,
     ASESMEN: <path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 4h4m-4 4h4m-4 4h4" />,
     PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
@@ -52,8 +52,7 @@ function TabIcon({ tab }: { tab: Tab }) {
 const TABS: { key: Tab; label: string }[] = [
   { key: "DASHBOARD", label: "Dashboard" },
   { key: "KELAS", label: "Kelas" },
-  { key: "SISWA", label: "Daftar Siswa" },
-  { key: "GURU", label: "Daftar Guru" },
+  { key: "AKUN", label: "Daftar Akun" },
   { key: "ASESMEN", label: "Asesmen" },
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
@@ -69,6 +68,7 @@ export default function KepsekDashboard() {
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [activeTab, setActiveTab] = useState<Tab>("DASHBOARD");
+  const [accountRole, setAccountRole] = useState<AccountRole>("SISWA");
   const [me, setMe] = useState<{ nama: string; role: string; fotoProfil: string | null } | null>(null);
 
   const [kelasList, setKelasList] = useState<KelasData[]>([]);
@@ -104,7 +104,12 @@ export default function KepsekDashboard() {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab && ["DASHBOARD", "KELAS", "SISWA", "GURU", "ASESMEN", "PERFORMA"].includes(tab)) {
+    if (tab === "SISWA" || tab === "GURU") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAccountRole(tab);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveTab("AKUN");
+    } else if (tab && ["DASHBOARD", "KELAS", "AKUN", "ASESMEN", "PERFORMA"].includes(tab)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(tab as Tab);
     }
@@ -133,15 +138,19 @@ export default function KepsekDashboard() {
         const res = await fetch("/api/kelas");
         const data = await res.json();
         setKelasList(data.data ?? []);
-      } else if (tab === "SISWA") {
-        const [res, referensiRes] = await Promise.all([fetch("/api/akun?role=SISWA"), fetch("/api/kelas-referensi")]);
-        const [data, referensiData] = await Promise.all([res.json(), referensiRes.json()]);
-        setSiswaList(data.data ?? []);
+      } else if (tab === "AKUN") {
+        const [siswaRes, referensiRes, guruRes, mapelRes] = await Promise.all([
+          fetch("/api/akun?role=SISWA"),
+          fetch("/api/kelas-referensi"),
+          fetch("/api/akun?role=GURU"),
+          fetch("/api/mapel"),
+        ]);
+        const [siswaData, referensiData, guruData, mapelData] = await Promise.all([
+          siswaRes.json(), referensiRes.json(), guruRes.json(), mapelRes.json(),
+        ]);
+        setSiswaList(siswaData.data ?? []);
         setKelasReferensiList(referensiData.data ?? []);
-      } else if (tab === "GURU") {
-        const [res, mapelRes] = await Promise.all([fetch("/api/akun?role=GURU"), fetch("/api/mapel")]);
-        const [data, mapelData] = await Promise.all([res.json(), mapelRes.json()]);
-        setGuruList(data.data ?? []);
+        setGuruList(guruData.data ?? []);
         setMapelList(mapelData.data ?? []);
       } else if (tab === "ASESMEN") {
         const res = await fetch("/api/asesmen");
@@ -169,8 +178,13 @@ export default function KepsekDashboard() {
     router.refresh();
   }
 
-  function openTab(tab: Tab) {
-    setActiveTab(tab);
+  function openTab(tab: Tab | AccountRole) {
+    if (tab === "SISWA" || tab === "GURU") {
+      setAccountRole(tab);
+      setActiveTab("AKUN");
+    } else {
+      setActiveTab(tab);
+    }
     setSidebarOpen(false);
   }
 
@@ -239,7 +253,7 @@ export default function KepsekDashboard() {
               <p className="text-xs text-[#9CA3AF]">{me.role}</p>
             </div>
           )}
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+          <div className="hidden h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280] sm:flex">
             {me?.fotoProfil ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
@@ -434,7 +448,8 @@ export default function KepsekDashboard() {
           )}
 
           {!loading && activeTab === "KELAS" && (
-            <div>
+            <div className="space-y-5">
+              <PageHeader eyebrow="Pengelolaan akademik" title="Daftar Kelas" desc="Pantau kelas yang tersedia dan aktivitas belajar di setiap kelas." />
               {kelasList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada kelas dibuat.</p>
               ) : (
@@ -447,9 +462,30 @@ export default function KepsekDashboard() {
             </div>
           )}
 
-          {!loading && activeTab === "SISWA" && (
+          {!loading && activeTab === "AKUN" && (
+            <div className="space-y-4">
+              <PageHeader eyebrow="Data akun" title="Daftar Akun" desc="Lihat data siswa dan guru dalam satu tempat (akses lihat saja)." />
+              <div className="inline-flex rounded-lg border border-[#dfe4ef] bg-white p-1" role="group" aria-label="Pilih jenis akun">
+                {(["SISWA", "GURU"] as AccountRole[]).map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    aria-pressed={accountRole === role}
+                    onClick={() => setAccountRole(role)}
+                    className="cursor-pointer rounded-md px-4 py-2 text-sm font-semibold transition-colors"
+                    style={accountRole === role
+                      ? { background: BRAND, color: "#ffffff" }
+                      : { background: "transparent", color: theme === "dark" ? "#aeb8c9" : "#536076" }}
+                  >
+                    {role === "SISWA" ? "Siswa" : "Guru"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && activeTab === "AKUN" && accountRole === "SISWA" && (
             <div className="space-y-5">
-              <PageHeader eyebrow="Data akun" title="Daftar Siswa" desc="Lihat data siswa dan kelasnya (akses lihat saja)." />
               <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
                 <label className={FIELD_LABEL_CLASS}>
                   Jurusan
@@ -510,9 +546,8 @@ export default function KepsekDashboard() {
             </div>
           )}
 
-          {!loading && activeTab === "GURU" && (
+          {!loading && activeTab === "AKUN" && accountRole === "GURU" && (
             <div className="space-y-5">
-              <PageHeader eyebrow="Data akun" title="Daftar Guru" desc="Lihat data guru dan mapel yang diampu (akses lihat saja)." />
               <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
                 <label className={FIELD_LABEL_CLASS}>
                   Mapel

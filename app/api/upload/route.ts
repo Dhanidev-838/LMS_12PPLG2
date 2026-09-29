@@ -19,7 +19,7 @@ const ALLOWED_TUGAS_TYPES = [
 
 const KATEGORI_CONFIG: Record<string, { folder: string; allowedTypes: string[] }> = {
   profil: { folder: "profil", allowedTypes: ALLOWED_IMAGE_TYPES },
-  materi: { folder: "materi", allowedTypes: ALLOWED_DOC_TYPES },
+  materi: { folder: "materi", allowedTypes: ALLOWED_TUGAS_TYPES },
   pengumuman: { folder: "pengumuman", allowedTypes: [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOC_TYPES] },
   tugas: { folder: "tugas", allowedTypes: ALLOWED_TUGAS_TYPES },
   soal: { folder: "soal", allowedTypes: ALLOWED_IMAGE_TYPES }, // baru -- foto pertanyaan di Soal Builder

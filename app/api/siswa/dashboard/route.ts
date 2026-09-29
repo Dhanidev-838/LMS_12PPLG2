@@ -209,6 +209,21 @@ export async function GET() {
       };
     });
 
+    const materiTerbaru = kelasIds.length
+      ? await db.materi.findMany({
+          where: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } },
+          include: {
+            guru: { select: { id: true, nama: true } },
+            kelasTujuan: {
+              where: { kelasId: { in: kelasIds } },
+              include: { kelas: { select: { id: true, judul: true } } },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        })
+      : [];
+
     const nilaiAkhirList = await db.submission.findMany({
       where: { siswaId, nilaiAkhir: { not: null } },
       include: {
@@ -281,6 +296,7 @@ export async function GET() {
           statusNilaiKelas,
         },
         pengumumanTerbaru,
+        materiTerbaru,
         asesmenTerbaru: asesmenList.slice(0, 5),
         tugasTerbaru: tugasList.slice(0, 5),
         tugasBelumDikumpulkan: tugasList.filter((item) => item.statusSubmission !== "SUDAH").slice(0, 5),
