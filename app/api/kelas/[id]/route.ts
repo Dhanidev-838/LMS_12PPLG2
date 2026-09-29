@@ -113,14 +113,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
         ...ks,
         siswa: {
           ...ks.siswa,
-          nis: hashPrivateIdentifier(ks.siswa.nis),
+          nis: ks.siswa.nis,
         },
       })),
       guruMapel: kelas.guruMapel.map((gm) => ({
         ...gm,
         guru: {
           ...gm.guru,
-          nik: hashPrivateIdentifier(gm.guru.nik),
+          nik: gm.guru.nik,
         },
       })),
       feed,

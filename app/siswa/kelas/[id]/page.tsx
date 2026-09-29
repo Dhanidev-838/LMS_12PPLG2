@@ -158,7 +158,6 @@ export default function SiswaKelasDetailPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-[#182033]">{ks.siswa.nama}</p>
-                            <p className="text-xs text-[#9CA3AF]">NIS: {ks.siswa.nis}</p>
                           </div>
                         </button>
                       ))}

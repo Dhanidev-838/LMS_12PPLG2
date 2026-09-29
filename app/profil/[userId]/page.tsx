@@ -416,7 +416,7 @@ export default function ProfilPage() {
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
                       {isSiswa && (
-                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <div className="profile-info-card w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
                             {profil.isSelf ? "NIS" : "Status"}
                           </p>
@@ -426,7 +426,7 @@ export default function ProfilPage() {
                         </div>
                       )}
                       {isGuru && (
-                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <div className="profile-info-card w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
                             {profil.isSelf ? "NIK" : "Status"}
                           </p>
@@ -436,19 +436,19 @@ export default function ProfilPage() {
                         </div>
                       )}
 
-                      <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                      <div className="profile-info-card w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Peran</p>
                         <p className="mt-0.5 text-sm font-bold text-[#182033]">{roleLabel[profil.role]}</p>
                       </div>
 
                       {isSiswa && (
-                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <div className="profile-info-card col-span-2 w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jurusan</p>
                           <p className="mt-0.5 text-sm font-bold text-[#182033]">{profil.jurusan ?? "-"}</p>
                         </div>
                       )}
                       {isGuru && (
-                        <div className="rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                        <div className="profile-info-card col-span-2 w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Mapel</p>
                           <p className="mt-0.5 text-sm font-bold text-[#182033]">
                             {profil.mapel.length > 0 ? profil.mapel.join(", ") : "-"}
@@ -456,12 +456,12 @@ export default function ProfilPage() {
                         </div>
                       )}
 
-                      <div className="col-span-2 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                      <div className="profile-info-card col-span-2 w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Jenis Kelamin</p>
                         <p className="mt-0.5 text-sm font-bold text-[#182033]">{profil.jenisKelamin ?? "-"}</p>
                       </div>
 
-                      <div className="col-span-2 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
+                      <div className="profile-info-card col-span-2 w-full min-w-0 rounded-2xl border border-[#edf0f5] bg-[#f7f8fd] p-4">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Deskripsi</p>
                         <p className="mt-1 whitespace-pre-wrap text-sm text-[#435064]">{profil.deskripsi || "-"}</p>
                       </div>
@@ -547,6 +547,13 @@ export default function ProfilPage() {
         [data-admin-theme="dark"] [class~="border-[#e1e5ed]"],
         [data-admin-theme="dark"] [class~="border-[#dfe4ef]"],
         [data-admin-theme="dark"] [class~="border-[#e6e9f0]"] { border-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] .profile-info-card {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          overflow: hidden !important;
+        }
 
         [data-admin-theme="dark"] :is(
           [class*="text-[#111827]" i], [class*="text-[#182033]" i]

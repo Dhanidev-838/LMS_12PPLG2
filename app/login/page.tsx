@@ -6,9 +6,11 @@ import Link from "next/link";
 import Image from "next/image";
 
 const BRAND = "#6B85F6";
+const SAVED_ACCOUNTS_KEY = "classify-saved-accounts";
 
 type Portal = "ADMIN" | "PETUGAS" | "SISWA";
 type View = "LOGIN" | "LAPOR" | "OTP" | "PASSWORD_BARU" | "SUKSES";
+type SavedAccount = { portal: Portal; identifier: string; label: string; lastLoginAt: number };
 
 const PORTAL_CONFIG: Record<
   Portal,
@@ -42,18 +44,52 @@ function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: (
   );
 }
 
+function readSavedAccounts(): SavedAccount[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(SAVED_ACCOUNTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as SavedAccount[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSavedAccounts(accounts: SavedAccount[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SAVED_ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function persistSavedAccount(portal: Portal, identifier: string) {
+  const trimmed = identifier.trim();
+  if (!trimmed) return;
+
+  const accounts = readSavedAccounts();
+  const next = [
+    {
+      portal,
+      identifier: trimmed,
+      label: `${PORTAL_CONFIG[portal].label} · ${trimmed}`,
+      lastLoginAt: Date.now(),
+    },
+    ...accounts.filter((account) => !(account.portal === portal && account.identifier.toLowerCase() === trimmed.toLowerCase())),
+  ].slice(0, 6);
+
+  writeSavedAccounts(next);
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [view, setView] = useState<View>("LOGIN");
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    return window.localStorage.getItem("admin-theme") === "dark" ? "dark" : "light";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   // ===== state login =====
   const [portal, setPortal] = useState<Portal>("ADMIN");
   const [loginIdentifier, setLoginIdentifier] = useState(""); // email (admin) / nik (petugas) / nis (siswa)
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // ===== state lupa password =====
   const [identifier, setIdentifier] = useState(""); // NIS/NIK
@@ -66,14 +102,33 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
+  const [showSavedAccounts, setShowSavedAccounts] = useState(false);
 
   const config = PORTAL_CONFIG[portal];
+  const filteredSavedAccounts = savedAccounts.filter((account) => {
+    const query = loginIdentifier.trim().toLowerCase();
+    if (!query) return true;
+    return account.identifier.toLowerCase().includes(query) || account.portal.toLowerCase().includes(query);
+  });
 
   useEffect(() => {
+    const savedTheme = window.localStorage.getItem("admin-theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      setTheme(savedTheme);
+    }
+
+    const accounts = readSavedAccounts();
+    setSavedAccounts(accounts);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     document.documentElement.setAttribute("data-admin-theme", theme);
     window.localStorage.setItem("admin-theme", theme);
     return () => document.documentElement.removeAttribute("data-admin-theme");
-  }, [theme]);
+  }, [mounted, theme]);
 
   function resetLupaState() {
     setIdentifier("");
@@ -90,6 +145,7 @@ export default function LoginPage() {
     setPortal(newPortal);
     setLoginIdentifier("");
     setLoginPassword("");
+    setShowLoginPassword(false);
     setError("");
   }
 
@@ -110,6 +166,9 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+
+      persistSavedAccount(portal, loginIdentifier);
+      setSavedAccounts(readSavedAccounts());
       router.push(data.redirectTo ?? "/");
       router.refresh();
     } catch {
@@ -219,7 +278,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div data-admin-theme={theme} className="public-shell flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
+    <div data-admin-theme={mounted ? theme : "light"} className="public-shell flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
       <header className="border-b border-[#e8ebf2] bg-white">
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5"><Image src="/Logo1.png" alt="Logo Classify" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-.04em]">Classify</span></Link>
@@ -268,22 +327,95 @@ export default function LoginPage() {
               <p className="text-sm font-bold text-[#111827]">{config.title}</p>
 
               <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3">
-                <input
-                  type={portal === "ADMIN" ? "email" : "text"}
-                  required
-                  placeholder={config.identifierPlaceholder}
-                  value={loginIdentifier}
-                  onChange={(e) => setLoginIdentifier(e.target.value)}
-                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
-                />
-                <input
-                  type="password"
-                  required
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
-                />
+                <div className="relative">
+                  <input
+                    type={portal === "ADMIN" ? "email" : "text"}
+                    required
+                    placeholder={config.identifierPlaceholder}
+                    value={loginIdentifier}
+                    onFocus={() => setShowSavedAccounts(savedAccounts.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSavedAccounts(false), 120)}
+                    onChange={(e) => {
+                      setLoginIdentifier(e.target.value);
+                      setShowSavedAccounts(savedAccounts.length > 0);
+                    }}
+                    className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+                  />
+
+                  {showSavedAccounts && filteredSavedAccounts.length > 0 && (
+                    <div className="account-picker absolute left-0 right-0 top-[calc(100%+8px)] z-20 overflow-hidden rounded-[18px] border border-[#e5e7eb] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.14)]">
+                      {filteredSavedAccounts.map((account) => (
+                        <button
+                          key={`${account.portal}-${account.identifier}`}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            setPortal(account.portal);
+                            setLoginIdentifier(account.identifier);
+                            setLoginPassword("");
+                            setError("");
+                            setShowSavedAccounts(false);
+                          }}
+                          className="account-option flex w-full items-center gap-3 border-b border-[#f0f2f5] px-3 py-2.5 text-left transition-colors hover:bg-[#f5f7fb]"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#eef2ff] text-[#4f46e5]">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[14px] w-[14px]" aria-hidden="true">
+                              <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="m5 7 7 5 7-5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                          <span className="account-text flex-1 truncate text-[14px] font-medium text-[#1f2937]">{account.identifier}</span>
+                        </button>
+                      ))}
+
+                      <button
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        className="account-option flex w-full items-center gap-3 px-3 py-2.5 text-left text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#f5f7fb]"
+                      >
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f3f4f6] text-[#4b5563]">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[12px] w-[12px]" aria-hidden="true">
+                            <circle cx="12" cy="8.5" r="3.5" />
+                            <path d="M4 18.5c1.3-2.4 4-3.8 8-3.8s6.7 1.4 8 3.8" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                        <span className="account-text">Manage addresses...</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type={showLoginPassword ? "text" : "password"}
+                    required
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 pr-12 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((visible) => !visible)}
+                    aria-label={showLoginPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    title={showLoginPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center text-[#748096] hover:text-[#435064]"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+                      {showLoginPassword ? (
+                        <>
+                          <path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                          <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 4.2 9.5 6.2a1.7 1.7 0 0 1 0 1.6 12 12 0 0 1-3.1 3.7M6.2 6.2a13 13 0 0 0-3.7 5 1.7 1.7 0 0 0 0 1.6C3.5 14.8 7 19 12 19c1.1 0 2.1-.2 3-.6" />
+                        </>
+                      ) : (
+                        <>
+                          <path d="M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6Z" />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </>
+                      )}
+                    </svg>
+                  </button>
+                </div>
 
                 {error && <p className="text-xs font-medium text-red-500">{error}</p>}
 
@@ -555,6 +687,22 @@ export default function LoginPage() {
         }
         [data-admin-theme="dark"] .public-shell input::placeholder,
         [data-admin-theme="dark"] .public-shell textarea::placeholder { color: #7d889b !important; }
+
+        [data-admin-theme="dark"] .public-shell .account-picker,
+        [data-admin-theme="dark"] .public-shell .account-picker .account-option,
+        [data-admin-theme="dark"] .public-shell .account-picker .account-text {
+          background-color: #ffffff !important;
+          color: #111827 !important;
+        }
+
+        [data-admin-theme="dark"] .public-shell .account-picker {
+          border-color: #dfe4ef !important;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18) !important;
+        }
+
+        [data-admin-theme="dark"] .public-shell .account-picker .account-option:hover {
+          background-color: #f5f7fb !important;
+        }
 
         [data-admin-theme="dark"] .public-shell [class*="hover:bg-"]:hover {
           background-color: rgba(107, 133, 246, .14) !important;

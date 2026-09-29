@@ -212,6 +212,25 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
         [data-admin-theme="dark"] [class~="border-[#F1F5F9]"] { border-color: #2a3343 !important; }
         [data-admin-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #2a3343 !important; }
 
+        [data-admin-theme="dark"] .attachment-item {
+          background-color: #171d28 !important;
+          border-color: #2a3343 !important;
+        }
+
+        [data-admin-theme="dark"] .attachment-title,
+        [data-admin-theme="dark"] .attachment-meta,
+        [data-admin-theme="dark"] .attachment-action {
+          color: #f3f8ff !important;
+        }
+
+        [data-admin-theme="dark"] .attachment-meta {
+          color: #dbe5ff !important;
+        }
+
+        [data-admin-theme="dark"] .attachment-action {
+          color: #cfe0ff !important;
+        }
+
         [data-admin-theme="dark"] :is(
           [class*="text-[#111827]" i], [class*="text-[#182033]" i], [class*="text-[#374151]" i],
           [class~="text-gray-900"], [class~="text-gray-800"], [class~="text-gray-700"]

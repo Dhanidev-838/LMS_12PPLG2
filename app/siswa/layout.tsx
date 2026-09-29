@@ -33,11 +33,17 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    return window.localStorage.getItem("admin-theme") === "dark" ? "dark" : "light";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [me, setMe] = useState<{ id: string; nama: string; role: string; fotoProfil: string | null } | null>(null);
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("admin-theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      setTheme(savedTheme);
+    }
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetch("/api/me")
@@ -47,10 +53,11 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     document.documentElement.setAttribute("data-admin-theme", theme);
     window.localStorage.setItem("admin-theme", theme);
     return () => document.documentElement.removeAttribute("data-admin-theme");
-  }, [theme]);
+  }, [mounted, theme]);
 
   async function handleLogout() {
     if (isAssessmentPage()) {
@@ -108,7 +115,7 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div data-admin-theme={mounted ? theme : "light"} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
       <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-[#e6e9f0] bg-white px-4 sm:px-6">
         <div className="flex items-center gap-3">
           <button
@@ -250,6 +257,95 @@ export default function SiswaLayout({ children }: { children: React.ReactNode })
         [data-admin-theme="dark"] [class~="border-[#CBD5E1]"],
         [data-admin-theme="dark"] [class~="border-[#F1F5F9]"] { border-color: #2a3343 !important; }
         [data-admin-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #2a3343 !important; }
+
+        [data-admin-theme="dark"] .student-card,
+        [data-admin-theme="dark"] .student-list-row,
+        [data-admin-theme="dark"] .student-announce-item,
+        [data-admin-theme="dark"] .student-upload-box,
+        [data-admin-theme="dark"] .student-upload-label,
+        [data-admin-theme="dark"] .student-upload-input,
+        [data-admin-theme="dark"] .student-stat-card,
+        [data-admin-theme="dark"] .student-performance-row,
+        [data-admin-theme="dark"] .attachment-item {
+          background-color: #171d28 !important;
+          border-color: #2a3343 !important;
+        }
+
+        [data-admin-theme="dark"] .student-card,
+        [data-admin-theme="dark"] .student-card p,
+        [data-admin-theme="dark"] .student-card span,
+        [data-admin-theme="dark"] .student-card div,
+        [data-admin-theme="dark"] .student-list-row,
+        [data-admin-theme="dark"] .student-announce-item,
+        [data-admin-theme="dark"] .student-upload-box,
+        [data-admin-theme="dark"] .student-upload-label,
+        [data-admin-theme="dark"] .student-upload-input,
+        [data-admin-theme="dark"] .student-stat-card,
+        [data-admin-theme="dark"] .student-stat-card p,
+        [data-admin-theme="dark"] .student-performance-row,
+        [data-admin-theme="dark"] .student-performance-title,
+        [data-admin-theme="dark"] .student-performance-subtitle,
+        [data-admin-theme="dark"] .attachment-title,
+        [data-admin-theme="dark"] .attachment-meta,
+        [data-admin-theme="dark"] .attachment-action {
+          color: #edf3ff !important;
+        }
+
+        [data-admin-theme="dark"] .student-card .text-[#182033],
+        [data-admin-theme="dark"] .student-card .text-[#111827],
+        [data-admin-theme="dark"] .student-card .text-[#374151],
+        [data-admin-theme="dark"] .student-list-row .text-[#182033],
+        [data-admin-theme="dark"] .student-announce-item .text-[#182033],
+        [data-admin-theme="dark"] .student-upload-box p,
+        [data-admin-theme="dark"] .student-upload-label {
+          color: #f3f8ff !important;
+        }
+
+        [data-admin-theme="dark"] .student-card .text-[#435064],
+        [data-admin-theme="dark"] .student-card .text-[#64748B],
+        [data-admin-theme="dark"] .student-card .text-[#94A3B8],
+        [data-admin-theme="dark"] .student-list-row .text-[#64748B],
+        [data-admin-theme="dark"] .student-announce-item .text-[#64748B],
+        [data-admin-theme="dark"] .student-upload-box .text-[#94A3B8],
+        [data-admin-theme="dark"] .student-upload-input::placeholder,
+        [data-admin-theme="dark"] .student-performance-subtitle,
+        [data-admin-theme="dark"] .attachment-meta {
+          color: #cbd5e1 !important;
+        }
+
+        [data-admin-theme="dark"] .attachment-action {
+          color: #bcd0ff !important;
+        }
+
+        [data-admin-theme="dark"] .badge-green {
+          background-color: rgba(34, 197, 94, 0.18) !important;
+          color: #d9ffe6 !important;
+          border: 1px solid rgba(134, 239, 172, 0.38) !important;
+        }
+
+        [data-admin-theme="dark"] .badge-amber {
+          background-color: rgba(245, 158, 11, 0.18) !important;
+          color: #fff1bf !important;
+          border: 1px solid rgba(253, 224, 71, 0.34) !important;
+        }
+
+        [data-admin-theme="dark"] .badge-red {
+          background-color: rgba(239, 68, 68, 0.18) !important;
+          color: #fecaca !important;
+          border: 1px solid rgba(252, 165, 165, 0.32) !important;
+        }
+
+        [data-admin-theme="dark"] .badge-brand {
+          background-color: rgba(107, 133, 246, 0.18) !important;
+          color: #dfe9ff !important;
+          border: 1px solid rgba(147, 197, 253, 0.28) !important;
+        }
+
+        [data-admin-theme="dark"] .badge-gray {
+          background-color: rgba(148, 163, 184, 0.18) !important;
+          color: #edf3ff !important;
+          border: 1px solid rgba(148, 163, 184, 0.28) !important;
+        }
 
         [data-admin-theme="dark"] :is(
           [class*="text-[#111827]" i], [class*="text-[#182033]" i], [class*="text-[#374151]" i],

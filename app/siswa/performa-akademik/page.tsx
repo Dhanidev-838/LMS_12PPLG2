@@ -9,14 +9,32 @@ type AssessmentItem = { id: string; judul: string; tipe: "KUIS" | "UJIAN"; nilai
 type PerformanceData = { summary: { rataRataSemua: number | null; rataRataKuis: number | null; rataRataUjian: number | null; asesmenSudah: number; asesmenBelum: number; asesmenSedang: number; tugasSudah: number; tugasBelum: number; essaySudahDinilai: number; essayBelumDinilai: number }; perkembanganNilai: AssessmentItem[]; perbandinganTipe: Array<{ label: string; nilai: number | null }>; progressTugas: { sudah: number; belum: number }; nilaiPerMapel: Array<{ mapel: string; nilai: number | null }>; nilaiTerbaru: AssessmentItem[]; nilaiTertinggi: AssessmentItem[]; asesmenBelumDikerjakan: Array<{ id: string; judul: string; tipe: "KUIS" | "UJIAN"; mapel: string }>; tugasBelumDikumpulkan: Array<{ id: string; judul: string; mapel: string }> };
 const RANGES: Array<{ key: RangeKey; label: string }> = [{ key: "semua", label: "Semua" }, { key: "bulan", label: "Bulan Ini" }, { key: "3bulan", label: "3 Bulan Terakhir" }, { key: "tahun", label: "Tahun Ini" }];
 
-function StatCard({ label, value }: { label: string; value: number | null }) { return <div className="border border-[#e1e5ed] bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p><p className="mt-2 text-3xl font-bold text-[#182033]">{value === null ? "-" : value}</p></div>; }
+function StatCard({ label, value }: { label: string; value: number | null }) { return <div className="student-stat-card border border-[#e1e5ed] bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p><p className="mt-2 text-3xl font-bold text-[#182033]">{value === null ? "-" : value}</p></div>; }
 function LineChart({ items }: { items: AssessmentItem[] }) {
   if (!items.length) return <p className="text-sm text-[#94A3B8]">Belum ada nilai untuk menampilkan perkembangan.</p>;
   const points = items.map((item, index) => `${index * (100 / Math.max(items.length - 1, 1))},${100 - item.nilai}`).join(" ");
-  return <div className="overflow-x-auto"><div className="min-w-[420px]"><svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-40 w-full overflow-visible"><polyline points={points} fill="none" stroke="#6B85F6" strokeWidth="2" vectorEffect="non-scaling-stroke" />{items.map((item, index) => <circle key={item.id} cx={index * (100 / Math.max(items.length - 1, 1))} cy={100 - item.nilai} r="2" fill="#6B85F6" vectorEffect="non-scaling-stroke"><title>{`${item.judul}: ${item.nilai}`}</title></circle>)}</svg><div className="mt-2 flex justify-between gap-2">{items.map((item) => <span key={item.id} className="max-w-16 truncate text-[10px] text-[#94A3B8]">{item.judul}</span>)}</div></div></div>;
+  return (
+    <div className="w-full overflow-hidden">
+      <div className="w-full">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-40 w-full overflow-visible">
+          <polyline points={points} fill="none" stroke="#6B85F6" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          {items.map((item, index) => (
+            <circle key={item.id} cx={index * (100 / Math.max(items.length - 1, 1))} cy={100 - item.nilai} r="2" fill="#6B85F6" vectorEffect="non-scaling-stroke">
+              <title>{`${item.judul}: ${item.nilai}`}</title>
+            </circle>
+          ))}
+        </svg>
+        <div className="mt-2 flex flex-wrap justify-between gap-2">
+          {items.map((item) => (
+            <span key={item.id} className="max-w-16 truncate text-[10px] text-[#94A3B8]">{item.judul}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
-function HorizontalBars({ items }: { items: Array<{ label: string; value: number | null }> }) { const available = items.filter((item): item is { label: string; value: number } => item.value !== null); if (!available.length) return <p className="text-sm text-[#94A3B8]">Belum ada nilai berdasarkan mata pelajaran.</p>; return <div className="space-y-4">{available.map((item) => <div key={item.label}><div className="mb-1 flex justify-between text-sm"><span>{item.label}</span><strong>{item.value}</strong></div><div className="h-2 rounded-full bg-[#eef1f8]"><div className="h-full rounded-full bg-[#6B85F6]" style={{ width: `${Math.max(item.value, 0)}%` }} /></div></div>)}</div>; }
-function AssessmentList({ items, empty }: { items: AssessmentItem[]; empty: string }) { return items.length ? <div className="space-y-3">{items.map((item) => <div key={item.id} className="flex items-center justify-between gap-3 bg-[#f7f8fd] p-3"><div className="min-w-0"><p className="truncate text-sm font-semibold">{item.judul}</p><p className="text-xs text-[#64748B]">{item.mapel} · {item.tipe}</p></div><Badge tone={item.nilai >= 75 ? "green" : "amber"}>{item.nilai}</Badge></div>)}</div> : <p className="text-sm text-[#94A3B8]">{empty}</p>; }
+function HorizontalBars({ items }: { items: Array<{ label: string; value: number | null }> }) { const available = items.filter((item): item is { label: string; value: number } => item.value !== null); if (!available.length) return <p className="text-sm text-[#94A3B8]">Belum ada nilai berdasarkan mata pelajaran.</p>; return <div className="space-y-4">{available.map((item) => <div key={item.label} className="min-w-0"><div className="mb-1 flex justify-between gap-3 text-sm"><span className="truncate">{item.label}</span><strong>{item.value}</strong></div><div className="h-2 rounded-full bg-[#eef1f8]"><div className="h-full rounded-full bg-[#6B85F6]" style={{ width: `${Math.max(item.value, 0)}%` }} /></div></div>)}</div>; }
+function AssessmentList({ items, empty }: { items: AssessmentItem[]; empty: string }) { return items.length ? <div className="space-y-3">{items.map((item) => <div key={item.id} className="student-performance-row flex items-center justify-between gap-3 bg-[#f7f8fd] p-3"><div className="min-w-0"><p className="student-performance-title truncate text-sm font-semibold text-[#182033]">{item.judul}</p><p className="student-performance-subtitle text-xs text-[#64748B]">{item.mapel} · {item.tipe}</p></div><Badge tone={item.nilai >= 75 ? "green" : "amber"}>{item.nilai}</Badge></div>)}</div> : <p className="text-sm text-[#94A3B8]">{empty}</p>; }
 
 export default function SiswaPerformaAkademikPage() {
   const [range, setRange] = useState<RangeKey>("semua");

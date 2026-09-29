@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "./ui/Badge";
 
@@ -29,6 +29,16 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleOutsideClick(event: MouseEvent) {
+      const target = event.target;
+      if (target instanceof Element && !target.closest("[data-options-menu]")) setMenuOpen(false);
+    }
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [menuOpen]);
+
   const subInfo =
     data.role === "SISWA"
       ? data.kelasReferensi?.label ?? "Belum ada kelas"
@@ -39,10 +49,9 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
   return (
     <div
       onClick={() => router.push(`/profil/${data.id}`)}
-      className="group relative flex cursor-pointer items-start gap-3 overflow-hidden rounded-2xl p-4 text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-      style={{ background: "#6B85F6" }}
+      className="group relative flex cursor-pointer items-start gap-3 border border-[#e1e5ed] bg-white p-4 transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
     >
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20 text-sm font-bold">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#6B85F6]/10 text-sm font-bold text-[#6B85F6]">
         {data.fotoProfil ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={data.fotoProfil} alt={data.nama} className="h-full w-full object-cover" />
@@ -53,44 +62,42 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-bold">{data.nama}</p>
-          <Badge tone="gray" className="!bg-white/20 !text-white">
-            {data.role === "SISWA" ? "Siswa" : "Guru"}
-          </Badge>
+          <p className="truncate text-sm font-bold text-[#182033]">{data.nama}</p>
+          <Badge tone={data.role === "GURU" ? "brand" : "gray"}>{data.role === "SISWA" ? "Siswa" : "Guru"}</Badge>
         </div>
-        <p className="truncate text-xs text-white/80">{data.email}</p>
-        <p className="mt-0.5 text-[11px] text-white/70">
+        <p className="truncate text-xs text-[#748096]">{data.email}</p>
+        <p className="mt-0.5 text-[11px] text-[#94A3B8]">
           {data.role === "SISWA" ? "NIS" : "NIK"}: {data.role === "SISWA" ? data.nis : data.nik}
         </p>
-        <p className="mt-1 truncate text-[11px] font-medium text-white/90">{subInfo}</p>
-        {data.deskripsi && <p className="mt-1 line-clamp-2 text-[11px] italic text-white/70">&quot;{data.deskripsi}&quot;</p>}
+        <p className="mt-1 truncate text-[11px] font-medium text-[#435064]">{subInfo}</p>
+        {data.deskripsi && <p className="mt-1 line-clamp-2 text-[11px] italic text-[#94A3B8]">&quot;{data.deskripsi}&quot;</p>}
       </div>
 
       {isEditable && (
-        <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="relative flex-shrink-0" data-options-menu onClick={(e) => e.stopPropagation()}>
           <button
+            type="button"
+            aria-label="Opsi akun"
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-[#64748B] hover:bg-[#6B85F6]/10"
           >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <circle cx="12" cy="5" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="19" r="1.5" />
-            </svg>
+            ⋯
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-8 z-20 w-28 overflow-hidden rounded-lg border border-black/5 bg-white shadow-lg">
+            <div className="absolute right-0 top-9 z-20 w-28 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 shadow-md">
               <button
+                type="button"
                 onClick={() => {
                   setMenuOpen(false);
                   onEdit?.(data);
                 }}
-                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-[#374151] hover:bg-black/5"
+                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10"
               >
                 Edit
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setMenuOpen(false);
                   onDelete?.(data.id);

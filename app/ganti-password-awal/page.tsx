@@ -31,6 +31,8 @@ export default function GantiPasswordAwalPage() {
   const router = useRouter();
   const [passwordBaru, setPasswordBaru] = useState("");
   const [konfirmasi, setKonfirmasi] = useState("");
+  const [showPasswordBaru, setShowPasswordBaru] = useState(false);
+  const [showKonfirmasi, setShowKonfirmasi] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -94,22 +96,44 @@ export default function GantiPasswordAwalPage() {
             <div className="mt-7"><p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">Password sementara</p><h2 className="mt-2 text-2xl font-bold tracking-[-.04em]">Buat password baru</h2><p className="mt-2 text-sm leading-6 text-[#6d7788]">Password sementara terdeteksi. Buat kombinasi huruf dan angka untuk melanjutkan.</p></div>
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-4">
-          <input
-            type="password"
-            required
-            placeholder="Password Baru"
-            value={passwordBaru}
-            onChange={(e) => setPasswordBaru(e.target.value)}
-            className="w-full rounded-lg border border-[#d9deea] bg-white px-4 py-3 text-sm text-[#182033] outline-none transition-colors placeholder:text-[#9aa3b2] focus:border-[#6B85F6] focus:ring-2 focus:ring-[#6B85F6]/10"
-          />
-          <input
-            type="password"
-            required
-            placeholder="Konfirmasi Password Baru"
-            value={konfirmasi}
-            onChange={(e) => setKonfirmasi(e.target.value)}
-            className="w-full rounded-lg border border-[#d9deea] bg-white px-4 py-3 text-sm text-[#182033] outline-none transition-colors placeholder:text-[#9aa3b2] focus:border-[#6B85F6] focus:ring-2 focus:ring-[#6B85F6]/10"
-          />
+          <div className="relative">
+            <input
+              type={showPasswordBaru ? "text" : "password"}
+              required
+              placeholder="Password Baru"
+              value={passwordBaru}
+              onChange={(e) => setPasswordBaru(e.target.value)}
+              className="w-full rounded-lg border border-[#d9deea] bg-white px-4 py-3 pr-12 text-sm text-[#182033] outline-none transition-colors placeholder:text-[#9aa3b2] focus:border-[#6B85F6] focus:ring-2 focus:ring-[#6B85F6]/10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswordBaru((visible) => !visible)}
+              aria-label={showPasswordBaru ? "Sembunyikan password baru" : "Tampilkan password baru"}
+              title={showPasswordBaru ? "Sembunyikan password baru" : "Tampilkan password baru"}
+              className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center text-[#748096] hover:text-[#435064]"
+            >
+              <PasswordVisibilityIcon visible={showPasswordBaru} />
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type={showKonfirmasi ? "text" : "password"}
+              required
+              placeholder="Konfirmasi Password Baru"
+              value={konfirmasi}
+              onChange={(e) => setKonfirmasi(e.target.value)}
+              className="w-full rounded-lg border border-[#d9deea] bg-white px-4 py-3 pr-12 text-sm text-[#182033] outline-none transition-colors placeholder:text-[#9aa3b2] focus:border-[#6B85F6] focus:ring-2 focus:ring-[#6B85F6]/10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowKonfirmasi((visible) => !visible)}
+              aria-label={showKonfirmasi ? "Sembunyikan konfirmasi password" : "Tampilkan konfirmasi password"}
+              title={showKonfirmasi ? "Sembunyikan konfirmasi password" : "Tampilkan konfirmasi password"}
+              className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center text-[#748096] hover:text-[#435064]"
+            >
+              <PasswordVisibilityIcon visible={showKonfirmasi} />
+            </button>
+          </div>
 
           {error && <p className="border-l-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">{error}</p>}
 
@@ -149,5 +173,23 @@ export default function GantiPasswordAwalPage() {
         [data-admin-theme="dark"] .public-shell input[class*="placeholder:text-[#9aa3b2]"]::placeholder { color: #7d889b !important; }
       `}</style>
     </div>
+  );
+}
+
+function PasswordVisibilityIcon({ visible }: { visible: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+      {visible ? (
+        <>
+          <path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+          <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 4.2 9.5 6.2a1.7 1.7 0 0 1 0 1.6 12 12 0 0 1-3.1 3.7M6.2 6.2a13 13 0 0 0-3.7 5 1.7 1.7 0 0 0 0 1.6C3.5 14.8 7 19 12 19c1.1 0 2.1-.2 3-.6" />
+        </>
+      ) : (
+        <>
+          <path d="M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6Z" />
+          <circle cx="12" cy="12" r="2.5" />
+        </>
+      )}
+    </svg>
   );
 }

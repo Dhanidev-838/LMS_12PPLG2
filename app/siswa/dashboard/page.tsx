@@ -159,7 +159,7 @@ export default function SiswaDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="student-dashboard space-y-6">
       <div className="border border-[#dfe4ef] p-6 text-white" style={{ background: "#6B85F6" }}>
         <p className="text-xs font-semibold uppercase tracking-wide text-white/75">Dashboard Siswa</p>
         <h1 className="mt-2 text-2xl font-bold">Selamat Datang, {data.siswa.nama}</h1>
@@ -180,7 +180,7 @@ export default function SiswaDashboardPage() {
         <StatCard label="Tugas Belum" value={String(data.statistik.tugasBelum)} helper="Belum dikumpulkan" />
       </div>
 
-      <div className="border border-[#e1e5ed] bg-white p-5">
+      <div className="student-card border border-[#e1e5ed] bg-white p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-bold text-[#182033]">Rata-rata Nilai Asesmen</p>
           <Badge tone={data.statistik.rataRataNilai !== null ? "green" : "gray"}>
@@ -200,8 +200,8 @@ export default function SiswaDashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="border border-[#e1e5ed] bg-white p-5">
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="student-card border border-[#e1e5ed] bg-white p-5">
           <div className="flex items-center justify-between">
             <p className="text-sm font-bold text-[#182033]">Aksi Cepat</p>
           </div>
@@ -218,14 +218,14 @@ export default function SiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-[#e1e5ed] bg-white p-5">
+        <div className="student-card border border-[#e1e5ed] bg-white p-5">
           <p className="text-sm font-bold text-[#182033]">Nilai Terbaru</p>
           <div className="mt-3 space-y-3">
             {data.nilaiTerbaru.length === 0 ? (
               <p className="text-sm text-[#94A3B8]">Belum ada nilai yang tersedia.</p>
             ) : (
               data.nilaiTerbaru.map((item) => (
-                <div key={item.id} className="flex items-center justify-between bg-[#f7f8fd] px-3 py-2">
+                <div key={item.id} className="student-list-row flex items-center justify-between rounded-xl border border-[#edf0f5] bg-[#f7f8fd] px-3 py-2">
                   <div>
                     <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
                     <p className="text-xs text-[#64748B]">{item.mapel}</p>
@@ -239,7 +239,7 @@ export default function SiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-[#e1e5ed] bg-white p-5">
+        <div className="student-card lg:col-span-2 border border-[#e1e5ed] bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-bold text-[#182033]">Pengumuman Kelas</p>
             <Badge tone="gray">7 hari terakhir</Badge>
@@ -249,7 +249,7 @@ export default function SiswaDashboardPage() {
               <p className="text-sm text-[#94A3B8]">Belum ada pengumuman aktif dalam 7 hari terakhir.</p>
             ) : (
               data.pengumumanTerbaru.map((item) => (
-                <div key={item.id} className="border border-[#edf0f5] bg-[#f7f8fd] p-3">
+                <div key={item.id} className="student-announce-item border border-[#edf0f5] bg-[#f7f8fd] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#6B85F6]">{item.kelasJudul}</p>
                     {item.isToday ? (

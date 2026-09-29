@@ -11,11 +11,11 @@ interface BadgeProps {
 }
 
 const toneClasses: Record<Tone, string> = {
-  brand: "bg-[#6B85F6]/10 text-[#6B85F6]",
-  gray: "bg-gray-100 text-gray-600",
-  green: "bg-green-100 text-green-700",
-  red: "bg-red-100 text-red-600",
-  amber: "bg-amber-100 text-amber-700",
+  brand: "badge-brand bg-[#E0E7FF] text-[#1E3A8A]",
+  gray: "badge-gray bg-[#F1F5F9] text-[#475569]",
+  green: "badge-green bg-[#DCFCE7] text-[#166534]",
+  red: "badge-red bg-[#FEE2E2] text-[#991B1B]",
+  amber: "badge-amber bg-[#FEF3C7] text-[#92400E]",
 };
 
 export default function Badge({ children, tone = "brand", className = "" }: BadgeProps) {

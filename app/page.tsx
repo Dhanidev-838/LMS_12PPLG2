@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const JURUSAN = ["TJKT", "PPLG", "Pemasaran", "DKV", "MPLB"];
 const ROLES = [
@@ -47,14 +48,10 @@ function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: (
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    return window.localStorage.getItem("admin-theme") === "dark" ? "dark" : "light";
-  });
+  const [theme, setTheme] = useAdminTheme();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-admin-theme", theme);
-    window.localStorage.setItem("admin-theme", theme);
     return () => document.documentElement.removeAttribute("data-admin-theme");
   }, [theme]);
 

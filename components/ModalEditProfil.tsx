@@ -23,6 +23,7 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.getAttribute("data-admin-theme") === "dark";
 
   useEffect(() => {
     if (!open) return;
@@ -114,8 +115,23 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
           </div>
         </div>
 
-        <Input label="Nama" value={nama} onChange={(e) => setNama(e.target.value)} required />
-        <Textarea label="Deskripsi" value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} rows={4} placeholder="Ceritakan sedikit tentang dirimu..." />
+        <Input
+          label="Nama"
+          value={nama}
+          onChange={(e) => setNama(e.target.value)}
+          required
+          className={isDarkMode ? "border-[#344054] bg-[#111722] text-[#e9eef8] placeholder:text-[#8aa0c4]" : ""}
+          style={isDarkMode ? { color: "#e9eef8" } : undefined}
+        />
+        <Textarea
+          label="Deskripsi"
+          value={deskripsi}
+          onChange={(e) => setDeskripsi(e.target.value)}
+          rows={4}
+          placeholder="Ceritakan sedikit tentang dirimu..."
+          className={isDarkMode ? "border-[#344054] bg-[#111722] text-[#e9eef8] placeholder:text-[#8aa0c4]" : ""}
+          style={isDarkMode ? { color: "#e9eef8" } : undefined}
+        />
 
         {error && <p className="text-xs font-medium text-red-500">{error}</p>}
 
