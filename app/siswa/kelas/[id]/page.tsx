@@ -10,8 +10,6 @@ import TugasCard from "@/components/TugasCard";
 import MateriCard from "@/components/MateriCard";
 import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 
-const BRAND = "#6B85F6";
-
 interface SiswaDiKelas {
   siswaId: string;
   siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; kelasReferensi: { label: string } | null };
@@ -109,21 +107,25 @@ export default function SiswaKelasDetailPage() {
   }, {});
 
   return (
-    <div>
-      <div className="border border-[#dfe4ef] text-white" style={{ background: BRAND }}>
-        <div className="p-5">
-          <p className="text-lg font-bold">{kelas.judul}</p>
-          {kelas.deskripsi && <p className="mt-1 text-sm text-white/85">&quot;{kelas.deskripsi}&quot;</p>}
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-5xl">
+      <section className="border border-[#dfe4ef] border-l-4 border-l-[#6B85F6] bg-white p-4 sm:p-6">
+        <p className="text-xs font-bold uppercase tracking-wide text-[#6B85F6]">Detail Kelas</p>
+        <h1 className="mt-1 break-words text-xl font-bold text-[#182033] sm:text-2xl">{kelas.judul}</h1>
+        {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-[#64748B]">{kelas.deskripsi}</p>}
+      </section>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant={section === "SISWA" ? "primary" : "outline"} onClick={() => setSection(section === "SISWA" ? null : "SISWA")}>
-          Lihat Deretan Siswa
-        </Button>
-        <Button variant={section === "GURU" ? "primary" : "outline"} onClick={() => setSection(section === "GURU" ? null : "GURU")}>
-          Lihat Deretan Guru
-        </Button>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
+        {(["SISWA", "GURU"] as const).map((type) => {
+          const isStudent = type === "SISWA";
+          const isActive = section === type;
+          const count = isStudent ? kelas.siswa.length : new Set(kelas.guruMapel.map((assignment) => assignment.guru.id)).size;
+          return (
+            <button key={type} type="button" aria-expanded={isActive} onClick={() => setSection(isActive ? null : type)} className={`flex min-h-[72px] min-w-0 cursor-pointer items-center justify-between gap-2 border px-3 py-3 text-left transition-colors sm:px-4 ${isActive ? "border-[#6B85F6] bg-[#eef1ff]" : "border-[#dfe4ef] bg-white hover:border-[#bdc8f8] hover:bg-[#fafbff]"}`}>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold text-[#182033]">{isStudent ? "Siswa" : "Guru"}</span><span className="mt-0.5 block text-xs text-[#8290a3]">Lihat daftar</span></span>
+              <span className={`flex h-9 min-w-9 flex-shrink-0 items-center justify-center px-2 text-sm font-bold ${isActive ? "bg-[#6B85F6] text-white" : "bg-[#f1f3f8] text-[#536076]"}`}>{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {section === "SISWA" && (
@@ -208,10 +210,10 @@ export default function SiswaKelasDetailPage() {
       )}
 
       {section === null && (
-        <div className="mt-6">
-          <p className="mb-3 text-sm font-bold text-[#182033]">Aktivitas Kelas</p>
+          <section className="mt-7 border-t border-[#e1e5ed] pt-5">
+          <div className="mb-3"><h2 className="text-base font-bold text-[#182033]">Aktivitas Kelas</h2><p className="mt-1 text-xs text-[#8290a3]">Pengumuman, materi, tugas, dan asesmen dari kelas ini.</p></div>
           <KelasFeedFilter value={feedFilter} onChange={setFeedFilter} />
-          <div className="space-y-3">
+          <div className="mt-3 space-y-3">
             {filteredFeed.length === 0 ? (
               <p className="text-sm text-[#9CA3AF]">{kelas.feed.length === 0 ? "Belum ada aktivitas di kelas ini." : "Tidak ada konten untuk filter ini."}</p>
             ) : (
@@ -250,7 +252,7 @@ export default function SiswaKelasDetailPage() {
               })
             )}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

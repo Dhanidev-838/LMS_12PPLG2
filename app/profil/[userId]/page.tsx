@@ -38,44 +38,38 @@ const roleLabel: Record<Role, string> = {
 };
 
 // ---- sidebar nav per role viewer ----
-type AdminTab = "DASHBOARD" | "KELAS" | "SISWA" | "GURU" | "LAPORAN" | "PERFORMA";
-type GuruSiswaNav = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "PERFORMA" | "PROFILE";
+type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "LAPORAN" | "PERFORMA";
+type GuruSiswaNav = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "MATERI" | "PERFORMA" | "PROFILE";
 
 const ADMIN_TABS: { key: AdminTab; label: string }[] = [
   { key: "DASHBOARD", label: "Dashboard" },
   { key: "KELAS", label: "Buat Kelas" },
-  { key: "SISWA", label: "Daftar Siswa" },
-  { key: "GURU", label: "Daftar Guru" },
+  { key: "AKUN", label: "Daftar Akun" },
   { key: "LAPORAN", label: "Laporan" },
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
 const KEPSEK_TABS: { key: string; label: string; href: string }[] = [
   { key: "DASHBOARD", label: "Dashboard", href: "/kepsek" },
   { key: "KELAS", label: "Kelas", href: "/kepsek?tab=KELAS" },
-  { key: "SISWA", label: "Daftar Siswa", href: "/kepsek?tab=SISWA" },
-  { key: "GURU", label: "Daftar Guru", href: "/kepsek?tab=GURU" },
+  { key: "AKUN", label: "Daftar Akun", href: "/kepsek?tab=AKUN" },
   { key: "ASESMEN", label: "Asesmen", href: "/kepsek?tab=ASESMEN" },
   { key: "PERFORMA", label: "Performa Akademik", href: "/kepsek?tab=PERFORMA" },
 ];
 const KURIKULUM_TABS: { key: string; label: string; href: string }[] = [
   { key: "DASHBOARD", label: "Dashboard", href: "/kurikulum" },
   { key: "KELAS", label: "Kelas", href: "/kurikulum?tab=KELAS" },
-  { key: "SISWA", label: "Daftar Siswa", href: "/kurikulum?tab=SISWA" },
-  { key: "GURU", label: "Daftar Guru", href: "/kurikulum?tab=GURU" },
+  { key: "AKUN", label: "Daftar Akun", href: "/kurikulum?tab=AKUN" },
   { key: "ASESMEN", label: "Asesmen", href: "/kurikulum?tab=ASESMEN" },
   { key: "PERFORMA", label: "Performa Akademik", href: "/kurikulum?tab=PERFORMA" },
 ];
 
-type KepsekNav = "DASHBOARD" | "KELAS" | "SISWA" | "GURU" | "ASESMEN" | "PERFORMA";
-
-type KurikulumNav = KepsekNav;
+type KepsekNav = "DASHBOARD" | "KELAS" | "AKUN" | "ASESMEN" | "PERFORMA";
 
 function KepsekIcon({ nav }: { nav: KepsekNav }) {
   const paths: Record<KepsekNav, React.ReactNode> = {
     DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-    SISWA: <path d="M12 3 2 8l10 5 8-4v6M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />,
-    GURU: <path d="M4 19V5a2 2 0 0 1 2-2h11l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M9 8h7 M9 12h7 M9 16h4" />,
+    AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7.87a4 4 0 0 1 0 7.75" />,
     ASESMEN: <path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 4h4m-4 4h4m-4 4h4" />,
     PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
@@ -92,6 +86,7 @@ function GuruSiswaIcon({ nav }: { nav: GuruSiswaNav }) {
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
     ASESMEN: <path d="M12 2l3 6 6.5.9-4.7 4.6L18 20l-6-3.4L6 20l1.2-6.5L2.5 8.9 9 8l3-6Z" />,
     TUGAS: <path d="M9 3h6l1 3H8l1-3ZM6 6h12v15H6zM9 11h6M9 15h6" />,
+    MATERI: <path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6" />,
     PERFORMA: <path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16V4" />,
     PROFILE: <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />,
   };
@@ -105,8 +100,7 @@ function AdminIcon({ tab }: { tab: AdminTab }) {
   const paths: Record<AdminTab, React.ReactNode> = {
     DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-    SISWA: <path d="M12 3 2 8l10 5 8-4v6M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />,
-    GURU: <path d="M4 19V5a2 2 0 0 1 2-2h11l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M9 8h7 M9 12h7 M9 16h4" />,
+    AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7.87a4 4 0 0 1 0 7.75" />,
     LAPORAN: <path d="M6 2h9l5 5v15H6V2Zm9 0v5h5M9 13h6M9 17h4" />,
     PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
@@ -296,7 +290,7 @@ export default function ProfilPage() {
                   onClick={() => setSidebarOpen(false)}
                   className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[#435064] hover:bg-[#6B85F6]/10"
                 >
-                  {me?.role === "KEPSEK" ? <KepsekIcon nav={tab.key as KepsekNav} /> : me?.role === "KURIKULUM" ? <KurikulumIcon nav={tab.key as KurikulumNav} /> : <AdminIcon tab={tab.key as AdminTab} />}
+                  {me?.role === "ADMIN" ? <AdminIcon tab={tab.key as AdminTab} /> : <KepsekIcon nav={tab.key as KepsekNav} />}
                   {tab.label}
                 </Link>
               ))}
@@ -308,6 +302,7 @@ export default function ProfilPage() {
                     ["KELAS", "Kelas", me.role === "GURU" ? "/guru/kelas" : "/siswa/kelas"],
                     ["ASESMEN", "Asesmen", me.role === "GURU" ? "/guru/asesmen" : "/siswa/asesmen"],
                     ["TUGAS", "Tugas", me.role === "GURU" ? "/guru/tugas" : "/siswa/tugas"],
+                    ["MATERI", "Materi", me.role === "GURU" ? "/guru/materi" : "/siswa/materi"],
                     ["PERFORMA", "Performa Akademik", me.role === "GURU" ? "/guru/performa-akademik" : "/siswa/performa-akademik"],
                     ["PROFILE", "Profile", `/profil/${me.id}`],
                   ] as [GuruSiswaNav, string, string][]
@@ -576,6 +571,3 @@ export default function ProfilPage() {
   );
 }
 
-function KurikulumIcon({ nav }: { nav: KurikulumNav }) {
-  return <KepsekIcon nav={nav} />;
-}
