@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
 
     const kelasIds = [...new Set(kelasGuruMapel.map((entry) => entry.kelasId))];
 
-    const [kuisCount, ujianCount, kuisAvg, ujianAvg, semuaNilaiAvg, tugasDibuat, tugasDikumpulkan, essayBelumDinilai, classRows, mapelRows, tugasBelumDinilaiRaw, essayBelumDinilaiRaw] = await Promise.all([
+    const [kuisCount, ujianCount, kuisAvg, ujianAvg, semuaNilaiAvg, tugasDibuat, tugasDikumpulkan, materiDibuat, essayBelumDinilai, classRows, mapelRows, tugasBelumDinilaiRaw, essayBelumDinilaiRaw] = await Promise.all([
       db.asesmen.count({
         where: {
           guruId,
@@ -115,13 +115,13 @@ export async function GET(req: NextRequest) {
           status: "SUDAH",
         },
       }),
+      db.materi.count({ where: { guruId, createdAt: { gte: fromDate } } }),
       db.jawabanSiswa.count({
         where: {
           nilaiSoal: null,
           soal: {
             tipe: "ESSAY",
             asesmen: {
-              guruId,
               createdAt: { gte: fromDate },
             },
           },
@@ -321,6 +321,7 @@ export async function GET(req: NextRequest) {
           rataRataNilaiSeluruhAsesmen: rataRataSemua,
           totalTugasDibuat: tugasDibuat,
           totalTugasDikumpulkan: tugasDikumpulkan,
+          totalMateriDibuat: materiDibuat,
           persentasePengumpulanTugas: persentasePengumpulan,
           essayBelumDinilai,
           rataRataNilaiPerKelas: kelasAverage,

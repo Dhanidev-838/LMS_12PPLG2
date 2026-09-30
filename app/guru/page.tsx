@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
 
 interface GuruDashboardData {
-  statistik: { totalKelas: number; totalSiswa: number; totalAsesmen: number; totalTugas: number; submissionDinilai: number; essayBelumDinilai: number; tugasDikumpulkan: number };
+  statistik: { totalKelas: number; totalSiswa: number; totalAsesmen: number; totalTugas: number; totalMateri: number; submissionDinilai: number; essayBelumDinilai: number; tugasDikumpulkan: number };
   kelas: { id: string; judul: string; _count: { siswa: number } }[];
   asesmenTerbaru: { id: string; judul: string; tipe: "KUIS" | "UJIAN"; status: "PROSES" | "SELESAI"; updatedAt: string }[];
   tugasTerbaru: { id: string; judul: string; createdAt: string; _count: { submission: number } }[];
@@ -27,11 +28,12 @@ export default function GuruDashboardPage() {
   if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat dashboard...</p>;
   if (!data) return <p className="text-sm text-red-500">Dashboard guru gagal dimuat.</p>;
 
-  const statistik = [
-    ["Kelas Diampu", data.statistik.totalKelas, "Kelas yang kamu ajar"],
-    ["Total Siswa", data.statistik.totalSiswa, "Siswa di kelasmu"],
-    ["Asesmen", data.statistik.totalAsesmen, "Kuis dan ujian"],
-    ["Tugas", data.statistik.totalTugas, "Tugas yang dibuat"],
+  const statistik: MobileDashboardSummaryItem[] = [
+    { label: "Kelas Diampu", value: data.statistik.totalKelas, caption: "Kelas yang kamu ajar" },
+    { label: "Total Siswa", value: data.statistik.totalSiswa, caption: "Siswa di kelasmu" },
+    { label: "Asesmen", value: data.statistik.totalAsesmen, caption: "Kuis dan ujian" },
+    { label: "Tugas", value: data.statistik.totalTugas, caption: "Tugas yang dibuat" },
+    { label: "Materi", value: data.statistik.totalMateri, caption: "Materi yang dibuat" },
   ];
 
   return (
@@ -42,8 +44,9 @@ export default function GuruDashboardPage() {
         <p className="mt-2 text-sm text-white/85">Pantau kelas, asesmen, tugas, dan pekerjaan penilaianmu dari satu tempat.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statistik.map(([label, value, caption]) => <div key={label as string} className="border border-[#e1e5ed] bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p><p className="mt-2 text-3xl font-bold text-[#182033]">{value}</p><p className="mt-1 text-xs text-[#64748B]">{caption}</p></div>)}
+      <MobileDashboardSummary items={statistik} />
+      <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+        {statistik.map((item) => <div key={item.label} className="border border-[#e1e5ed] bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{item.label}</p><p className="mt-2 text-3xl font-bold text-[#182033]">{item.value}</p><p className="mt-1 text-xs text-[#64748B]">{item.caption}</p></div>)}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

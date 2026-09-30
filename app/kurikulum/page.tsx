@@ -9,6 +9,7 @@ import { AkunData } from "@/components/AkunCard";
 import AsesmenCard, { AsesmenData } from "@/components/Asesmencard";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
 
 const BRAND = "#6B85F6";
 
@@ -17,7 +18,7 @@ type Tab = "DASHBOARD" | "KELAS" | "AKUN" | "ASESMEN" | "PERFORMA";
 type KurikulumAsesmen = AsesmenData & { guru: { id: string; nama: string } };
 
 interface AdminDashboardData {
-  statistik: { kelas: number; siswa: number; guru: number; asesmen: number; tugas: number; mapel: number; laporanPending: number; kuis: number; ujian: number; rataRataNilai: number; submissionDinilai: number; tugasDibuat: number; tugasDikumpulkan: number };
+  statistik: { kelas: number; siswa: number; guru: number; asesmen: number; tugas: number; materi: number; mapel: number; laporanPending: number; kuis: number; ujian: number; rataRataNilai: number; submissionDinilai: number; tugasDibuat: number; tugasDikumpulkan: number };
   akunTerbaru: { id: string; nama: string; email: string; role: "SISWA" | "GURU"; createdAt: string }[];
   aktivitas: { periodeHari: number; userAktif: number; siswaAktif: number; guruAktif: number; aktivitasHarian: { tanggal: string; asesmen: number; tugas: number; submission: number; userAktif: number }[] };
   akademik: { trendNilai: { tanggal: string; judul: string; nilai: number | null }[]; rataRataPerKelas: { label: string; nilai: number | null }[]; rataRataPerMapel: { label: string; nilai: number | null }[] };
@@ -208,6 +209,16 @@ export default function KurikulumDashboard() {
     groups.set(asesmen.guru.id, group);
     return groups;
   }, new Map<string, { guru: KurikulumAsesmen["guru"]; asesmen: KurikulumAsesmen[] }>()).values());
+  const dashboardSummaryItems: MobileDashboardSummaryItem[] = dashboardData ? [
+    { label: "Kelas", value: dashboardData.statistik.kelas, actionLabel: "Lihat kelas", onAction: () => openTab("KELAS") },
+    { label: "Siswa", value: dashboardData.statistik.siswa, actionLabel: "Daftar siswa", onAction: () => openTab("SISWA") },
+    { label: "Guru", value: dashboardData.statistik.guru, actionLabel: "Daftar guru", onAction: () => openTab("GURU") },
+    { label: "Asesmen", value: dashboardData.statistik.asesmen, actionLabel: "Kuis dan ujian", onAction: () => openTab("KELAS") },
+    { label: "Tugas", value: dashboardData.statistik.tugas, actionLabel: "Tugas dibuat", onAction: () => openTab("KELAS") },
+    { label: "Materi", value: dashboardData.statistik.materi, actionLabel: "Materi dibagikan", onAction: () => openTab("KELAS") },
+    { label: "Mata Pelajaran", value: dashboardData.statistik.mapel, actionLabel: "Mapel tersedia", onAction: () => openTab("GURU") },
+    { label: "Rata-rata Nilai", value: dashboardData.statistik.rataRataNilai, actionLabel: "Dari asesmen dinilai", onAction: () => openTab("PERFORMA") },
+  ] : [];
 
   return (
     <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -308,13 +319,15 @@ export default function KurikulumDashboard() {
                 <p className="mt-2 max-w-2xl text-sm text-white/85">Pantau kelas, akun, dan performa akademik Classify — akses lihat saja.</p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <MobileDashboardSummary items={dashboardSummaryItems} theme={theme} />
+              <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
                 {[
                   ["Kelas", dashboardData.statistik.kelas, "Lihat kelas", "KELAS"],
                   ["Siswa", dashboardData.statistik.siswa, "Daftar siswa", "SISWA"],
                   ["Guru", dashboardData.statistik.guru, "Daftar guru", "GURU"],
                   ["Asesmen", dashboardData.statistik.asesmen, "Kuis dan ujian", "KELAS"],
                   ["Tugas", dashboardData.statistik.tugas, "Tugas dibuat", "KELAS"],
+                  ["Materi", dashboardData.statistik.materi, "Materi dibagikan", "KELAS"],
                   ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "GURU"],
                   ["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Dari asesmen dinilai", "PERFORMA"],
                 ].map(([label, value, caption, tab], index) => (
@@ -364,8 +377,8 @@ export default function KurikulumDashboard() {
                 desc="Pantau nilai, aktivitas pembelajaran, dan pengguna aktif berdasarkan data nyata sistem."
               />
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {[["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Nilai asesmen dinilai"], ["Asesmen Dinilai", dashboardData.statistik.submissionDinilai, "Submission dengan nilai"], ["Tugas Dibuat", dashboardData.statistik.tugasDibuat, "Total tugas guru"], ["Tugas Dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Submission siswa"]].map(([label, value, caption], index) => (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {[["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Nilai asesmen dinilai"], ["Asesmen Dinilai", dashboardData.statistik.submissionDinilai, "Submission dengan nilai"], ["Tugas Dibuat", dashboardData.statistik.tugasDibuat, "Total tugas guru"], ["Tugas Dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Submission siswa"], ["Materi Dibagikan", dashboardData.statistik.materi, "Materi di seluruh kelas"]].map(([label, value, caption], index) => (
                   <div key={label as string} className={`flex flex-col justify-between gap-8 border bg-white p-4 ${index === 0 ? "border-[#6B85F6]" : "border-[#e1e5ed]"}`}>
                     <p className="text-xs font-semibold text-[#748096]">{label}</p>
                     <div>

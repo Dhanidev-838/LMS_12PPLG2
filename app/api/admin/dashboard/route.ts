@@ -12,12 +12,13 @@ export async function GET() {
     activityStart.setHours(0, 0, 0, 0);
     activityStart.setDate(activityStart.getDate() - 13);
 
-    const [kelas, siswa, guru, asesmen, tugas, mapel, laporanPending, akunTerbaru, asesmenPerTipe, nilaiAggregate, tugasDibuat, tugasDikumpulkan, recentUsers, recentAssessments, recentTasks, recentSubmissions, recentTaskSubmissions, academicRows, learningAssessments, learningTasks] = await Promise.all([
+    const [kelas, siswa, guru, asesmen, tugas, materi, mapel, laporanPending, akunTerbaru, asesmenPerTipe, nilaiAggregate, tugasDibuat, tugasDikumpulkan, recentUsers, recentAssessments, recentTasks, recentSubmissions, recentTaskSubmissions, academicRows, learningAssessments, learningTasks] = await Promise.all([
       db.kelas.count(),
       db.user.count({ where: { role: "SISWA" } }),
       db.user.count({ where: { role: "GURU" } }),
       db.asesmen.count(),
       db.tugas.count(),
+      db.materi.count(),
       db.mapel.count(),
       db.laporanResetPassword.count({ where: { status: "PENDING" } }),
       db.user.findMany({
@@ -116,7 +117,7 @@ export async function GET() {
       const mapelLabel = row.mapel?.nama ?? "Umum";
       mapelValues.set(mapelLabel, [...(mapelValues.get(mapelLabel) ?? []), ...values]);
     }
-    return NextResponse.json({ data: { statistik: { kelas, siswa, guru, asesmen, tugas, mapel, laporanPending, kuis, ujian, rataRataNilai: Math.round(nilaiAggregate._avg.nilaiAkhir ?? 0), submissionDinilai: nilaiAggregate._count._all, tugasDibuat, tugasDikumpulkan }, akunTerbaru, aktivitas: { periodeHari: 14, userAktif: activeUserIds.size, siswaAktif: activeStudents, guruAktif: activeTeachers, aktivitasHarian }, akademik: { trendNilai, rataRataPerKelas: [...kelasValues.values()].map((item) => ({ label: item.label, nilai: average(item.values) })).filter((item) => item.nilai !== null).sort((a, b) => (b.nilai ?? 0) - (a.nilai ?? 0)), rataRataPerMapel: [...mapelValues.entries()].map(([label, values]) => ({ label, nilai: average(values) })).filter((item) => item.nilai !== null).sort((a, b) => (b.nilai ?? 0) - (a.nilai ?? 0)) }, aktivitasPembelajaran: { asesmenSelesai: asesmenProgress.completed, asesmenBelum: asesmenProgress.pending, tugasDikumpulkan: tugasProgress.completed, tugasBelum: tugasProgress.pending } } });
+    return NextResponse.json({ data: { statistik: { kelas, siswa, guru, asesmen, tugas, materi, mapel, laporanPending, kuis, ujian, rataRataNilai: Math.round(nilaiAggregate._avg.nilaiAkhir ?? 0), submissionDinilai: nilaiAggregate._count._all, tugasDibuat, tugasDikumpulkan }, akunTerbaru, aktivitas: { periodeHari: 14, userAktif: activeUserIds.size, siswaAktif: activeStudents, guruAktif: activeTeachers, aktivitasHarian }, akademik: { trendNilai, rataRataPerKelas: [...kelasValues.values()].map((item) => ({ label: item.label, nilai: average(item.values) })).filter((item) => item.nilai !== null).sort((a, b) => (b.nilai ?? 0) - (a.nilai ?? 0)), rataRataPerMapel: [...mapelValues.entries()].map(([label, values]) => ({ label, nilai: average(values) })).filter((item) => item.nilai !== null).sort((a, b) => (b.nilai ?? 0) - (a.nilai ?? 0)) }, aktivitasPembelajaran: { asesmenSelesai: asesmenProgress.completed, asesmenBelum: asesmenProgress.pending, tugasDikumpulkan: tugasProgress.completed, tugasBelum: tugasProgress.pending } } });
   } catch (err: unknown) {
     const name = err instanceof Error ? err.name : "";
     const message = err instanceof Error ? err.message : "Terjadi kesalahan.";

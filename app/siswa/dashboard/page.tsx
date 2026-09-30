@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import MateriCard, { MateriData } from "@/components/MateriCard";
+import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
 
 type DashboardData = {
   siswa: {
@@ -19,6 +20,7 @@ type DashboardData = {
     asesmenSedang: number;
     asesmenBelum: number;
     totalTugas: number;
+    totalMateri: number;
     tugasSudah: number;
     tugasBelum: number;
     rataRataNilai: number | null;
@@ -133,10 +135,9 @@ export default function SiswaDashboardPage() {
           <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
           <div className="mt-4 h-10 w-72 animate-pulse rounded bg-slate-200" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-32 animate-pulse border border-[#e1e5ed] bg-white p-5" />
-          ))}
+        <div className="h-12 animate-pulse border border-[#e1e5ed] bg-white sm:hidden" />
+        <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-32 animate-pulse border border-[#e1e5ed] bg-white p-5" />)}
         </div>
       </div>
     );
@@ -162,6 +163,21 @@ export default function SiswaDashboardPage() {
 
   const today = new Date().toDateString();
   const materiHariIni = data.materiTerbaru.filter((materi) => new Date(materi.createdAt).toDateString() === today).slice(0, 4);
+  const rataRataCaption = data.statistik.rataRataNilai !== null && data.statistik.rataRataNilaiKelas !== null
+    ? `${data.statistik.statusNilaiKelas ?? "Sejajar rata-rata kelas"} (${data.statistik.rataRataNilaiKelas})`
+    : "Pembanding kelas belum tersedia";
+  const statistik: MobileDashboardSummaryItem[] = [
+    { label: "Total Kelas", value: data.statistik.totalKelas, caption: "Kelas yang diikuti" },
+    { label: "Total Asesmen", value: data.statistik.totalAsesmen, caption: "Kuis dan ujian" },
+    { label: "Asesmen Selesai", value: data.statistik.asesmenSudah, caption: "Sudah dikerjakan" },
+    { label: "Asesmen Sedang", value: data.statistik.asesmenSedang, caption: "Dikerjakan saat ini" },
+    { label: "Asesmen Belum", value: data.statistik.asesmenBelum, caption: "Belum dikerjakan" },
+    { label: "Total Tugas", value: data.statistik.totalTugas, caption: "Tugas yang tersedia" },
+    { label: "Total Materi", value: data.statistik.totalMateri, caption: "Materi dari kelas yang diikuti" },
+    { label: "Tugas Sudah", value: data.statistik.tugasSudah, caption: "Sudah dikumpulkan" },
+    { label: "Tugas Belum", value: data.statistik.tugasBelum, caption: "Belum dikumpulkan" },
+    { label: "Rata-rata Nilai", value: data.statistik.rataRataNilai ?? "-", caption: rataRataCaption },
+  ];
 
   return (
     <div className="student-dashboard space-y-6">
@@ -171,21 +187,21 @@ export default function SiswaDashboardPage() {
         <p className="mt-2 text-sm text-white/85">{data.siswa.kelasJurusan}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <MobileDashboardSummary items={statistik} />
+      <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Total Kelas" value={String(data.statistik.totalKelas)} helper="Kelas yang diikuti" />
         <StatCard label="Total Asesmen" value={String(data.statistik.totalAsesmen)} helper="Kuis & ujian" />
         <StatCard label="Asesmen Selesai" value={String(data.statistik.asesmenSudah)} helper="Sudah dikerjakan" />
         <StatCard label="Asesmen Sedang" value={String(data.statistik.asesmenSedang)} helper="Dikerjakan saat ini" />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Asesmen Belum" value={String(data.statistik.asesmenBelum)} helper="Belum dikerjakan" />
         <StatCard label="Total Tugas" value={String(data.statistik.totalTugas)} helper="Tugas yang tersedia" />
+        <StatCard label="Total Materi" value={String(data.statistik.totalMateri)} helper="Materi dari kelas yang diikuti" />
         <StatCard label="Tugas Sudah" value={String(data.statistik.tugasSudah)} helper="Sudah dikumpulkan" />
         <StatCard label="Tugas Belum" value={String(data.statistik.tugasBelum)} helper="Belum dikumpulkan" />
+        <StatCard label="Rata-rata Nilai" value={String(data.statistik.rataRataNilai ?? "-")} helper={rataRataCaption} />
       </div>
 
-      <div className="student-card border border-[#e1e5ed] bg-white p-5">
+      <div className="student-card hidden border border-[#e1e5ed] bg-white p-5 sm:block">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-bold text-[#182033]">Rata-rata Nilai Asesmen</p>
           <Badge tone={data.statistik.rataRataNilai !== null ? "green" : "gray"}>

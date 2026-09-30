@@ -20,7 +20,7 @@ type AccountRole = "SISWA" | "GURU";
 type Tab = "DASHBOARD" | "KELAS" | "AKUN" | "LAPORAN" | "PERFORMA";
 
 interface AdminDashboardData {
-  statistik: { kelas: number; siswa: number; guru: number; asesmen: number; tugas: number; mapel: number; laporanPending: number; kuis: number; ujian: number; rataRataNilai: number; submissionDinilai: number; tugasDibuat: number; tugasDikumpulkan: number };
+  statistik: { kelas: number; siswa: number; guru: number; asesmen: number; tugas: number; materi: number; mapel: number; laporanPending: number; kuis: number; ujian: number; rataRataNilai: number; submissionDinilai: number; tugasDibuat: number; tugasDikumpulkan: number };
   akunTerbaru: { id: string; nama: string; email: string; role: "SISWA" | "GURU"; createdAt: string }[];
   aktivitas: { periodeHari: number; userAktif: number; siswaAktif: number; guruAktif: number; aktivitasHarian: { tanggal: string; asesmen: number; tugas: number; submission: number; userAktif: number }[] };
 }
@@ -72,6 +72,7 @@ export default function AdminDashboard() {
   const [theme, setTheme] = useAdminTheme();
   const [activeTab, setActiveTab] = useState<Tab>("DASHBOARD");
   const [accountRole, setAccountRole] = useState<AccountRole>("SISWA");
+  const [summaryOpen, setSummaryOpen] = useState(true);
   const [me, setMe] = useState<{ nama: string; role: string; fotoProfil: string | null } | null>(null);
 
   const [kelasList, setKelasList] = useState<KelasData[]>([]);
@@ -293,6 +294,18 @@ export default function AdminDashboard() {
     setSidebarOpen(false);
   }
 
+  const dashboardSummaryItems: { label: string; value: number; caption: string; tab: Tab | AccountRole }[] = dashboardData ? [
+    { label: "Kelas", value: dashboardData.statistik.kelas, caption: "Kelola kelas", tab: "KELAS" },
+    { label: "Siswa", value: dashboardData.statistik.siswa, caption: "Daftar siswa", tab: "SISWA" },
+    { label: "Guru", value: dashboardData.statistik.guru, caption: "Daftar guru", tab: "GURU" },
+    { label: "Asesmen", value: dashboardData.statistik.asesmen, caption: "Kuis dan ujian", tab: "KELAS" },
+    { label: "Tugas", value: dashboardData.statistik.tugas, caption: "Tugas dibuat", tab: "KELAS" },
+    { label: "Materi", value: dashboardData.statistik.materi, caption: "Materi dibagikan", tab: "KELAS" },
+    { label: "Mata Pelajaran", value: dashboardData.statistik.mapel, caption: "Mapel tersedia", tab: "GURU" },
+    { label: "Laporan Pending", value: dashboardData.statistik.laporanPending, caption: "Perlu ditinjau", tab: "LAPORAN" },
+    { label: "Rata-rata Nilai", value: dashboardData.statistik.rataRataNilai, caption: "Dari asesmen dinilai", tab: "PERFORMA" },
+  ] : [];
+
   return (
     <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
       <header className="sticky top-0 z-40 border-b border-[#e6e9f0] bg-white">
@@ -400,21 +413,36 @@ export default function AdminDashboard() {
                 <div className="border-t border-[#e5e8ef] bg-[#f7f8fd] p-6 lg:border-l lg:border-t-0"><p className="text-xs font-semibold text-[#748096]">Menunggu tindak lanjut</p><p className="mt-3 text-4xl font-bold tracking-[-.06em] text-[#182033]">{dashboardData.statistik.laporanPending}</p><p className="mt-1 text-sm leading-5 text-[#707b8d]">Laporan perubahan password perlu ditinjau.</p><button type="button" onClick={() => openAdminTab("LAPORAN")} className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-[#6B85F6]">Buka laporan <span aria-hidden="true">→</span></button></div>
               </section>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {[
-                  ["Kelas", dashboardData.statistik.kelas, "Kelola kelas", "KELAS"],
-                  ["Siswa", dashboardData.statistik.siswa, "Daftar siswa", "SISWA"],
-                  ["Guru", dashboardData.statistik.guru, "Daftar guru", "GURU"],
-                  ["Asesmen", dashboardData.statistik.asesmen, "Kuis dan ujian", "KELAS"],
-                  ["Tugas", dashboardData.statistik.tugas, "Tugas dibuat", "KELAS"],
-                  ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "GURU"],
-                  ["Laporan Pending", dashboardData.statistik.laporanPending, "Perlu ditinjau", "LAPORAN"],
-                  ["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Dari asesmen dinilai", "PERFORMA"],
-                ].map(([label, value, caption, tab], index) => (
-                  <button key={label as string} type="button" onClick={() => openAdminTab(tab as Tab)} className={`group border p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff] ${index === 0 ? "border-[#6B85F6] bg-white" : "border-[#e1e5ed] bg-white"}`}>
-                    <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.1em] text-[#8490a3]">{label}</p><span className="text-xs font-bold text-[#6B85F6] group-hover:translate-x-0.5">↗</span></div>
-                    <p className="mt-5 text-3xl font-bold tracking-[-.055em] text-[#182033]">{value}</p>
-                    <p className="mt-1 text-xs text-[#6f7b8d]">{caption}</p>
+              <section className="border border-[#e1e5ed] bg-white sm:hidden">
+                <button type="button" aria-expanded={summaryOpen} onClick={() => setSummaryOpen((open) => !open)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+                  <span className="text-sm font-bold text-[#182033]">Ringkasan</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 text-[#6B85F6] transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {summaryOpen && (
+                  <div className="divide-y divide-[#edf0f5] border-t border-[#edf0f5]">
+                    {dashboardSummaryItems.map((item) => (
+                      <div key={item.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
+                        <div className="flex min-w-0 items-baseline justify-between gap-3">
+                          <span className="truncate text-xs font-semibold text-[#536076]">{item.label}</span>
+                          <span className="text-sm font-bold text-[#182033]">{item.value}</span>
+                        </div>
+                        <button type="button" onClick={() => openAdminTab(item.tab)} style={theme === "dark" ? { background: "rgba(107, 133, 246, 0.22)", borderColor: "rgba(107, 133, 246, 0.38)", color: "#ffffff" } : { background: BRAND, borderColor: BRAND, color: "#ffffff" }} className="inline-flex min-h-9 max-w-[120px] cursor-pointer items-center justify-center border px-2.5 py-1 text-center text-xs font-semibold leading-tight transition-[background-color,border-color,filter] hover:brightness-110">
+                          {item.caption}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+                {dashboardSummaryItems.map((item, index) => (
+                  <button key={item.label} type="button" onClick={() => openAdminTab(item.tab)} className={`group border p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff] ${index === 0 ? "border-[#6B85F6] bg-white" : "border-[#e1e5ed] bg-white"}`}>
+                    <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.1em] text-[#8490a3]">{item.label}</p><span className="text-xs font-bold text-[#6B85F6] group-hover:translate-x-0.5">↗</span></div>
+                    <p className="mt-5 text-3xl font-bold tracking-[-.055em] text-[#182033]">{item.value}</p>
+                    <p className="mt-1 text-xs text-[#6f7b8d]">{item.caption}</p>
                   </button>
                 ))}
               </div>
@@ -517,7 +545,7 @@ export default function AdminDashboard() {
                   <div className="mt-5 space-y-4">
                     {(() => {
                       const s = dashboardData.statistik;
-                      const max = Math.max(s.siswa, s.guru, s.kelas, s.asesmen, s.tugas, 1);
+                      const max = Math.max(s.siswa, s.guru, s.kelas, s.asesmen, s.tugas, s.materi, 1);
                       return (
                         <>
                           <BarRow label="Siswa" value={s.siswa} max={max} />
@@ -525,6 +553,7 @@ export default function AdminDashboard() {
                           <BarRow label="Kelas" value={s.kelas} max={max} />
                           <BarRow label="Asesmen" value={s.asesmen} max={max} />
                           <BarRow label="Tugas" value={s.tugas} max={max} />
+                          <BarRow label="Materi" value={s.materi} max={max} />
                         </>
                       );
                     })()}
@@ -544,6 +573,7 @@ export default function AdminDashboard() {
                       ["Ujian online", dashboardData.statistik.ujian, "Asesmen tipe ujian"],
                       ["Submission dinilai", dashboardData.statistik.submissionDinilai, "Memiliki nilai akhir"],
                       ["Tugas dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Status submission sudah"],
+                      ["Materi", dashboardData.statistik.materi, "Materi yang dibagikan guru"],
                     ].map(([label, value, detail]) => (
                       <div key={label as string} className="flex items-center justify-between gap-4 px-5 py-3">
                         <div>

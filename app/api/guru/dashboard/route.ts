@@ -9,7 +9,7 @@ export async function GET() {
     requireRole(session, ["GURU"]);
     const guruId = session!.userId;
 
-    const [kelas, asesmen, tugas, submissionDinilai, essayBelumDinilai, tugasDikumpulkan, asesmenTerbaru, tugasTerbaru] = await Promise.all([
+    const [kelas, asesmen, tugas, materi, submissionDinilai, essayBelumDinilai, tugasDikumpulkan, asesmenTerbaru, tugasTerbaru] = await Promise.all([
       db.kelas.findMany({
         where: { guruMapel: { some: { guruId } } },
         select: { id: true, judul: true, _count: { select: { siswa: true } } },
@@ -17,6 +17,7 @@ export async function GET() {
       }),
       db.asesmen.count({ where: { guruId } }),
       db.tugas.count({ where: { guruId } }),
+      db.materi.count({ where: { guruId } }),
       db.submission.count({ where: { asesmen: { guruId }, status: "SUDAH", nilaiAkhir: { not: null } } }),
       db.jawabanSiswa.count({ where: { soal: { asesmen: { guruId }, tipe: "ESSAY" }, nilaiSoal: null, submission: { status: "SUDAH" } } }),
       db.tugasSubmission.count({ where: { tugas: { guruId }, status: "SUDAH" } }),
@@ -31,7 +32,7 @@ export async function GET() {
     });
 
     return NextResponse.json({ data: {
-      statistik: { totalKelas: kelas.length, totalSiswa: siswaIds.length, totalAsesmen: asesmen, totalTugas: tugas, submissionDinilai, essayBelumDinilai, tugasDikumpulkan },
+      statistik: { totalKelas: kelas.length, totalSiswa: siswaIds.length, totalAsesmen: asesmen, totalTugas: tugas, totalMateri: materi, submissionDinilai, essayBelumDinilai, tugasDikumpulkan },
       kelas,
       asesmenTerbaru,
       tugasTerbaru,

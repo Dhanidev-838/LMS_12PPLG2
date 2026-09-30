@@ -209,20 +209,23 @@ export async function GET() {
       };
     });
 
-    const materiTerbaru = kelasIds.length
-      ? await db.materi.findMany({
-          where: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } },
-          include: {
-            guru: { select: { id: true, nama: true } },
-            kelasTujuan: {
-              where: { kelasId: { in: kelasIds } },
-              include: { kelas: { select: { id: true, judul: true } } },
+    const [materiTerbaru, totalMateri] = kelasIds.length
+      ? await Promise.all([
+          db.materi.findMany({
+            where: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } },
+            include: {
+              guru: { select: { id: true, nama: true } },
+              kelasTujuan: {
+                where: { kelasId: { in: kelasIds } },
+                include: { kelas: { select: { id: true, judul: true } } },
+              },
             },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 20,
-        })
-      : [];
+            orderBy: { createdAt: "desc" },
+            take: 20,
+          }),
+          db.materi.count({ where: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } } }),
+        ])
+      : [[], 0] as const;
 
     const nilaiAkhirList = await db.submission.findMany({
       where: { siswaId, nilaiAkhir: { not: null } },
@@ -289,6 +292,7 @@ export async function GET() {
           asesmenSedang,
           asesmenBelum,
           totalTugas,
+          totalMateri,
           tugasSudah,
           tugasBelum,
           rataRataNilai: nilaiRataRata !== null ? Number(nilaiRataRata.toFixed(1)) : null,

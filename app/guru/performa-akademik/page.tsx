@@ -27,6 +27,7 @@ type PerformanceSummary = {
   rataRataNilaiSeluruhAsesmen: number;
   totalTugasDibuat: number;
   totalTugasDikumpulkan: number;
+  totalMateriDibuat: number;
   persentasePengumpulanTugas: number;
   essayBelumDinilai: number;
   rataRataNilaiPerKelas: Array<{ kelas: string; rataRata: number }>;
@@ -187,6 +188,7 @@ export default function GuruPerformaAkademikPage() {
         data.summary.totalUjian > 0 ||
         data.summary.totalTugasDibuat > 0 ||
         data.summary.totalTugasDikumpulkan > 0 ||
+        data.summary.totalMateriDibuat > 0 ||
         data.summary.rataRataNilaiPerKelas.length > 0 ||
         data.summary.rataRataNilaiPerMapel.length > 0 ||
         data.summary.siswaBelumDinilai.length > 0),
@@ -261,10 +263,11 @@ export default function GuruPerformaAkademikPage() {
         <StatCard label="Rata-rata Nilai Ujian" value={formatAverage(data.summary.rataRataNilaiUjian)} helper="Nilai ujian" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Rata-rata Seluruh Asesmen" value={formatAverage(data.summary.rataRataNilaiSeluruhAsesmen)} helper="Semua nilai asesmen" />
         <StatCard label="Total Tugas Dibuat" value={formatNumber(data.summary.totalTugasDibuat)} helper="Tugas yang dibuat" />
         <StatCard label="Tugas Dikumpulkan" value={formatNumber(data.summary.totalTugasDikumpulkan)} helper="Submission siswa" />
+        <StatCard label="Materi Dibuat" value={formatNumber(data.summary.totalMateriDibuat)} helper="Materi yang dibagikan" />
         <StatCard label="Persentase Pengumpulan" value={formatPercent(data.summary.persentasePengumpulanTugas)} helper="Dari tugas yang dibuat" />
       </div>
 
