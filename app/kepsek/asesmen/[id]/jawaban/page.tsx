@@ -134,7 +134,17 @@ export default function KepsekJawabanPage() {
 
         {selectedKelasId && (
           <div className="mt-6">
-            <TabelNilai asesmenId={asesmenId} judulAsesmen={hasil.asesmen.judul} nilaiList={selectedRows} readOnly basePath="/kepsek/asesmen" />
+            <TabelNilai
+              asesmenId={asesmenId}
+              judulAsesmen={hasil.asesmen.judul}
+              nilaiList={selectedRows}
+              readOnly
+              basePath="/kepsek/asesmen"
+              allowPdfExport
+              kelasJudul={kelasTujuan.find(({ kelas }) => kelas.id === selectedKelasId)?.kelas.judul}
+              namaMapel={hasil.asesmen.mapel}
+              jenisAsesmen={hasil.asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online"}
+            />
           </div>
         )}
       </div>

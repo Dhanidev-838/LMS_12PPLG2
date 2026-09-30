@@ -122,6 +122,10 @@ export default function GuruJawabanPage() {
             judulAsesmen={hasil.asesmen.judul}
             nilaiList={selectedRows}
             onReset={loadData}
+            allowPdfExport
+            kelasJudul={kelasTujuan.find(({ kelas }) => kelas.id === selectedKelasId)?.kelas.judul}
+            namaMapel={hasil.asesmen.mapel}
+            jenisAsesmen={hasil.asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online"}
           />
         </div>
       )}

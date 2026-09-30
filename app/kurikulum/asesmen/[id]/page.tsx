@@ -134,7 +134,17 @@ export default function KurikulumJawabanPage() {
 
         {selectedKelasId && (
           <div className="mt-6">
-            <TabelNilai asesmenId={asesmenId} judulAsesmen={hasil.asesmen.judul} nilaiList={selectedRows} readOnly basePath="/kurikulum/asesmen" />
+            <TabelNilai
+              asesmenId={asesmenId}
+              judulAsesmen={hasil.asesmen.judul}
+              nilaiList={selectedRows}
+              readOnly
+              basePath="/kurikulum/asesmen"
+              allowPdfExport
+              kelasJudul={kelasTujuan.find(({ kelas }) => kelas.id === selectedKelasId)?.kelas.judul}
+              namaMapel={hasil.asesmen.mapel}
+              jenisAsesmen={hasil.asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online"}
+            />
           </div>
         )}
       </div>
