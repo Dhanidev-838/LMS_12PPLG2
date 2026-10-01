@@ -13,7 +13,7 @@ export interface AkunData {
   fotoProfil?: string | null;
   deskripsi?: string | null;
   role: "SISWA" | "GURU";
-  kelasReferensi?: { label: string; jenjang?: string; tingkat?: number | null; jurusan?: { nama: string } | null } | null; // rombel referensi siswa
+  kelasReferensi?: { id?: string; label: string; jenjang?: string; tingkat?: number | null; jurusan?: { nama: string } | null } | null; // rombel referensi siswa
   kelasSiswa?: { kelas: { id?: string; judul: string } }[];
   kelasGuruMapel?: { kelas: { id?: string; judul: string }; mapel: { nama: string } }[]; // buat guru
 }

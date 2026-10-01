@@ -11,7 +11,7 @@ import LaporanCard, { LaporanData } from "@/components/LaporanCard";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
-import { showConfirm } from "@/lib/dialog";
+import { showAlert, showConfirm } from "@/lib/dialog";
 import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const BRAND = "#6B85F6";
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
   const [siswaList, setSiswaList] = useState<AkunData[]>([]);
   const [guruList, setGuruList] = useState<AkunData[]>([]);
   const [mapelList, setMapelList] = useState<{ id: string; nama: string }[]>([]);
-  const [kelasReferensiList, setKelasReferensiList] = useState<{ label: string; jenjang: string; tingkat: number | null; jurusan: { nama: string } | null }[]>([]);
+  const [kelasReferensiList, setKelasReferensiList] = useState<{ id: string; label: string; jenjang: string; tingkat: number | null; jurusan: { nama: string } | null }[]>([]);
   const [laporanList, setLaporanList] = useState<LaporanData[]>([]);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,7 +88,10 @@ export default function AdminDashboard() {
   const [akunMenuPos, setAkunMenuPos] = useState({ top: 0, right: 0 });
   const [jurusanFilter, setJurusanFilter] = useState("");
   const [kelasFilter, setKelasFilter] = useState("");
+  const [rombelFilter, setRombelFilter] = useState("");
   const [siswaSearch, setSiswaSearch] = useState("");
+  const [bulkTargetClassId, setBulkTargetClassId] = useState("");
+  const [sendingFilteredSiswa, setSendingFilteredSiswa] = useState(false);
   const [mapelFilter, setMapelFilter] = useState("");
   const [guruSearch, setGuruSearch] = useState("");
 
@@ -153,19 +156,21 @@ export default function AdminDashboard() {
         const data = await res.json();
         setKelasList(data.data ?? []);
       } else if (tab === "AKUN") {
-        const [siswaRes, referensiRes, guruRes, mapelRes] = await Promise.all([
+        const [siswaRes, referensiRes, guruRes, mapelRes, kelasRes] = await Promise.all([
           fetch("/api/akun?role=SISWA"),
           fetch("/api/kelas-referensi"),
           fetch("/api/akun?role=GURU"),
           fetch("/api/mapel"),
+          fetch("/api/kelas"),
         ]);
-        const [siswaData, referensiData, guruData, mapelData] = await Promise.all([
-          siswaRes.json(), referensiRes.json(), guruRes.json(), mapelRes.json(),
+        const [siswaData, referensiData, guruData, mapelData, kelasData] = await Promise.all([
+          siswaRes.json(), referensiRes.json(), guruRes.json(), mapelRes.json(), kelasRes.json(),
         ]);
         setSiswaList(siswaData.data ?? []);
         setKelasReferensiList(referensiData.data ?? []);
         setGuruList(guruData.data ?? []);
         setMapelList(mapelData.data ?? []);
+        setKelasList(kelasData.data ?? []);
       } else if (tab === "LAPORAN") {
         const res = await fetch("/api/lupa-password");
         const data = await res.json();
@@ -264,6 +269,10 @@ export default function AdminDashboard() {
 
   const jurusanOptions = Array.from(new Set(kelasReferensiList.map((kelas) => kelas.jurusan?.nama).filter(Boolean))) as string[];
   const kelasOptions = ["SMP", "SMA", "10", "11", "12"];
+  const filteredRombelOptions = kelasReferensiList.filter((rombel) => {
+    const tingkat = rombel.jenjang === "SMP" || rombel.jenjang === "SMA" ? rombel.jenjang : rombel.tingkat?.toString() ?? "";
+    return (!jurusanFilter || rombel.jurusan?.nama === jurusanFilter) && (!kelasFilter || tingkat === kelasFilter);
+  });
   const filteredSiswaList = siswaList.filter((siswa) => {
     const jurusan = siswa.kelasReferensi?.jurusan?.nama ?? "";
     const tingkat = siswa.kelasReferensi?.jenjang === "SMP" || siswa.kelasReferensi?.jenjang === "SMA"
@@ -272,9 +281,37 @@ export default function AdminDashboard() {
     const query = siswaSearch.trim().toLowerCase();
     const cocokJurusan = !jurusanFilter || jurusan === jurusanFilter;
     const cocokKelas = !kelasFilter || tingkat === kelasFilter;
+    const cocokRombel = !rombelFilter || siswa.kelasReferensi?.id === rombelFilter;
     const cocokSearch = !query || [siswa.nama, siswa.email, siswa.nis ?? ""].some((value) => value.toLowerCase().includes(query));
-    return cocokJurusan && cocokKelas && cocokSearch;
+    return cocokJurusan && cocokKelas && cocokRombel && cocokSearch;
   });
+  const hasSiswaFilter = Boolean(jurusanFilter || kelasFilter || rombelFilter || siswaSearch.trim());
+
+  async function sendFilteredStudentsToClass() {
+    if (!bulkTargetClassId || filteredSiswaList.length === 0) return;
+    const targetClass = kelasList.find((kelas) => kelas.id === bulkTargetClassId);
+    if (!(await showConfirm(`Kirim ${filteredSiswaList.length} siswa hasil filter ke kelas "${targetClass?.judul ?? "tujuan"}"?`))) return;
+
+    setSendingFilteredSiswa(true);
+    try {
+      const res = await fetch(`/api/kelas/${bulkTargetClassId}/siswa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siswaIds: filteredSiswaList.map((siswa) => siswa.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await showAlert(data.error ?? "Siswa gagal dikirim ke kelas.");
+        return;
+      }
+      await showAlert(data.message ?? "Siswa berhasil dikirim ke kelas.");
+      await loadTabData("AKUN");
+    } catch {
+      await showAlert("Siswa gagal dikirim ke kelas. Coba lagi.");
+    } finally {
+      setSendingFilteredSiswa(false);
+    }
+  }
   const mapelOptions = mapelList.map((mapel) => mapel.nama);
   const filteredGuruList = guruList.filter((guru) => {
     const mapel = guru.kelasGuruMapel?.map((item) => item.mapel.nama) ?? [];
@@ -665,27 +702,54 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === "AKUN" && accountRole === "SISWA" && (
             <div className="space-y-5">
-              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
+              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[180px_150px_190px_minmax(220px,1fr)_auto] md:items-end">
                 <label className={FIELD_LABEL_CLASS}>
                   Jurusan
-                  <select value={jurusanFilter} onChange={(event) => setJurusanFilter(event.target.value)} className={FIELD_CLASS}>
+                  <select value={jurusanFilter} onChange={(event) => { setJurusanFilter(event.target.value); setRombelFilter(""); }} className={FIELD_CLASS}>
                     <option value="">Semua Jurusan</option>
                     {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
                   Kelas
-                  <select value={kelasFilter} onChange={(event) => setKelasFilter(event.target.value)} className={FIELD_CLASS}>
+                  <select value={kelasFilter} onChange={(event) => { setKelasFilter(event.target.value); setRombelFilter(""); }} className={FIELD_CLASS}>
                     <option value="">Semua Kelas</option>
                     {kelasOptions.map((kelas) => <option key={kelas} value={kelas}>{kelas}</option>)}
+                  </select>
+                </label>
+                <label className={FIELD_LABEL_CLASS}>
+                  Rombel
+                  <select value={rombelFilter} onChange={(event) => setRombelFilter(event.target.value)} className={FIELD_CLASS}>
+                    <option value="">Semua Rombel</option>
+                    {filteredRombelOptions.map((rombel) => <option key={rombel.id} value={rombel.id}>{rombel.label}</option>)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
                   Search
                   <input value={siswaSearch} onChange={(event) => setSiswaSearch(event.target.value)} placeholder="Nama, email, atau NIS..." className={FIELD_CLASS} />
                 </label>
-                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setSiswaSearch(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
+                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setRombelFilter(""); setSiswaSearch(""); setBulkTargetClassId(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
               </div>
+              {hasSiswaFilter && filteredSiswaList.length > 0 && (
+                <div className="flex flex-col gap-3 border border-[#dfe4ef] bg-white p-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-[#182033]">Kirim hasil filter ke kelas</p>
+                    <p className="mt-1 text-xs text-[#748096]">{filteredSiswaList.length} siswa terpilih dari filter aktif.</p>
+                  </div>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                    <label className={`${FIELD_LABEL_CLASS} sm:min-w-64`}>
+                      Kelas tujuan
+                      <select value={bulkTargetClassId} onChange={(event) => setBulkTargetClassId(event.target.value)} className={FIELD_CLASS}>
+                        <option value="">Pilih kelas tujuan</option>
+                        {kelasList.map((kelas) => <option key={kelas.id} value={kelas.id}>{kelas.judul}</option>)}
+                      </select>
+                    </label>
+                    <Button size="sm" loading={sendingFilteredSiswa} disabled={!bulkTargetClassId} onClick={() => void sendFilteredStudentsToClass()}>
+                      Kirim ke Kelas
+                    </Button>
+                  </div>
+                </div>
+              )}
               {filteredSiswaList.length === 0 ? (
                 <p className="text-sm text-[#9CA3AF]">Belum ada siswa terdaftar.</p>
               ) : (

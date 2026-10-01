@@ -685,12 +685,15 @@ function ModalTambahSiswa({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkError, setBulkError] = useState("");
 
   useEffect(() => {
     if (!open) return;
     setRombelId("");
     setKandidat([]);
     setSelectedIds([]);
+    setBulkError("");
     fetch("/api/kelas-referensi")
       .then((res) => res.json())
       .then((data) => setRombelList(data.data ?? []))
@@ -740,6 +743,32 @@ function ModalTambahSiswa({
     }
   }
 
+  async function handleAddAll() {
+    if (kandidat.length === 0) return;
+    if (!(await showConfirm(`Tambahkan semua ${kandidat.length} siswa dari rombel ini ke kelas?`))) return;
+
+    setBulkSubmitting(true);
+    setBulkError("");
+    try {
+      const res = await fetch(`/api/kelas/${kelasId}/siswa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siswaIds: kandidat.map((siswa) => siswa.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkError(data.error ?? "Siswa gagal ditambahkan.");
+        return;
+      }
+      onSuccess();
+      onClose();
+    } catch {
+      setBulkError("Siswa gagal ditambahkan. Coba lagi.");
+    } finally {
+      setBulkSubmitting(false);
+    }
+  }
+
   return (
     <Modal open={open} onClose={onClose} title="Tambah Siswa">
       <div className="space-y-4">
@@ -768,8 +797,15 @@ function ModalTambahSiswa({
           </div>
         )}
 
-        <Button className="w-full" loading={submitting} disabled={selectedIds.length === 0} onClick={handleSubmit}>
-          Tambah {selectedIds.length > 0 ? `(${selectedIds.length})` : ""} Siswa
+        {bulkError && <p className="text-xs font-medium text-red-500">{bulkError}</p>}
+
+        {kandidat.length > 0 && (
+          <Button type="button" variant="outline" className="w-full" loading={bulkSubmitting} disabled={submitting} onClick={() => void handleAddAll()}>
+            Tambah semua siswa rombel ({kandidat.length})
+          </Button>
+        )}
+        <Button type="button" className="w-full" loading={submitting} disabled={selectedIds.length === 0 || bulkSubmitting} onClick={handleSubmit}>
+          Tambah {selectedIds.length > 0 ? `(${selectedIds.length})` : "siswa terpilih"}
         </Button>
       </div>
     </Modal>
