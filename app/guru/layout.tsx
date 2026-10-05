@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { useAdminTheme } from "@/lib/use-admin-theme";
+import ThemeToggle from "@/components/shared/theme-toggle";
 
 const BRAND = "#6B85F6";
 
@@ -97,24 +98,10 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}
-            aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
-            title={theme === "light" ? "Mode gelap" : "Mode terang"}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#576277] transition-colors hover:bg-[#f7f8fb]"
-          >
-            {theme === "light" ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-                <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
-                <circle cx="12" cy="12" r="4" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-                <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </button>
+          <ThemeToggle
+            theme={theme}
+            onToggle={() => setTheme((value) => (value === "light" ? "dark" : "light"))}
+          />
           {me && <span className="hidden text-sm font-semibold text-[#182033] sm:block">{me.nama}</span>}
         </div>
       </header>

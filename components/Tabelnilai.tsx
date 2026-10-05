@@ -119,9 +119,9 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
   }
 
   return (
-    <div className="border border-[#e1e5ed] bg-white p-5">
+    <div className="border border-border bg-surface p-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-[#182033]">Nilai Siswa</p>
+        <p className="text-sm font-bold text-foreground">Nilai Siswa</p>
         <div className="flex gap-2">
           {allowPdfExport ? (
             <Button size="sm" onClick={() => setGenerateModalOpen(true)}>
@@ -136,12 +136,12 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
       </div>
 
       {nilaiList.length === 0 ? (
-        <p className="mt-6 text-center text-xs text-[#9CA3AF]">Belum ada siswa yang mengumpulkan.</p>
+        <p className="mt-6 text-center text-xs text-muted-foreground">Belum ada siswa yang mengumpulkan.</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e1e5ed] text-xs text-[#9CA3AF]">
+              <tr className="border-b border-border text-xs text-muted-foreground">
                 <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Nama</th>
                 <th className="whitespace-nowrap pb-2 pr-4 font-semibold">NIS</th>
                 <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Kelas/Jurusan</th>
@@ -156,19 +156,19 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
                 <tr
                   key={row.submissionId}
                   onClick={() => router.push(`${basePath}/${asesmenId}/jawaban/${row.submissionId}`)}
-                  className="cursor-pointer border-b border-[#edf0f5] transition-colors hover:bg-[#6B85F6]/10 last:border-0"
+                  className="cursor-pointer border-b border-border transition-colors hover:bg-accent-subtle last:border-0"
                 >
-                  <td className="whitespace-nowrap py-2.5 pr-4 font-medium text-[#182033]">{row.nama}</td>
-                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.nis}</td>
-                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.kelasReferensi}</td>
-                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-[#748096]">{row.totalSoalTerjawab}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 font-medium text-foreground">{row.nama}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-muted-foreground">{row.nis}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-muted-foreground">{row.kelasReferensi}</td>
+                  <td className="whitespace-nowrap py-2.5 pr-4 text-xs text-muted-foreground">{row.totalSoalTerjawab}</td>
                   <td className="whitespace-nowrap py-2.5 pr-4 text-right">
-                    <Badge tone={row.nilaiObjektif >= 75 ? "green" : row.nilaiObjektif >= 50 ? "amber" : "red"}>
+                    <Badge tone={row.nilaiObjektif >= 75 ? "brand" : "gray"}>
                       {row.nilaiObjektif}
                     </Badge>
                   </td>
                   <td className="whitespace-nowrap py-2.5 pr-4 text-right">
-                    <Badge tone={(row.nilaiAkhir ?? row.nilaiObjektif) >= 75 ? "green" : (row.nilaiAkhir ?? row.nilaiObjektif) >= 50 ? "amber" : "red"}>
+                    <Badge tone={(row.nilaiAkhir ?? row.nilaiObjektif) >= 75 ? "brand" : "gray"}>
                       {row.nilaiAkhir ?? "-"}
                     </Badge>
                   </td>
@@ -199,7 +199,7 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
                         </Button>
                       </div>
                     )}
-                    {readOnly && <span className="text-xs font-semibold text-[#6B85F6]">Lihat jawaban</span>}
+                    {readOnly && <span className="text-xs font-semibold text-foreground">Lihat jawaban</span>}
                   </td>
                 </tr>
               ))}
@@ -214,11 +214,11 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
         title={resetRequest?.type === "asesmen" ? "Reset Asesmen Siswa" : "Reset Nilai Siswa"}
       >
         {resetRequest?.type === "asesmen" ? (
-          <p className="text-sm leading-6 text-[#435064]">
+          <p className="text-sm leading-6 text-foreground">
             Semua jawaban <strong>{resetRequest.nama}</strong> akan dihapus dan siswa dapat mengerjakan asesmen ini dari awal.
           </p>
         ) : (
-          <p className="text-sm leading-6 text-[#435064]">
+          <p className="text-sm leading-6 text-foreground">
             Nilai akhir <strong>{resetRequest?.nama}</strong> akan dikosongkan. Jawaban siswa tetap tersimpan.
           </p>
         )}
@@ -238,29 +238,29 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
 
       {allowPdfExport && (
         <Modal open={generateModalOpen} onClose={() => setGenerateModalOpen(false)} title="Generate Nilai" maxWidth="max-w-lg">
-          <p className="text-sm text-[#64748B]">Pilih format rekap untuk {kelasJudul || "kelas ini"}.</p>
+          <p className="text-sm text-muted-foreground">Pilih format rekap untuk {kelasJudul || "kelas ini"}.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               disabled={downloading}
               onClick={() => void handleDownload()}
-              className="border border-[#dfe4ef] p-4 text-left transition-colors hover:border-[#6B85F6] hover:bg-[#fafbff] disabled:opacity-60"
+              className="border border-border p-4 text-left transition-colors hover:border-accent hover:bg-surface-muted disabled:opacity-60"
             >
-              <span className="block text-sm font-bold text-[#182033]">Excel (.xlsx)</span>
-              <span className="mt-1 block text-xs leading-5 text-[#64748B]">Unduh data nilai dalam format spreadsheet.</span>
-              {downloading && <span className="mt-2 block text-xs font-semibold text-[#6B85F6]">Menyiapkan file...</span>}
+              <span className="block text-sm font-bold text-foreground">Excel (.xlsx)</span>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">Unduh data nilai dalam format spreadsheet.</span>
+              {downloading && <span className="mt-2 block text-xs font-semibold text-foreground">Menyiapkan file...</span>}
             </button>
             <button
               type="button"
               disabled={nilaiList.length === 0}
               onClick={handlePrintPdf}
-              className="border border-[#dfe4ef] p-4 text-left transition-colors hover:border-[#6B85F6] hover:bg-[#fafbff] disabled:cursor-not-allowed disabled:opacity-50"
+              className="border border-border p-4 text-left transition-colors hover:border-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span className="block text-sm font-bold text-[#182033]">PDF</span>
-              <span className="mt-1 block text-xs leading-5 text-[#64748B]">Cetak atau simpan rekap beserta ruang tanda tangan.</span>
+              <span className="block text-sm font-bold text-foreground">PDF</span>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">Cetak atau simpan rekap beserta ruang tanda tangan.</span>
             </button>
           </div>
-          <p className="mt-4 text-xs leading-5 text-[#8290a3]">Pada dialog cetak browser, pilih “Save as PDF” untuk menyimpan sebagai PDF.</p>
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">Pada dialog cetak browser, pilih “Save as PDF” untuk menyimpan sebagai PDF.</p>
         </Modal>
       )}
 
@@ -340,19 +340,19 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
               display: block !important;
               width: 100% !important;
               padding: 0 !important;
-              color: #111827 !important;
+              color: #000000 !important;
               background: #ffffff !important;
               font-family: Arial, Helvetica, sans-serif !important;
               font-size: 10pt !important;
             }
             .nilai-print-document h1 { margin: 3mm 0 1mm; font-size: 18pt; }
             .nilai-print-document h2 { margin: 0 0 3mm; font-size: 12pt; font-weight: 600; }
-            .nilai-print-eyebrow { color: #526ce4; font-size: 7.5pt; font-weight: 700; letter-spacing: .08em; }
+            .nilai-print-eyebrow { color: #000000; font-size: 7.5pt; font-weight: 700; letter-spacing: .08em; }
             .nilai-print-meta { display: flex; flex-wrap: wrap; gap: 1.5mm 5mm; margin-bottom: 4mm; font-size: 7.5pt; }
             .nilai-print-document table { width: 100%; border-collapse: collapse; }
             .nilai-print-document th,
-            .nilai-print-document td { border: 1px solid #9ca3af; padding: 1.5mm 1mm; text-align: left; overflow-wrap: anywhere; }
-            .nilai-print-document th { background: #eef1ff !important; font-size: 7pt; }
+            .nilai-print-document td { border: 1px solid rgba(0, 0, 0, .2); padding: 1.5mm 1mm; text-align: left; overflow-wrap: anywhere; }
+            .nilai-print-document th { background: rgba(107, 133, 246, .12) !important; font-size: 7pt; }
             .nilai-print-document td { font-size: 7.5pt; }
             .nilai-print-count { margin-top: 2mm; font-size: 8pt; }
             .nilai-print-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin: 12mm 4mm 0; text-align: center; page-break-inside: avoid; font-size: 8pt; }

@@ -2,12 +2,30 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: rgba(0, 0, 0, 0.03);
+  --foreground: #000000;
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #6b85f6;
+  --accent-foreground: #000000;
+  --accent-subtle: rgba(107, 133, 246, 0.12);
+  --danger: #b42318;
+  --danger-subtle: rgba(180, 35, 24, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -15,14 +33,51 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --surface: #121212;
+    --surface-muted: rgba(255, 255, 255, 0.04);
+    --foreground: #ffffff;
+    --muted-foreground: rgba(255, 255, 255, 0.64);
+    --border: rgba(255, 255, 255, 0.12);
+    --accent-subtle: rgba(107, 133, 246, 0.18);
+    --danger: #f87171;
+    --danger-subtle: rgba(248, 113, 113, 0.12);
   }
+}
+
+[data-admin-theme="light"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: rgba(0, 0, 0, 0.03);
+  --foreground: #000000;
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #6b85f6;
+  --accent-foreground: #000000;
+  --accent-subtle: rgba(107, 133, 246, 0.12);
+  --danger: #b42318;
+  --danger-subtle: rgba(180, 35, 24, 0.08);
+}
+
+[data-admin-theme="dark"] {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --surface: #121212;
+  --surface-muted: rgba(255, 255, 255, 0.04);
+  --foreground: #ffffff;
+  --muted-foreground: rgba(255, 255, 255, 0.64);
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #6b85f6;
+  --accent-foreground: #000000;
+  --accent-subtle: rgba(107, 133, 246, 0.18);
+  --danger: #f87171;
+  --danger-subtle: rgba(248, 113, 113, 0.12);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 [data-admin-theme="dark"] .guru-performance-page [class~="bg-[#f7f8fd]"] {

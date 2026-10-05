@@ -215,9 +215,15 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const rataRataKuis = Number((kuisAvg._avg.nilaiAkhir ?? 0).toFixed(1));
-    const rataRataUjian = Number((ujianAvg._avg.nilaiAkhir ?? 0).toFixed(1));
-    const rataRataSemua = Number((semuaNilaiAvg._avg.nilaiAkhir ?? 0).toFixed(1));
+    const rataRataKuis = kuisAvg._avg.nilaiAkhir === null
+      ? null
+      : Number(kuisAvg._avg.nilaiAkhir.toFixed(1));
+    const rataRataUjian = ujianAvg._avg.nilaiAkhir === null
+      ? null
+      : Number(ujianAvg._avg.nilaiAkhir.toFixed(1));
+    const rataRataSemua = semuaNilaiAvg._avg.nilaiAkhir === null
+      ? null
+      : Number(semuaNilaiAvg._avg.nilaiAkhir.toFixed(1));
     const persentasePengumpulan = tugasDibuat > 0 ? Number(((tugasDikumpulkan / tugasDibuat) * 100).toFixed(1)) : 0;
 
     const kelasAggregate = new Map<string, number[]>();

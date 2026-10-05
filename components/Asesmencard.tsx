@@ -53,11 +53,11 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
   return (
     <div
       onClick={() => router.push(`${basePath}/${data.id}`)}
-      className="group cursor-pointer overflow-hidden border border-[#e1e5ed] bg-white transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
+      className="group cursor-pointer overflow-hidden rounded-xl border border-border bg-surface text-foreground transition-colors duration-150 hover:border-accent hover:bg-surface-muted"
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#6B85F6]/10 text-[#6B85F6]">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent-subtle text-foreground">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
               <path d="M12 2l3 6 6.5.9-4.7 4.6L18 20l-6-3.4L6 20l1.2-6.5L2.5 8.9 9 8l3-6Z" />
             </svg>
@@ -65,7 +65,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
 
           <div className="flex items-center gap-2">
             {basePath.startsWith("/siswa") ? null : (
-              <Badge tone={data.status === "SELESAI" ? "green" : "amber"}>
+              <Badge tone={data.status === "SELESAI" ? "green" : "gray"}>
                 {data.status === "SELESAI" ? "Selesai" : "Proses"}
               </Badge>
             )}
@@ -78,14 +78,14 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                     event.stopPropagation();
                     setShowOptions((value) => !value);
                   }}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-[#64748B] hover:bg-[#6B85F6]/10"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-muted-foreground hover:bg-accent-subtle"
                 >
                   ⋯
                 </button>
                 {showOptions && (
                   <div
                     onClick={(event) => event.stopPropagation()}
-                    className="absolute right-0 top-9 z-20 w-32 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 text-left shadow-md"
+                    className="absolute right-0 top-9 z-20 w-32 overflow-hidden rounded-lg border border-border bg-surface py-1 text-left shadow-md"
                   >
                     {onEdit && data.status === "PROSES" && (
                       <button
@@ -94,7 +94,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                           setShowOptions(false);
                           onEdit(data);
                         }}
-                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10"
+                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-subtle"
                       >
                         Edit
                       </button>
@@ -106,7 +106,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                           setShowOptions(false);
                           onSend(data);
                         }}
-                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10"
+                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-subtle"
                       >
                         Kirim ke
                       </button>
@@ -118,7 +118,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                           setShowOptions(false);
                           onDelete(data);
                         }}
-                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50"
+                        className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-danger hover:bg-danger-subtle"
                       >
                         Hapus
                       </button>
@@ -129,7 +129,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
             )}
             {submissionStatus && (
               <>
-                <Badge tone={submissionStatus === "SUDAH" ? "green" : submissionStatus === "SEDANG" ? "amber" : "red"}>
+                <Badge tone={submissionStatus === "SUDAH" ? "green" : "gray"}>
                   {submissionStatus === "SUDAH" ? "Sudah dikerjakan" : submissionStatus === "SEDANG" ? "Sedang dikerjakan" : "Belum dikerjakan"}
                 </Badge>
                 {onRemove && submissionStatus !== "BELUM" && (
@@ -141,7 +141,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                       event.stopPropagation();
                       onRemove(data);
                     }}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-[#dfe4ef] text-lg leading-none text-[#94A3B8] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-border text-lg leading-none text-muted-foreground transition-colors hover:border-danger hover:bg-danger-subtle hover:text-danger"
                   >
                     ×
                   </button>
@@ -151,28 +151,28 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
           </div>
         </div>
 
-        <p className="mt-3 truncate text-sm font-bold text-[#182033]">{data.judul}</p>
+        <p className="mt-3 truncate text-sm font-bold text-foreground">{data.judul}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Badge tone="gray">{label}</Badge>
           {data.mapel && <Badge tone="brand">{data.mapel.nama}</Badge>}
-          {data.durasiMenit && <span className="text-[11px] text-[#9CA3AF]">{data.durasiMenit} menit</span>}
+          {data.durasiMenit && <span className="text-[11px] text-muted-foreground">{data.durasiMenit} menit</span>}
         </div>
 
         {data.kelasTujuan && data.kelasTujuan.length > 0 && (
-          <p className="mt-2 truncate text-[11px] text-[#64748B]">
+          <p className="mt-2 truncate text-[11px] text-muted-foreground">
             {data.kelasTujuan.map((kt) => kt.kelas.judul).join(", ")}
           </p>
         )}
 
         {data.createdAt && (
-          <p className="mt-2 truncate text-[11px] text-[#9CA3AF]" title={formatTanggalIndonesia(data.createdAt)}>
+          <p className="mt-2 truncate text-[11px] text-muted-foreground" title={formatTanggalIndonesia(data.createdAt)}>
             Dibuat: {formatTanggalIndonesia(data.createdAt)}
           </p>
         )}
 
         {data._count && (
-          <div className="mt-3 flex items-center gap-3 border-t border-[#edf0f5] pt-2.5 text-[11px] text-[#9CA3AF]">
+          <div className="mt-3 flex items-center gap-3 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
             <span>{data._count.soal} soal</span>
             <span>•</span>
             <span>{data._count.submission} pengumpulan</span>

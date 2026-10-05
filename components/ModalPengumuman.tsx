@@ -215,8 +215,8 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === "create" && (
           <div>
-            <p className="mb-1.5 text-xs font-semibold text-[#374151]">Jenis Konten</p>
-            <div className="grid grid-cols-2 rounded-lg border border-[#dfe4ef] bg-white p-1" role="group" aria-label="Pilih jenis konten">
+            <p className="mb-1.5 text-xs font-semibold text-foreground">Jenis Konten</p>
+            <div className="grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label="Pilih jenis konten">
               {(["PENGUMUMAN", "MATERI"] as const).map((jenis) => (
                 <button
                   key={jenis}
@@ -228,8 +228,8 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                   }}
                   className="cursor-pointer rounded-md px-3 py-2 text-sm font-semibold transition-colors"
                   style={jenisKonten === jenis
-                    ? { background: "#6B85F6", color: "#ffffff" }
-                    : { background: "transparent", color: "#536076" }}
+                    ? { background: "var(--accent)", color: "var(--accent-foreground)" }
+                    : { background: "transparent", color: "var(--muted-foreground)" }}
                 >
                   {jenis === "PENGUMUMAN" ? "Pengumuman" : "Materi"}
                 </button>
@@ -243,8 +243,8 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
             <Input label="Judul Materi" value={judulMateri} onChange={(e) => setJudulMateri(e.target.value)} required />
             <Textarea label="Deskripsi (opsional)" value={deskripsiMateri} onChange={(e) => setDeskripsiMateri(e.target.value)} rows={3} />
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-[#374151]">Sumber Materi</p>
-              <div className="mb-2 grid grid-cols-2 rounded-lg border border-[#dfe4ef] bg-white p-1" role="group" aria-label="Pilih sumber materi">
+              <p className="mb-1.5 text-xs font-semibold text-foreground">Sumber Materi</p>
+              <div className="mb-2 grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label="Pilih sumber materi">
                 {(["LINK", "FILE"] as const).map((sumber) => (
                   <button
                     key={sumber}
@@ -258,8 +258,8 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                     }}
                     className="cursor-pointer rounded-md px-3 py-2 text-sm font-semibold transition-colors"
                     style={(sumber === "LINK" && tipeMateri === "LINK") || (sumber === "FILE" && tipeMateri !== "LINK")
-                      ? { background: "#6B85F6", color: "#ffffff" }
-                      : { background: "transparent", color: "#536076" }}
+                      ? { background: "var(--accent)", color: "var(--accent-foreground)" }
+                      : { background: "transparent", color: "var(--muted-foreground)" }}
                   >
                     {sumber === "LINK" ? "Link" : "File / Foto"}
                   </button>
@@ -274,8 +274,8 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                   required
                 />
               ) : (
-                <div className="rounded-lg border border-dashed border-[#D1D5DB] p-3">
-                  <label className="cursor-pointer rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm font-medium text-[#374151] hover:bg-black/5">
+                <div className="rounded-lg border border-dashed border-border p-3">
+                  <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
                     {uploadingLampiran ? "Mengunggah..." : namaFileMateri || "+ Upload File / Foto"}
                     <input
                       type="file"
@@ -305,12 +305,12 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
             {lampiranList.length > 0 && (
               <div className="space-y-2">
                 {lampiranList.map((l, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border border-black/5 bg-[#F9FAFB] p-2.5">
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border bg-surface-muted p-2.5">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-[#111827]">{l.judul || l.url}</p>
-                      <p className="text-[10px] text-[#9CA3AF]">{l.tipe}</p>
+                      <p className="truncate text-xs font-semibold text-foreground">{l.judul || l.url}</p>
+                      <p className="text-[10px] text-muted-foreground">{l.tipe}</p>
                     </div>
-                    <button type="button" onClick={() => handleRemoveLampiran(i)} className="cursor-pointer text-xs font-medium text-red-500 hover:underline">
+                    <button type="button" onClick={() => handleRemoveLampiran(i)} className="cursor-pointer text-xs font-medium text-danger hover:underline">
                       Hapus
                     </button>
                   </div>
@@ -318,10 +318,10 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
               </div>
             )}
 
-            <div className="rounded-lg border border-dashed border-[#D1D5DB] p-3">
-              <p className="mb-2 text-xs font-semibold text-[#374151]">Tambah Lampiran (opsional)</p>
+            <div className="rounded-lg border border-dashed border-border p-3">
+              <p className="mb-2 text-xs font-semibold text-foreground">Tambah Lampiran (opsional)</p>
               <div className="flex flex-wrap items-center gap-2">
-                <label className="cursor-pointer rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm font-medium text-[#374151] hover:bg-black/5">
+                <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
                   {uploadingLampiran ? "Mengunggah..." : "+ Upload File"}
                   <input
                     type="file"
@@ -350,9 +350,9 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
         )}
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Kirim ke Kelas</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">Kirim ke Kelas</label>
           <select
-            className="w-full rounded-lg border border-[#D1D5DB] px-3.5 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+            className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(event) => event.target.value && setSelectedKelasId(event.target.value)}
           >
@@ -367,13 +367,13 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
             <div className="mt-2 flex flex-wrap gap-2">
               <Badge tone="brand" className="flex items-center gap-1">
                 {kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul ?? "Kelas terpilih"}
-                <button type="button" onClick={() => setSelectedKelasId("")} className="cursor-pointer hover:text-red-500">x</button>
+                <button type="button" onClick={() => setSelectedKelasId("")} className="cursor-pointer hover:text-danger">x</button>
               </Badge>
             </div>
           )}
         </div>
 
-        {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">

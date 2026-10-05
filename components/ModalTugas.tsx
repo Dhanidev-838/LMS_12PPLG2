@@ -187,11 +187,11 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
         <Textarea label="Instruksi / Deskripsi Tugas (opsional)" value={isi} onChange={(e) => setIsi(e.target.value)} rows={4} />
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">
-            Kirim ke Kelas {!defaultKelasId && mode === "create" && <span className="font-normal text-[#9CA3AF]">(opsional)</span>}
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">
+            Kirim ke Kelas {!defaultKelasId && mode === "create" && <span className="font-normal text-muted-foreground">(opsional)</span>}
           </label>
           <select
-            className="w-full rounded-lg border border-[#D1D5DB] px-3.5 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+            className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
@@ -212,7 +212,7 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
                     {k?.label}
-                    <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-red-500">
+                    <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>
                   </Badge>
@@ -225,15 +225,15 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
         {lampiranList.length > 0 && (
           <div className="space-y-2">
             {lampiranList.map((l, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border border-black/5 bg-[#F9FAFB] p-2.5">
+              <div key={i} className="flex items-center justify-between rounded-lg border border-border bg-surface-muted p-2.5">
                 <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-[#111827]">{l.judul || l.url}</p>
-                  <p className="text-[10px] text-[#9CA3AF]">{l.tipe}</p>
+                  <p className="truncate text-xs font-semibold text-foreground">{l.judul || l.url}</p>
+                  <p className="text-[10px] text-muted-foreground">{l.tipe}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemoveLampiran(i)}
-                  className="cursor-pointer text-xs font-medium text-red-500 hover:underline"
+                  className="cursor-pointer text-xs font-medium text-danger hover:underline"
                 >
                   Hapus
                 </button>
@@ -242,10 +242,10 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
           </div>
         )}
 
-        <div className="rounded-lg border border-dashed border-[#D1D5DB] p-3">
-          <p className="mb-2 text-xs font-semibold text-[#374151]">Tambah Lampiran (opsional)</p>
+        <div className="rounded-lg border border-dashed border-border p-3">
+          <p className="mb-2 text-xs font-semibold text-foreground">Tambah Lampiran (opsional)</p>
           <div className="flex flex-wrap items-center gap-2">
-            <label className="cursor-pointer rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm font-medium text-[#374151] hover:bg-black/5">
+            <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
               {uploadingLampiran ? "Mengunggah..." : "+ Upload File"}
               <input
                 type="file"
@@ -271,7 +271,7 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
           </div>
         </div>
 
-        {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">

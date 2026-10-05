@@ -36,8 +36,8 @@ export default function DialogHost() {
       dismissible={dialog?.type === "confirm"}
     >
       <div className="space-y-5">
-        <p className="whitespace-pre-line text-sm leading-6 text-[#475569]">{dialog?.message}</p>
-        <div className="flex justify-end gap-2">
+        <p className="whitespace-pre-line text-sm leading-6 text-foreground">{dialog?.message}</p>
+        <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
           {dialog?.type === "confirm" && (
             <Button variant="outline" onClick={() => close(false)}>
               Batal

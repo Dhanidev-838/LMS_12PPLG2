@@ -3,29 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
-      title={theme === "light" ? "Mode gelap" : "Mode terang"}
-      className="absolute right-4 top-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] bg-white text-[#576277] transition-colors hover:bg-[#f7f8fb] sm:right-6 sm:top-6 lg:right-10 lg:top-10"
-    >
-      {theme === "light" ? (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-          <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
-          <circle cx="12" cy="12" r="4" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-          <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </button>
-  );
-}
+import ThemeToggle from "@/components/shared/theme-toggle";
 
 export default function GantiPasswordAwalPage() {
   const router = useRouter();
@@ -84,7 +62,11 @@ export default function GantiPasswordAwalPage() {
 
   return (
     <div data-admin-theme={theme} className="public-shell relative min-h-screen bg-[#f8f9fc] px-4 py-6 text-[#182033] sm:px-6 lg:flex lg:items-center lg:justify-center lg:p-10" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
-      <ThemeToggle theme={theme} onToggle={() => setTheme((v) => (v === "light" ? "dark" : "light"))} />
+      <ThemeToggle
+        theme={theme}
+        onToggle={() => setTheme((v) => (v === "light" ? "dark" : "light"))}
+        className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:right-10 lg:top-10"
+      />
       <main className="mx-auto grid w-full max-w-5xl overflow-hidden border border-[#dfe4ef] bg-white lg:grid-cols-[.86fr_1.14fr]">
         <aside className="hidden min-h-[550px] flex-col justify-between bg-[#6B85F6] p-10 text-white lg:flex">
           <div><p className="text-xs font-bold uppercase tracking-[.16em] text-white/70">Account security</p><h1 className="mt-5 text-4xl font-bold tracking-[-.055em]">Amankan akses akun Anda.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-white/80">Sebelum melanjutkan ke Classify, buat password personal yang kuat untuk akun Anda.</p></div>

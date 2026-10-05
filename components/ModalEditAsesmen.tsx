@@ -97,12 +97,12 @@ export default function ModalEditAsesmen({
         </Select>
         <Input label="Durasi (menit)" type="number" min={initialData?.tipe === "KUIS" ? 10 : 20} value={durasiMenit} onChange={(event) => setDurasiMenit(event.target.value)} />
         {durasiMenit && Number(durasiMenit) < (initialData?.tipe === "KUIS" ? 10 : 20) && (
-          <p className="-mt-2 text-xs font-medium text-red-500">
+          <p className="-mt-2 text-xs font-medium text-danger">
             {initialData?.tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi {initialData?.tipe === "KUIS" ? 10 : 20} menit.
           </p>
         )}
         <Textarea label="Deskripsi (opsional)" value={deskripsi} onChange={(event) => setDeskripsi(event.target.value)} />
-        {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">Batal</Button>
           <Button type="submit" loading={loading} className="flex-1">Simpan Perubahan</Button>

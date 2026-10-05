@@ -190,8 +190,8 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
               className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors"
               style={
                 sumber === "BARU"
-                  ? { background: "#6B85F6", borderColor: "#6B85F6", color: "white" }
-                  : { borderColor: "#D1D5DB", color: "#374151" }
+                  ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
+                  : { borderColor: "var(--border)", color: "var(--foreground)" }
               }
             >
               Buat Baru
@@ -202,8 +202,8 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
               className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors"
               style={
                 sumber === "EXISTING"
-                  ? { background: "#6B85F6", borderColor: "#6B85F6", color: "white" }
-                  : { borderColor: "#D1D5DB", color: "#374151" }
+                  ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
+                  : { borderColor: "var(--border)", color: "var(--foreground)" }
               }
             >
               Kirim dari Asesmen
@@ -237,8 +237,8 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
                     className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors"
                     style={
                       tipe === t
-                        ? { background: "#6B85F6", borderColor: "#6B85F6", color: "white" }
-                        : { borderColor: "#D1D5DB", color: "#374151" }
+                        ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
+                        : { borderColor: "var(--border)", color: "var(--foreground)" }
                     }
                   >
                     {t === "KUIS" ? "Kuis" : "Ujian Online"}
@@ -265,7 +265,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
               onChange={(e) => setDurasiMenit(e.target.value)}
             />
             {durasiMenit && Number(durasiMenit) < (tipe === "KUIS" ? 10 : 20) && (
-              <p className="-mt-2 text-xs font-medium text-red-500">
+              <p className="-mt-2 text-xs font-medium text-danger">
                 {tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi {tipe === "KUIS" ? 10 : 20} menit.
               </p>
             )}
@@ -275,11 +275,11 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
         )}
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">
-            Kirim ke Kelas {sumber === "BARU" && <span className="font-normal text-[#9CA3AF]">(opsional)</span>}
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">
+            Kirim ke Kelas {sumber === "BARU" && <span className="font-normal text-muted-foreground">(opsional)</span>}
           </label>
           <select
-            className="w-full rounded-lg border border-[#D1D5DB] px-3.5 py-2.5 text-sm outline-none focus:border-[#6B85F6]"
+            className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
@@ -300,7 +300,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
                     {k?.label}
-                    <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-red-500">
+                    <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>
                   </Badge>
@@ -311,13 +311,13 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
         </div>
 
         {sumber === "BARU" && (
-          <p className="rounded-lg bg-[#F9FAFB] p-3 text-xs text-[#6B7280]">
+          <p className="rounded-lg bg-surface-muted p-3 text-xs text-muted-foreground">
             Setelah dibuat, asesmen berstatus <strong>Proses</strong> — tambahkan soal dulu, baru klik &quot;Selesaikan
             Asesmen&quot; supaya muncul di kelas.
           </p>
         )}
 
-        {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <Button type="submit" loading={loading} className="w-full">
           {sumber === "EXISTING" ? "Kirim ke Kelas" : "Lanjut Tambah Soal"}

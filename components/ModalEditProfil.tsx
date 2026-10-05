@@ -23,8 +23,6 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const isDarkMode = typeof document !== "undefined" && document.documentElement.getAttribute("data-admin-theme") === "dark";
-
   useEffect(() => {
     if (!open) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -87,9 +85,9 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
     <Modal open={open} onClose={onClose} title="Edit Profil" maxWidth="max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Foto Profil</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">Foto Profil</label>
           <div className="flex items-center gap-3">
-            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-lg font-bold text-[#6B7280]">
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-lg font-bold text-muted-foreground">
               {fotoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={fotoPreview} alt="Preview" className="h-full w-full object-cover" />
@@ -97,7 +95,7 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
                 nama.charAt(0) || "?"
               )}
             </div>
-            <label className="cursor-pointer rounded-lg border border-[#D1D5DB] px-3 py-1.5 text-xs font-medium text-[#374151] hover:bg-black/5">
+            <label className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-muted">
               {uploading ? "Mengunggah..." : "Ganti Foto"}
               <input
                 type="file"
@@ -120,8 +118,6 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
           value={nama}
           onChange={(e) => setNama(e.target.value)}
           required
-          className={isDarkMode ? "border-[#344054] bg-[#111722] text-[#e9eef8] placeholder:text-[#8aa0c4]" : ""}
-          style={isDarkMode ? { color: "#e9eef8" } : undefined}
         />
         <Textarea
           label="Deskripsi"
@@ -129,11 +125,9 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
           onChange={(e) => setDeskripsi(e.target.value)}
           rows={4}
           placeholder="Ceritakan sedikit tentang dirimu..."
-          className={isDarkMode ? "border-[#344054] bg-[#111722] text-[#e9eef8] placeholder:text-[#8aa0c4]" : ""}
-          style={isDarkMode ? { color: "#e9eef8" } : undefined}
         />
 
-        {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">

@@ -22,9 +22,9 @@ type PendingStudent = {
 type PerformanceSummary = {
   totalKuis: number;
   totalUjian: number;
-  rataRataNilaiKuis: number;
-  rataRataNilaiUjian: number;
-  rataRataNilaiSeluruhAsesmen: number;
+  rataRataNilaiKuis: number | null;
+  rataRataNilaiUjian: number | null;
+  rataRataNilaiSeluruhAsesmen: number | null;
   totalTugasDibuat: number;
   totalTugasDikumpulkan: number;
   totalMateriDibuat: number;
@@ -66,25 +66,33 @@ function formatPercent(value: number): string {
   return `${Number(value).toFixed(1)}%`;
 }
 
-function formatAverage(value: number): string {
-  return `${Number(value).toFixed(1)}`;
+function formatAverage(value: number | null): string {
+  return value === null ? "—" : value.toFixed(1);
 }
 
-function ChartBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
-  const height = max > 0 ? Math.max((value / max) * 100, 8) : 8;
+function ChartBar({ label, value }: { label: string; value: number | null }) {
+  const height = value === null ? 0 : Math.min(Math.max(value, 0), 100);
 
   return (
     <div className="flex flex-1 flex-col items-center gap-3">
-      <div className="flex h-36 w-full items-end justify-center border border-[#edf0f5] bg-[#f7f8fd] p-3">
-        <div
-          className="w-14 rounded-t-md transition-all duration-300"
-          style={{ height: `${height}%`, background: color }}
-          title={`${label}: ${value}`}
-        />
+      <div
+        role="img"
+        aria-label={value === null ? `${label}: belum ada nilai` : `${label}: rata-rata nilai ${formatAverage(value)} dari 100`}
+        className="flex h-36 w-full items-end justify-center border border-border px-3 pt-3"
+      >
+        {value !== null && (
+          <div
+            className="w-14 rounded-t-md bg-accent transition-[height] duration-300"
+            style={{ height: `${height}%` }}
+            title={`${label}: ${formatAverage(value)} / 100`}
+          />
+        )}
       </div>
       <div className="text-center">
-        <p className="text-xs font-semibold text-[#64748B]">{label}</p>
-        <p className="text-sm font-bold text-[#182033]">{value}</p>
+        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
+        <p className="text-sm font-bold tabular-nums text-foreground">
+          {value === null ? "Belum ada nilai" : formatAverage(value)}
+        </p>
       </div>
     </div>
   );
@@ -118,7 +126,7 @@ function HorizontalBars({ items, suffix = "" }: { items: Array<{ label: string; 
 }
 
 export default function GuruPerformaAkademikPage() {
-  const [selectedRange, setSelectedRange] = useState<RangeKey>("bulan");
+  const [selectedRange, setSelectedRange] = useState<RangeKey>("semua");
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,11 +167,6 @@ export default function GuruPerformaAkademikPage() {
     };
   }, [selectedRange]);
 
-  const comparisonMax = useMemo(
-    () => Math.max(data?.summary.totalKuis ?? 0, data?.summary.totalUjian ?? 0, 1),
-    [data],
-  );
-
   const classChart = useMemo(
     () =>
       (data?.summary.rataRataNilaiPerKelas ?? []).map((item) => ({
@@ -189,6 +192,8 @@ export default function GuruPerformaAkademikPage() {
         data.summary.totalTugasDibuat > 0 ||
         data.summary.totalTugasDikumpulkan > 0 ||
         data.summary.totalMateriDibuat > 0 ||
+          data.summary.totalKuis > 0 ||
+          data.summary.totalUjian > 0 ||
         data.summary.rataRataNilaiPerKelas.length > 0 ||
         data.summary.rataRataNilaiPerMapel.length > 0 ||
         data.summary.siswaBelumDinilai.length > 0),
@@ -279,11 +284,12 @@ export default function GuruPerformaAkademikPage() {
       ) : (
         <>
           <div className="grid gap-5 xl:grid-cols-2">
-            <div className="border border-[#e1e5ed] bg-white p-5">
-              <p className="text-sm font-bold text-[#182033]">Perbandingan Kuis & Ujian</p>
+            <div className="border border-border bg-surface-muted p-5 text-foreground">
+              <p className="text-sm font-bold">Rata-rata Nilai Kuis dan Ujian</p>
+              <p className="mt-1 text-xs text-muted-foreground">Skala nilai 0–100</p>
               <div className="mt-5 flex items-end gap-6">
-                <ChartBar label="Kuis" value={data.summary.totalKuis} max={comparisonMax} color="#6B85F6" />
-                <ChartBar label="Ujian" value={data.summary.totalUjian} max={comparisonMax} color="#b7c3fb" />
+                <ChartBar label="Kuis" value={data.summary.rataRataNilaiKuis} />
+                <ChartBar label="Ujian" value={data.summary.rataRataNilaiUjian} />
               </div>
             </div>
 

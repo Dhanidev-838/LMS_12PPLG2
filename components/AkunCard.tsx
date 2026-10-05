@@ -49,9 +49,9 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
   return (
     <div
       onClick={() => router.push(`/profil/${data.id}`)}
-      className="group relative flex cursor-pointer items-start gap-3 border border-[#e1e5ed] bg-white p-4 transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
+      className="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-4 text-foreground transition-colors duration-150 hover:border-accent hover:bg-surface-muted"
     >
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#6B85F6]/10 text-sm font-bold text-[#6B85F6]">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-subtle text-sm font-bold text-foreground">
         {data.fotoProfil ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={data.fotoProfil} alt={data.nama} className="h-full w-full object-cover" />
@@ -62,15 +62,15 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-bold text-[#182033]">{data.nama}</p>
+          <p className="truncate text-sm font-bold text-foreground">{data.nama}</p>
           <Badge tone={data.role === "GURU" ? "brand" : "gray"}>{data.role === "SISWA" ? "Siswa" : "Guru"}</Badge>
         </div>
-        <p className="truncate text-xs text-[#748096]">{data.email}</p>
-        <p className="mt-0.5 text-[11px] text-[#94A3B8]">
+        <p className="truncate text-xs text-muted-foreground">{data.email}</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">
           {data.role === "SISWA" ? "NIS" : "NIK"}: {data.role === "SISWA" ? data.nis : data.nik}
         </p>
-        <p className="mt-1 truncate text-[11px] font-medium text-[#435064]">{subInfo}</p>
-        {data.deskripsi && <p className="mt-1 line-clamp-2 text-[11px] italic text-[#94A3B8]">&quot;{data.deskripsi}&quot;</p>}
+        <p className="mt-1 truncate text-[11px] font-medium text-foreground">{subInfo}</p>
+        {data.deskripsi && <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground">&quot;{data.deskripsi}&quot;</p>}
       </div>
 
       {isEditable && (
@@ -79,20 +79,20 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
             type="button"
             aria-label="Opsi akun"
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-[#64748B] hover:bg-[#6B85F6]/10"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-muted-foreground hover:bg-accent-subtle"
           >
             ⋯
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-9 z-20 w-28 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 shadow-md">
+            <div className="absolute right-0 top-9 z-20 w-28 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-md">
               <button
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
                   onEdit?.(data);
                 }}
-                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10"
+                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle"
               >
                 Edit
               </button>
@@ -102,7 +102,7 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
                   setMenuOpen(false);
                   onDelete?.(data.id);
                 }}
-                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-red-500 hover:bg-red-50"
+                className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle"
               >
                 Hapus
               </button>

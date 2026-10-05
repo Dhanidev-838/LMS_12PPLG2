@@ -103,9 +103,9 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
   }
 
   return (
-    <div className="border border-[#e1e5ed] bg-white p-5">
+    <div className="rounded-xl border border-border bg-surface p-4 text-foreground">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-sm font-bold text-[#748096]">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-sm font-bold text-muted-foreground">
           {data.user.fotoProfil ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={data.user.fotoProfil} alt={data.user.nama} className="h-full w-full object-cover" />
@@ -115,15 +115,15 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-[#748096]">Permintaan Laporan ubah password dari :</p>
+          <p className="text-xs font-semibold text-muted-foreground">Permintaan Laporan ubah password dari :</p>
           <div className="flex items-center gap-2">
-            <p className="font-bold text-[#182033]">{data.user.nama}</p>
+            <p className="font-bold text-foreground">{data.user.nama}</p>
             <Badge tone="gray">{data.user.role === "SISWA" ? "Siswa" : "Guru"}</Badge>
           </div>
-          <p className="text-xs text-[#9CA3AF]">
+          <p className="text-xs text-muted-foreground">
             email: {data.email} · {identitas}
           </p>
-          <p className="mt-1 text-xs italic text-[#748096]">Alasan: {data.alasan}</p>
+          <p className="mt-1 text-xs italic text-muted-foreground">Alasan: {data.alasan}</p>
         </div>
       </div>
 
@@ -144,14 +144,13 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
         <div className="mt-4 space-y-3">
           {otpTampil && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-[#748096]">Kode OTP 4 digit untuk ubah password :</p>
+              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Kode OTP 4 digit untuk ubah password :</p>
               <div className="flex items-center gap-2">
                 <div className="flex gap-2">
                   {otpTampil.split("").map((digit, i) => (
                     <div
                       key={i}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold text-white"
-                      style={{ background: "#6B85F6" }}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-lg font-bold text-accent-foreground"
                     >
                       {digit}
                     </div>
@@ -159,7 +158,7 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
                 </div>
                 <button
                   onClick={handleCopyOtp}
-                  className="cursor-pointer text-xs font-medium text-[#6B85F6] hover:underline"
+                  className="cursor-pointer text-xs font-semibold text-foreground underline-offset-4 hover:underline"
                 >
                   {copied ? "Tersalin!" : "Salin Kode OTP"}
                 </button>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import ThemeToggle from "@/components/shared/theme-toggle";
 import { useAdminTheme } from "@/lib/use-admin-theme";
 
 const JURUSAN = ["TJKT", "PPLG", "Pemasaran", "DKV", "MPLB"];
@@ -22,29 +23,6 @@ const FEATURES = [
 
 function ArrowIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-4 w-4"><path d="M4 10h11M11 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
-      title={theme === "light" ? "Mode gelap" : "Mode terang"}
-      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#dce1eb] text-[#576277] transition-colors hover:bg-[#f7f8fb]"
-    >
-      {theme === "light" ? (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-          <path d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" strokeLinecap="round" />
-          <circle cx="12" cy="12" r="4" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
-          <path d="M20 15.4A8 8 0 0 1 8.6 4 8 8 0 1 0 20 15.4Z" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </button>
-  );
 }
 
 export default function Home() {
