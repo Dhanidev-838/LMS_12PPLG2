@@ -2,6 +2,13 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 // driver adapter butuh config koneksi manual, bukan DATABASE_URL langsung
+const sslEnabled = process.env.DB_SSL === "true";
+const sslCa = process.env.DB_SSL_CA;
+
+if (sslEnabled && !sslCa) {
+  throw new Error("DB_SSL_CA is required when DB_SSL=true");
+}
+
 const adapter = new PrismaMariaDb({
   host: process.env.DB_HOST ?? "127.0.0.1",
   port: Number(process.env.DB_PORT ?? 3306),
@@ -9,6 +16,7 @@ const adapter = new PrismaMariaDb({
   password: process.env.DB_PASSWORD ?? "",
   database: process.env.DB_NAME ?? "Classify",
   connectionLimit: 5,
+  ssl: sslEnabled ? { ca: sslCa, rejectUnauthorized: true } : undefined,
 });
 
 // biar gak bikin instance baru tiap hot-reload pas dev
