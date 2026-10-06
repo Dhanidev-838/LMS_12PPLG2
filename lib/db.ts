@@ -16,6 +16,8 @@ const adapter = new PrismaMariaDb({
   password: process.env.DB_PASSWORD ?? "",
   database: process.env.DB_NAME ?? "Classify",
   connectionLimit: 5,
+  connectTimeout: 15000,
+  acquireTimeout: 20000,
   ssl: sslEnabled ? { ca: sslCa, rejectUnauthorized: true } : undefined,
 });
 
@@ -30,3 +32,10 @@ export const db =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+
+db.$queryRaw`SELECT 1`.catch((e) =>
+  console.error(
+    "DB CONNECT ERROR:",
+    JSON.stringify(e?.meta?.driverAdapterError?.cause, Object.getOwnPropertyNames(e?.meta?.driverAdapterError?.cause ?? {}))
+  )
+);
