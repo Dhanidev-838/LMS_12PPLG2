@@ -10,7 +10,7 @@ type Params = { params: Promise<{ id: string }> }; // id = asesmenId
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id: asesmenId } = await params;
     const body = await req.json();
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const asesmen = await db.asesmen.findUnique({ where: { id: asesmenId } });
     if (!asesmen) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
-    if (asesmen.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && asesmen.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan asesmen milik anda." }, { status: 403 });
     }
 

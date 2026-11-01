@@ -6,9 +6,9 @@ A modern classroom and academic management app built with Next.js.
 
 ## Fitur Utama
 
-- Autentikasi dan role-based access untuk Admin, Kepsek, Kurikulum, Guru, dan Siswa.
+- Autentikasi dan role-based access untuk Admin, Super Admin, Kepsek, Kurikulum, Guru, dan Siswa.
 - Dashboard berbeda sesuai kebutuhan setiap role.
-- Kelas, pengumuman, materi, tugas, asesmen, soal, dan jawaban siswa.
+- Kelas, pengumuman, materi, tugas, asesmen, soal, dan jawaban; submission super admin terpisah dari hasil yang dapat dilihat guru.
 - Penilaian, detail submission read-only untuk role pengawas, dan ekspor nilai.
 - Grafik performa akademik sekolah, kelas, dan mata pelajaran.
 
@@ -47,6 +47,7 @@ Pada PowerShell, perintah `copy` di atas dapat digunakan. Isi nilai database dan
 ## Environment Variables
 
 ```env
+DATABASE_URL=mysql://USER:PASSWORD@HOST:3306/DATABASE
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
@@ -60,15 +61,32 @@ Jangan commit `.env`, `account.txt`, password, API key, atau file upload penggun
 
 ## Database
 
-Pastikan database pada `.env` sudah tersedia, kemudian jalankan:
+Prisma CLI memakai `DATABASE_URL` sebagai target migrasi. Aplikasi runtime memakai variabel `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, dan `DB_NAME`; pastikan keduanya menunjuk ke database environment yang sama.
+
+Untuk database development lokal, arahkan `DATABASE_URL` ke database lokal sebelum membuat migrasi:
 
 ```bash
-npx prisma migrate deploy
+npx prisma migrate dev
 npx prisma generate
+```
+
+`npx prisma migrate deploy` hanya menerapkan file migrasi yang sudah ada ke database di `DATABASE_URL`. Gunakan untuk staging/production setelah memeriksa target koneksi; jangan gunakan `migrate dev` pada database production.
+
+Seed mempertahankan akun default ADMIN, KEPSEK, dan KURIKULUM yang sudah ada, serta membuat akun Super Admin dari kredensial yang kamu tentukan sendiri. Isi kredensial Super Admin di `.env` (jangan commit nilainya), dan pastikan `DB_HOST`/`DB_NAME` menunjuk ke database yang memang ingin diisi:
+
+```env
+SUPER_ADMIN_EMAIL=email-yang-kamu-pakai@example.com
+SUPER_ADMIN_PASSWORD=password-kuat-minimal-12-karakter
+SUPER_ADMIN_NAME=Nama Super Admin
+```
+
+Jalankan seed secara terpisah setelah migrasi:
+
+```bash
 npx prisma db seed
 ```
 
-Untuk pengembangan schema lokal, gunakan `npx prisma migrate dev`.
+Seed tidak mengubah akun Super Admin yang sudah ada saat dijalankan ulang. Akun ADMIN, KEPSEK, dan KURIKULUM tetap memakai data seed yang sudah ada sebelumnya.
 
 ## Menjalankan Aplikasi
 

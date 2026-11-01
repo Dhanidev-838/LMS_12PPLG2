@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
     const body = await req.json();
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const existing = await db.pengumuman.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Pengumuman tidak ditemukan." }, { status: 404 });
-    if (existing.authorId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.authorId !== session!.userId) {
       return NextResponse.json({ error: "Bukan pengumuman milik anda." }, { status: 403 });
     }
 
@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     if (kelasId) {
-      const isPengajar = await db.kelasGuruMapel.findFirst({ where: { kelasId, guruId: session!.userId } });
+      const isPengajar = session!.role === "SUPER_ADMIN" || await db.kelasGuruMapel.findFirst({ where: { kelasId, guruId: session!.userId } });
       if (!isPengajar) return NextResponse.json({ error: "Anda tidak mengajar di kelas tujuan." }, { status: 403 });
     }
 
@@ -83,13 +83,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
 
     const existing = await db.pengumuman.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Pengumuman tidak ditemukan." }, { status: 404 });
-    if (existing.authorId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.authorId !== session!.userId) {
       return NextResponse.json({ error: "Bukan pengumuman milik anda." }, { status: 403 });
     }
 

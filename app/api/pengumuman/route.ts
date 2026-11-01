@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const body = await req.json();
     const { kelasId, isi, lampiran } = body;
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // guru wajib ngajar di kelas ini (KelasGuruMapel) -- gak ada lagi cek walas
-    const isPengajar = await db.kelasGuruMapel.findFirst({ where: { kelasId, guruId: session!.userId } });
+    const isPengajar = session!.role === "SUPER_ADMIN" || await db.kelasGuruMapel.findFirst({ where: { kelasId, guruId: session!.userId } });
     if (!isPengajar) {
       return NextResponse.json({ error: "Anda tidak mengajar di kelas ini." }, { status: 403 });
     }

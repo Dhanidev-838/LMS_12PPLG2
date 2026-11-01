@@ -1,13 +1,13 @@
 import type { SessionPayload } from "./auth"; // type-only -> gak ikut ke-bundle bcryptjs/next-headers ke edge
 
-export type Role = "ADMIN" | "KEPSEK" | "KURIKULUM" | "GURU" | "SISWA";
+export type Role = "ADMIN" | "SUPER_ADMIN" | "KEPSEK" | "KURIKULUM" | "GURU" | "SISWA";
 
 // ============================
 // GRUP ROLE (biar gampang cek "termasuk admin-tier" dsb)
 // ============================
-export const ADMIN_TIER: Role[] = ["ADMIN", "KEPSEK", "KURIKULUM"];
+export const ADMIN_TIER: Role[] = ["ADMIN", "SUPER_ADMIN", "KEPSEK", "KURIKULUM"];
 export const READ_ONLY_ADMIN_TIER: Role[] = ["KEPSEK", "KURIKULUM"]; // gak bisa CRUD, cuma liat + generate nilai
-export const FULL_CRUD_ADMIN: Role[] = ["ADMIN"]; // cuma admin asli yang bisa CRUD kelas/akun
+export const FULL_CRUD_ADMIN: Role[] = ["ADMIN", "SUPER_ADMIN"];
 
 // ============================
 // MAP: route prefix -> role yang boleh akses
@@ -16,6 +16,7 @@ export const FULL_CRUD_ADMIN: Role[] = ["ADMIN"]; // cuma admin asli yang bisa C
 // ============================
 export const ROUTE_ACCESS: Record<string, Role[]> = {
   "/admin": ["ADMIN"],
+  "/super-admin": ["SUPER_ADMIN"],
   "/kepsek": ["KEPSEK"],
   "/kurikulum": ["KURIKULUM"],
   "/guru": ["GURU"],
@@ -50,6 +51,8 @@ export function getDashboardPath(role: Role): string {
   switch (role) {
     case "ADMIN":
       return "/admin";
+    case "SUPER_ADMIN":
+      return "/super-admin";
     case "KEPSEK":
       return "/kepsek";
     case "KURIKULUM":

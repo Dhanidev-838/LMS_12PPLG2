@@ -2,15 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole } from "@/lib/rbac";
+import type { Role } from "@/lib/rbac";
 
 type Params = { params: Promise<{ id: string; submissionId: string }> };
 
-async function getOwnedSubmission(asesmenId: string, submissionId: string, userId: string) {
+async function getOwnedSubmission(asesmenId: string, submissionId: string, userId: string, role: Role) {
   const asesmen = await db.asesmen.findUnique({ where: { id: asesmenId }, select: { guruId: true } });
   if (!asesmen) return { error: "Asesmen tidak ditemukan.", status: 404 } as const;
-  if (asesmen.guruId !== userId) return { error: "Bukan asesmen milik anda.", status: 403 } as const;
-  const submission = await db.submission.findUnique({ where: { id: submissionId }, select: { asesmenId: true } });
+  if (role === "GURU" && asesmen.guruId !== userId) return { error: "Bukan asesmen milik anda.", status: 403 } as const;
+  const submission = await db.submission.findUnique({
+    where: { id: submissionId },
+    select: { asesmenId: true, siswa: { select: { role: true } } },
+  });
   if (!submission || submission.asesmenId !== asesmenId) return { error: "Submission tidak ditemukan.", status: 404 } as const;
+  if (submission.siswa.role === "SUPER_ADMIN" && role !== "SUPER_ADMIN") {
+    return { error: "Submission super admin hanya dapat dikelola oleh super admin.", status: 403 } as const;
+  }
   return { submission } as const;
 }
 
@@ -18,9 +25,9 @@ async function getOwnedSubmission(asesmenId: string, submissionId: string, userI
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
     const { id: asesmenId, submissionId } = await params;
-    const context = await getOwnedSubmission(asesmenId, submissionId, session!.userId);
+    const context = await getOwnedSubmission(asesmenId, submissionId, session!.userId, session!.role);
     if ("error" in context) return NextResponse.json({ error: context.error }, { status: context.status });
 
     await db.$transaction(async (tx) => {
@@ -45,9 +52,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 export async function PATCH(_req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
     const { id: asesmenId, submissionId } = await params;
-    const context = await getOwnedSubmission(asesmenId, submissionId, session!.userId);
+    const context = await getOwnedSubmission(asesmenId, submissionId, session!.userId, session!.role);
     if ("error" in context) return NextResponse.json({ error: context.error }, { status: context.status });
 
     await db.submission.update({ where: { id: submissionId }, data: { nilaiAkhir: null } });

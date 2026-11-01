@@ -41,17 +41,19 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
     }
 
-    if (session!.role === "SISWA") {
-      if (asesmen.status !== "SELESAI") {
+    if (session!.role === "SISWA" || session!.role === "SUPER_ADMIN") {
+      if (session!.role === "SISWA" && asesmen.status !== "SELESAI") {
         return NextResponse.json({ error: "Asesmen belum tersedia." }, { status: 403 });
       }
 
       const kelasIdTujuan = asesmen.kelasTujuan.map((ak) => ak.kelasId);
-      const siswaAdaDiKelas = await db.kelasSiswa.findFirst({
-        where: { siswaId: session!.userId, kelasId: { in: kelasIdTujuan } },
-      });
-      if (!siswaAdaDiKelas) {
-        return NextResponse.json({ error: "Anda tidak memiliki akses ke asesmen ini." }, { status: 403 });
+      if (session!.role === "SISWA") {
+        const siswaAdaDiKelas = await db.kelasSiswa.findFirst({
+          where: { siswaId: session!.userId, kelasId: { in: kelasIdTujuan } },
+        });
+        if (!siswaAdaDiKelas) {
+          return NextResponse.json({ error: "Anda tidak memiliki akses ke asesmen ini." }, { status: 403 });
+        }
       }
 
       // lazy-create submission + urutan soal acak pas pertama kali siswa buka
@@ -115,7 +117,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
     const body = await req.json();
@@ -123,7 +125,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const existing = await db.asesmen.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
-    if (existing.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan asesmen milik anda." }, { status: 403 });
     }
 
@@ -160,12 +162,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
     const existing = await db.asesmen.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
-    if (existing.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan asesmen milik anda." }, { status: 403 });
     }
 

@@ -21,6 +21,28 @@ const adapter = new PrismaMariaDb({
 
 const db = new PrismaClient({ adapter });
 
+function getSuperAdminSeedConfig() {
+  const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+  const name = process.env.SUPER_ADMIN_NAME?.trim() || "Super Admin";
+
+  if (!email || !password) {
+    throw new Error(
+      "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be set before running the seed."
+    );
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("SUPER_ADMIN_EMAIL must be a valid email address.");
+  }
+
+  if (password.length < 12) {
+    throw new Error("SUPER_ADMIN_PASSWORD must be at least 12 characters long.");
+  }
+
+  return { email, password, name };
+}
+
 // ===== JURUSAN =====
 const jurusanList = ["DKV", "TJKT", "PPLG", "PEMASARAN", "MPLB"];
 
@@ -128,6 +150,8 @@ const mapelList = [
 ];
 
 async function main() {
+  const superAdminConfig = getSuperAdminSeedConfig();
+
   console.log("Seeding jurusan...");
   const jurusanMap: Record<string, string> = {};
 
@@ -205,7 +229,33 @@ await db.user.upsert({
   },
 });
 
-  console.log("✅ Seed selesai:", jurusanList.length, "jurusan,", kelasReferensiSeed.length, "kelas referensi,", mapelList.length, "mapel, 1 akun admin.");
+  const existingSuperAdmin = await db.user.findUnique({
+    where: { email: superAdminConfig.email },
+    select: { id: true, role: true },
+  });
+
+  if (existingSuperAdmin && existingSuperAdmin.role !== "SUPER_ADMIN") {
+    throw new Error(
+      `The account ${superAdminConfig.email} already exists with role ${existingSuperAdmin.role}; choose another email.`
+    );
+  }
+
+  if (!existingSuperAdmin) {
+    await db.user.create({
+      data: {
+        email: superAdminConfig.email,
+        password: await bcrypt.hash(superAdminConfig.password, 10),
+        role: "SUPER_ADMIN",
+        nama: superAdminConfig.name,
+        passwordSementara: false,
+      },
+    });
+    console.log(`Created Super Admin account: ${superAdminConfig.email}`);
+  } else {
+    console.log(`Super Admin account already exists: ${superAdminConfig.email}`);
+  }
+
+  console.log("✅ Seed selesai:", jurusanList.length, "jurusan,", kelasReferensiSeed.length, "kelas referensi,", mapelList.length, "mapel, akun admin, kepsek, kurikulum, dan Super Admin.");
 }
 main()
   .catch((e) => {

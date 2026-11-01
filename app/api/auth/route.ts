@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       !portal ||
       (portal === "PETUGAS" && user.role === "GURU") ||
       (portal === "SISWA" && user.role === "SISWA") ||
-      (portal === "ADMIN" && ["ADMIN", "KEPSEK", "KURIKULUM"].includes(user.role));
+      (portal === "ADMIN" && ["ADMIN", "SUPER_ADMIN", "KEPSEK", "KURIKULUM"].includes(user.role));
 
     if (!portalRoleValid) {
       return NextResponse.json({ error: "Akun tidak sesuai dengan portal login yang dipilih." }, { status: 401 });

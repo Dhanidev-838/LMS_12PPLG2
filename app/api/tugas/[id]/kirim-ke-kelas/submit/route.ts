@@ -12,7 +12,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["SISWA"]);
+    requireRole(session, ["SISWA", "SUPER_ADMIN"]);
 
     const { id: tugasId } = await params;
     const body = await req.json();
@@ -28,12 +28,14 @@ export async function POST(req: NextRequest, { params }: Params) {
     });
     if (!tugas) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
 
-    const kelasIdTujuan = tugas.kelasTujuan.map((tk) => tk.kelasId);
-    const isAnggota = await db.kelasSiswa.findFirst({
-      where: { siswaId: session!.userId, kelasId: { in: kelasIdTujuan } },
-    });
-    if (!isAnggota) {
-      return NextResponse.json({ error: "Anda tidak memiliki akses ke tugas ini." }, { status: 403 });
+    if (session!.role === "SISWA") {
+      const kelasIdTujuan = tugas.kelasTujuan.map((tk) => tk.kelasId);
+      const isAnggota = await db.kelasSiswa.findFirst({
+        where: { siswaId: session!.userId, kelasId: { in: kelasIdTujuan } },
+      });
+      if (!isAnggota) {
+        return NextResponse.json({ error: "Anda tidak memiliki akses ke tugas ini." }, { status: 403 });
+      }
     }
 
     const submission = await db.$transaction(async (tx) => {
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["SISWA", "GURU"]);
+    requireRole(session, ["SISWA", "GURU", "SUPER_ADMIN"]);
 
     const { id: tugasId } = await params;
     const submissionId = req.nextUrl.searchParams.get("submissionId");
@@ -80,7 +82,10 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Bukan tugas milik anda." }, { status: 403 });
     }
     const submission = session!.role === "GURU"
-      ? submissionId ? await db.tugasSubmission.findFirst({ where: { id: submissionId, tugasId }, select: { id: true } }) : null
+      ? submissionId ? await db.tugasSubmission.findFirst({
+          where: { id: submissionId, tugasId, siswa: { role: { not: "SUPER_ADMIN" } } },
+          select: { id: true },
+        }) : null
       : await db.tugasSubmission.findUnique({ where: { tugasId_siswaId: { tugasId, siswaId: session!.userId } }, select: { id: true } });
 
     if (!submission) {

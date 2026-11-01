@@ -21,6 +21,9 @@ export async function GET(req: NextRequest, { params }: Params) {
         lampiran: true,
         kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } },
         submission: {
+          where: session!.role === "SUPER_ADMIN"
+            ? undefined
+            : { siswa: { role: { not: "SUPER_ADMIN" } } },
           include: {
             siswa: {
               select: {
@@ -68,7 +71,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
     const body = await req.json();
@@ -76,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const existing = await db.tugas.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
-    if (existing.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan tugas milik anda." }, { status: 403 });
     }
 
@@ -128,12 +131,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id } = await params;
     const existing = await db.tugas.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
-    if (existing.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && existing.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan tugas milik anda." }, { status: 403 });
     }
 

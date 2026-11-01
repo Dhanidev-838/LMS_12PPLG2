@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id: pengumumanId } = await params;
     const body = await req.json();
@@ -22,14 +22,16 @@ export async function POST(req: NextRequest, { params }: Params) {
       include: { lampiran: true },
     });
     if (!pengumuman) return NextResponse.json({ error: "Pengumuman tidak ditemukan." }, { status: 404 });
-    if (pengumuman.authorId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && pengumuman.authorId !== session!.userId) {
       return NextResponse.json({ error: "Bukan pengumuman milik anda." }, { status: 403 });
     }
 
-    const targetKelas = await db.kelasGuruMapel.findMany({
-      where: { guruId: session!.userId, kelasId: { in: kelasIds } },
-      select: { kelasId: true },
-    });
+    const targetKelas = session!.role === "SUPER_ADMIN"
+      ? kelasIds.map((kelasId: string) => ({ kelasId }))
+      : await db.kelasGuruMapel.findMany({
+          where: { guruId: session!.userId, kelasId: { in: kelasIds } },
+          select: { kelasId: true },
+        });
     const allowedIds = new Set(targetKelas.map((kelas) => kelas.kelasId));
     const newKelasIds = kelasIds.filter((kelasId: string) => kelasId !== pengumuman.kelasId && allowedIds.has(kelasId));
     if (newKelasIds.length === 0) {

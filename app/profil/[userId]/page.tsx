@@ -13,7 +13,7 @@ import ThemeToggle from "@/components/shared/theme-toggle";
 
 const BRAND = "#6B85F6";
 
-type Role = "ADMIN" | "KEPSEK" | "KURIKULUM" | "GURU" | "SISWA";
+type Role = "ADMIN" | "SUPER_ADMIN" | "KEPSEK" | "KURIKULUM" | "GURU" | "SISWA";
 
 interface ProfilData {
   id: string;
@@ -32,6 +32,7 @@ interface ProfilData {
 
 const roleLabel: Record<Role, string> = {
   ADMIN: "Admin",
+  SUPER_ADMIN: "Super Admin",
   KEPSEK: "Kepsek",
   KURIKULUM: "Kurikulum",
   GURU: "Guru",
@@ -184,6 +185,8 @@ export default function ProfilPage() {
   const dashboardLabel = me
     ? me.role === "ADMIN"
       ? "Dashboard Admin"
+      : me.role === "SUPER_ADMIN"
+      ? "Dashboard Super Admin"
       : me.role === "KEPSEK"
       ? "Dashboard Kepsek"
       : me.role === "KURIKULUM"

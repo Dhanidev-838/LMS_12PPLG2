@@ -6,23 +6,35 @@ import { requireRole } from "@/lib/rbac";
 export async function GET() {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
     const guruId = session!.userId;
+    const contentScope = session!.role === "SUPER_ADMIN" ? {} : { guruId };
+    const participantScope = session!.role === "SUPER_ADMIN" ? {} : { siswa: { role: { not: "SUPER_ADMIN" as const } } };
 
     const [kelas, asesmen, tugas, materi, submissionDinilai, essayBelumDinilai, tugasDikumpulkan, asesmenTerbaru, tugasTerbaru] = await Promise.all([
       db.kelas.findMany({
-        where: { guruMapel: { some: { guruId } } },
+        where: session!.role === "SUPER_ADMIN" ? undefined : { guruMapel: { some: { guruId } } },
         select: { id: true, judul: true, _count: { select: { siswa: true } } },
         orderBy: { createdAt: "asc" },
       }),
-      db.asesmen.count({ where: { guruId } }),
-      db.tugas.count({ where: { guruId } }),
-      db.materi.count({ where: { guruId } }),
-      db.submission.count({ where: { asesmen: { guruId }, status: "SUDAH", nilaiAkhir: { not: null } } }),
-      db.jawabanSiswa.count({ where: { soal: { asesmen: { guruId }, tipe: "ESSAY" }, nilaiSoal: null, submission: { status: "SUDAH" } } }),
-      db.tugasSubmission.count({ where: { tugas: { guruId }, status: "SUDAH" } }),
-      db.asesmen.findMany({ where: { guruId }, select: { id: true, judul: true, tipe: true, status: true, updatedAt: true }, orderBy: { updatedAt: "desc" }, take: 5 }),
-      db.tugas.findMany({ where: { guruId }, select: { id: true, judul: true, createdAt: true, _count: { select: { submission: true } } }, orderBy: { createdAt: "desc" }, take: 5 }),
+      db.asesmen.count({ where: contentScope }),
+      db.tugas.count({ where: contentScope }),
+      db.materi.count({ where: contentScope }),
+      db.submission.count({ where: { ...participantScope, asesmen: contentScope, status: "SUDAH", nilaiAkhir: { not: null } } }),
+      db.jawabanSiswa.count({ where: { soal: { asesmen: contentScope, tipe: "ESSAY" }, nilaiSoal: null, submission: { ...participantScope, status: "SUDAH" } } }),
+      db.tugasSubmission.count({ where: { ...participantScope, tugas: contentScope, status: "SUDAH" } }),
+      db.asesmen.findMany({ where: contentScope, select: { id: true, judul: true, tipe: true, status: true, updatedAt: true }, orderBy: { updatedAt: "desc" }, take: 5 }),
+      db.tugas.findMany({
+        where: contentScope,
+        select: {
+          id: true,
+          judul: true,
+          createdAt: true,
+          _count: { select: { submission: { where: participantScope } } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
     ]);
 
     const siswaIds = await db.kelasSiswa.findMany({

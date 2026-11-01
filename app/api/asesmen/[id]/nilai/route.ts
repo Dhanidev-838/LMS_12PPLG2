@@ -24,9 +24,16 @@ export async function GET(req: NextRequest, { params }: Params) {
       },
     });
     if (!asesmen) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
+    if (session!.role === "GURU" && asesmen.guruId !== session!.userId) {
+      return NextResponse.json({ error: "Bukan asesmen milik anda." }, { status: 403 });
+    }
 
     const submissions = await db.submission.findMany({
-      where: { asesmenId, status: "SUDAH" },
+      where: {
+        asesmenId,
+        status: "SUDAH",
+        ...(session!.role === "SUPER_ADMIN" ? {} : { siswa: { role: { not: "SUPER_ADMIN" } } }),
+      },
       include: {
         // rombel siswa (12 PPLG 2, dst) + NIS diambil langsung di sini -- gak perlu query tambahan per siswa
         siswa: {
@@ -34,6 +41,7 @@ export async function GET(req: NextRequest, { params }: Params) {
             id: true,
             nama: true,
             nis: true,
+            role: true,
             kelasReferensi: { select: { label: true } },
             kelasSiswa: {
               where: { kelasId: { in: asesmen.kelasTujuan.map((ak) => ak.kelasId) } },
@@ -70,6 +78,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       hasil.push({
         submissionId: sub.id,
         nama: sub.siswa.nama,
+        role: sub.siswa.role,
         nis: sub.siswa.nis ?? "-",
         kelasReferensi: sub.siswa.kelasReferensi?.label ?? "-",
         kelas: sub.siswa.kelasSiswa.map((ks) => ks.kelas),
@@ -118,16 +127,22 @@ export async function GET(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id: asesmenId } = await params;
     const asesmen = await db.asesmen.findUnique({ where: { id: asesmenId } });
     if (!asesmen) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
-    if (asesmen.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && asesmen.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan asesmen milik anda." }, { status: 403 });
     }
 
-    await db.submission.updateMany({ where: { asesmenId }, data: { nilaiAkhir: null } });
+    await db.submission.updateMany({
+      where: {
+        asesmenId,
+        ...(session!.role === "SUPER_ADMIN" ? {} : { siswa: { role: { not: "SUPER_ADMIN" } } }),
+      },
+      data: { nilaiAkhir: null },
+    });
 
     return NextResponse.json({ message: "Nilai berhasil dihapus/direset." });
   } catch (err: unknown) {
@@ -137,4 +152,3 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: message }, { status });
   }
 }
-

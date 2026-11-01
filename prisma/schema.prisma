@@ -8,6 +8,7 @@ generator client {
 
 enum Role {
   ADMIN
+  SUPER_ADMIN
   KEPSEK
   KURIKULUM
   GURU
@@ -202,7 +203,7 @@ model MateriKelas {
 // =========================
 // F. TUGAS
 // Guru membuat tugas dan mengirimkannya ke satu atau beberapa kelas.
-// Siswa mengumpulkan jawaban melalui lampiran/link.
+// Siswa dan super admin dapat mengumpulkan jawaban melalui lampiran/link.
 // Tidak ada jawaban teks dari siswa.
 // =========================
 
@@ -247,6 +248,7 @@ model TugasKelas {
 model TugasSubmission {
   id          String   @id @default(cuid())
   tugasId     String
+  // Nama kolom lama; untuk super admin, ini menyimpan userId super admin itu sendiri.
   siswaId     String
   status      String   @default("BELUM")
   submittedAt DateTime?
@@ -330,6 +332,7 @@ model OpsiJawaban {
 model Submission {
   id          String    @id @default(cuid())
   asesmenId   String
+  // Nama kolom lama; untuk super admin, ini menyimpan userId super admin itu sendiri.
   siswaId     String
   status      String    @default("BELUM")
   submittedAt DateTime?

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const kelasId = req.nextUrl.searchParams.get("kelasId");
     let kelasSiswaIds: string[] = [];
 
-    if (!kelasId && ADMIN_TIER.includes(session!.role)) {
+    if (!kelasId && ADMIN_TIER.includes(session!.role) && session!.role !== "SUPER_ADMIN") {
       requireRole(session, ["GURU"]);
     }
 
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const body = await req.json();
     const { judul, tipe, url, deskripsi, kelasIds } = body;

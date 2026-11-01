@@ -51,7 +51,7 @@ interface SubmissionData {
 interface TugasCardProps {
   data: TugasData;
   currentUserId: string;
-  role: "GURU" | "SISWA" | "ADMIN" | "KEPSEK" | "KURIKULUM";
+  role: "GURU" | "SISWA" | "ADMIN" | "SUPER_ADMIN" | "KEPSEK" | "KURIKULUM";
   onSubmissionChanged?: () => void;
   onEdit?: (tugas: TugasData) => void;
   onDelete?: (id: string) => void;
@@ -84,7 +84,8 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
   const [editingSubmission, setEditingSubmission] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<"BELUM" | "SUDAH">(data.statusSubmission ?? "BELUM");
 
-  const isOwner = role === "GURU" && data.guru.id === currentUserId;
+  const isParticipant = role === "SISWA" || role === "SUPER_ADMIN";
+  const isOwner = role === "SUPER_ADMIN" || (role === "GURU" && data.guru.id === currentUserId);
 
   function isImageUrl(url: string) {
     return /\.(png|jpe?g|gif|webp|bmp|svg)(?:[?#]|$)/i.test(url);
@@ -233,7 +234,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
             )}
           </div>
         )}
-        {role === "SISWA" && (
+        {isParticipant && (
           <Badge tone={submissionStatus === "SUDAH" ? "green" : "gray"}>
             {submissionStatus === "SUDAH" ? "Sudah Dikerjakan" : "Belum Dikerjakan"}
           </Badge>
@@ -289,7 +290,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
           {loadingDetail && <p className="text-xs text-muted-foreground">Memuat...</p>}
 
           {/* upload jawaban -- cuma siswa, cuma lampiran (file/link), gak ada input teks */}
-          {role === "SISWA" && (
+          {isParticipant && (
             <div className="student-upload-box rounded-lg border border-dashed border-border bg-surface p-3">
               <p className="mb-2 text-xs font-semibold text-foreground">{editingSubmission ? "Edit Jawaban Tugas" : "Jawab Tugas (lampirkan file/pdf/link)"}</p>
               <div className="flex flex-wrap items-center gap-2">
@@ -369,7 +370,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
                 )}
               </button>
               <div className="relative flex-1 border border-border bg-surface-muted p-2.5" data-options-menu>
-                {(role === "GURU" || (role === "SISWA" && s.siswa.id === currentUserId)) && (
+                {(role === "GURU" || (isParticipant && s.siswa.id === currentUserId)) && (
                   <div className="absolute right-2 top-2" data-options-menu>
                     <button
                       type="button"
@@ -381,7 +382,7 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
                     </button>
                     {openOptionsId === `jawaban-${s.id}` && (
                       <div className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-md">
-                        {role === "SISWA" ? (
+                        {isParticipant ? (
                           <>
                             <button type="button" onClick={() => { setOpenOptionsId(null); handleEditSubmission(); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle">Edit Jawaban</button>
                             <button type="button" onClick={() => { setOpenOptionsId(null); void handleDeleteSubmission(); }} disabled={submitting} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle disabled:opacity-50">Hapus Jawaban</button>

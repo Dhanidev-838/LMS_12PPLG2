@@ -68,6 +68,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!existing) {
       return NextResponse.json({ error: "Akun tidak ditemukan." }, { status: 404 });
     }
+    if (existing.role === "SUPER_ADMIN" && session!.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Hanya super admin yang dapat mengelola akun super admin." }, { status: 403 });
+    }
 
     if (email && email.toLowerCase().trim() !== existing.email) {
       const emailTaken = await db.user.findUnique({ where: { email: email.toLowerCase().trim() } });
@@ -150,6 +153,9 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Akun tidak ditemukan." }, { status: 404 });
+    }
+    if (existing.role === "SUPER_ADMIN" && session!.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Hanya super admin yang dapat mengelola akun super admin." }, { status: 403 });
     }
 
     // pembersihan walas dihapus -- fitur walas gak ada lagi di Kelas

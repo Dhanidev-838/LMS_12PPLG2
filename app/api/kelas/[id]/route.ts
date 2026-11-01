@@ -25,6 +25,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     if (!kelas) return NextResponse.json({ error: "Kelas tidak ditemukan." }, { status: 404 });
 
+    const isParticipant = session.role === "SISWA" || session.role === "SUPER_ADMIN";
+
     if (!ADMIN_TIER.includes(session.role)) {
       if (session.role === "GURU") {
         const isPengajar = kelas.guruMapel.some((gm) => gm.guruId === session.userId);
@@ -55,7 +57,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
             include: {
               mapel: true,
               guru: { select: { id: true, nama: true, fotoProfil: true } },
-              submission: session.role === "SISWA" ? { where: { siswaId: session.userId }, select: { status: true } } : undefined,
+              submission: isParticipant ? { where: { siswaId: session.userId }, select: { status: true } } : undefined,
               _count: { select: { soal: true } },
             },
           },
@@ -71,8 +73,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
               guru: { select: { id: true, nama: true, fotoProfil: true } },
               lampiran: true,
               kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } },
-              submission: session.role === "SISWA" ? { where: { siswaId: session.userId }, select: { status: true } } : undefined,
-              _count: { select: { submission: true } },
+              submission: isParticipant ? { where: { siswaId: session.userId }, select: { status: true } } : undefined,
+              _count: {
+                select: {
+                  submission: session.role === "SUPER_ADMIN"
+                    ? true
+                    : { where: { siswa: { role: { not: "SUPER_ADMIN" } } } },
+                },
+              },
             },
           },
         },
@@ -98,7 +106,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       timestamp: ak.asesmen.updatedAt,
       data: {
         ...ak.asesmen,
-        ...(session.role === "SISWA" && { statusSubmission: ak.asesmen.submission[0]?.status ?? "BELUM" }),
+        ...(isParticipant && { statusSubmission: ak.asesmen.submission[0]?.status ?? "BELUM" }),
       },
     }));
 
@@ -107,7 +115,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       timestamp: tk.tugas.createdAt,
       data: {
         ...tk.tugas,
-        ...(session.role === "SISWA" && { statusSubmission: tk.tugas.submission[0]?.status ?? "BELUM" }),
+        ...(isParticipant && { statusSubmission: tk.tugas.submission[0]?.status ?? "BELUM" }),
       },
     }));
 

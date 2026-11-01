@@ -61,12 +61,28 @@ export async function GET(req: NextRequest) {
         mapel: true,
         guru: { select: { id: true, nama: true } },
         kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } },
-        _count: { select: { soal: true, submission: true } },
+        _count: {
+          select: {
+            soal: true,
+            submission: session!.role === "SUPER_ADMIN"
+              ? true
+              : { where: { siswa: { role: { not: "SUPER_ADMIN" } } } },
+          },
+        },
+        submission: session!.role === "SUPER_ADMIN"
+          ? { where: { siswaId: session!.userId }, select: { status: true } }
+          : undefined,
       },
       orderBy: { updatedAt: "desc" },
     });
 
-    return NextResponse.json({ data: asesmenList });
+    const data = session!.role === "SUPER_ADMIN"
+      ? asesmenList.map(({ submission, ...asesmen }) => ({
+          ...asesmen,
+          statusSubmission: submission[0]?.status === "SUDAH" ? "SUDAH" : submission[0] ? "SEDANG" : "BELUM",
+        }))
+      : asesmenList;
+    return NextResponse.json({ data });
   } catch (err: any) {
     const status = err.name === "UnauthorizedError" ? 401 : err.name === "ForbiddenError" ? 403 : 500;
     return NextResponse.json({ error: err.message ?? "Terjadi kesalahan." }, { status });
@@ -76,7 +92,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const body = await req.json();
     const { judul, tipe, mapelId, durasiMenit, deskripsi, kelasIds = [] } = body;

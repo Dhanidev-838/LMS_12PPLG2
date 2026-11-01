@@ -7,9 +7,9 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
     requireRole(session, ["GURU", "SISWA", ...ADMIN_TIER]);
+    const kelasId = req.nextUrl.searchParams.get("kelasId");
 
     if (session!.role === "GURU") {
-      const kelasId = req.nextUrl.searchParams.get("kelasId");
       const tugasList = await db.tugas.findMany({
         where: { guruId: session!.userId, kelasTujuan: kelasId ? { some: { kelasId } } : undefined },
         include: {
@@ -17,11 +17,34 @@ export async function GET(req: NextRequest) {
           guru: { select: { id: true, nama: true, fotoProfil: true, role: true } },
           lampiran: true,
           kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } },
-          _count: { select: { submission: true } },
+          _count: {
+            select: { submission: { where: { siswa: { role: { not: "SUPER_ADMIN" } } } } },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
       return NextResponse.json({ data: tugasList });
+    }
+
+    if (session!.role === "SUPER_ADMIN") {
+      const tugasList = await db.tugas.findMany({
+        where: { kelasTujuan: kelasId ? { some: { kelasId } } : undefined },
+        include: {
+          mapel: true,
+          guru: { select: { id: true, nama: true, fotoProfil: true, role: true } },
+          lampiran: true,
+          kelasTujuan: { include: { kelas: { select: { id: true, judul: true } } } },
+          submission: { where: { siswaId: session!.userId }, select: { status: true } },
+          _count: { select: { submission: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json({
+        data: tugasList.map(({ submission, ...tugas }) => ({
+          ...tugas,
+          statusSubmission: submission[0]?.status ?? "BELUM",
+        })),
+      });
     }
 
     if (session!.role === "SISWA") {
@@ -73,7 +96,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
     const body = await req.json();
     const { judul, isi, mapelId, kelasIds, lampiran } = body;
     const tugasBaru = await db.$transaction(async (tx) => {

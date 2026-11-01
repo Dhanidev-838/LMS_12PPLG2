@@ -11,7 +11,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["SISWA"]);
+    requireRole(session, ["SISWA", "SUPER_ADMIN"]);
 
     const { id: asesmenId } = await params;
 

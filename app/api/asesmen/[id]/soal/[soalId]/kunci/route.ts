@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string; soalId: string }> };
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const { id: asesmenId, soalId } = await params;
     const body = await req.json();
@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!soal || soal.asesmenId !== asesmenId) {
       return NextResponse.json({ error: "Soal tidak ditemukan." }, { status: 404 });
     }
-    if (soal.asesmen.guruId !== session!.userId) {
+    if (session!.role !== "SUPER_ADMIN" && soal.asesmen.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan soal milik anda." }, { status: 403 });
     }
     if (soal.tipe === "ESSAY") {

@@ -36,7 +36,7 @@ function safeAverage(values: Array<number | null | undefined>): number {
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["GURU"]);
+    requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const rangeParam = req.nextUrl.searchParams.get("range") ?? "bulan";
     const range: RangeKey = ["semua", "minggu", "bulan", "3bulan", "tahun"].includes(rangeParam)
@@ -45,35 +45,31 @@ export async function GET(req: NextRequest) {
 
     const fromDate = getRangeStart(range);
     const guruId = session!.userId;
-
-    const kelasGuruMapel = await db.kelasGuruMapel.findMany({
-      where: { guruId },
-      select: { kelasId: true },
-    });
-
-    const kelasIds = [...new Set(kelasGuruMapel.map((entry) => entry.kelasId))];
+    const ownerScope = session!.role === "SUPER_ADMIN" ? {} : { guruId };
+    const participantScope = session!.role === "SUPER_ADMIN" ? {} : { siswa: { role: { not: "SUPER_ADMIN" as const } } };
 
     const [kuisCount, ujianCount, kuisAvg, ujianAvg, semuaNilaiAvg, tugasDibuat, tugasDikumpulkan, materiDibuat, essayBelumDinilai, classRows, mapelRows, tugasBelumDinilaiRaw, essayBelumDinilaiRaw] = await Promise.all([
       db.asesmen.count({
         where: {
-          guruId,
+          ...ownerScope,
           tipe: "KUIS",
           createdAt: { gte: fromDate },
         },
       }),
       db.asesmen.count({
         where: {
-          guruId,
+          ...ownerScope,
           tipe: "UJIAN",
           createdAt: { gte: fromDate },
         },
       }),
       db.submission.aggregate({
         where: {
+          ...participantScope,
           status: "SUDAH",
           nilaiAkhir: { not: null },
           asesmen: {
-            guruId,
+            ...ownerScope,
             tipe: "KUIS",
             createdAt: { gte: fromDate },
           },
@@ -82,10 +78,11 @@ export async function GET(req: NextRequest) {
       }),
       db.submission.aggregate({
         where: {
+          ...participantScope,
           status: "SUDAH",
           nilaiAkhir: { not: null },
           asesmen: {
-            guruId,
+            ...ownerScope,
             tipe: "UJIAN",
             createdAt: { gte: fromDate },
           },
@@ -94,10 +91,11 @@ export async function GET(req: NextRequest) {
       }),
       db.submission.aggregate({
         where: {
+          ...participantScope,
           status: "SUDAH",
           nilaiAkhir: { not: null },
           asesmen: {
-            guruId,
+            ...ownerScope,
             createdAt: { gte: fromDate },
           },
         },
@@ -105,17 +103,18 @@ export async function GET(req: NextRequest) {
       }),
       db.tugas.count({
         where: {
-          guruId,
+          ...ownerScope,
           createdAt: { gte: fromDate },
         },
       }),
       db.tugasSubmission.count({
         where: {
-          tugas: { guruId, createdAt: { gte: fromDate } },
+          ...participantScope,
+          tugas: { ...ownerScope, createdAt: { gte: fromDate } },
           status: "SUDAH",
         },
       }),
-      db.materi.count({ where: { guruId, createdAt: { gte: fromDate } } }),
+      db.materi.count({ where: { ...ownerScope, createdAt: { gte: fromDate } } }),
       db.jawabanSiswa.count({
         where: {
           nilaiSoal: null,
@@ -125,12 +124,12 @@ export async function GET(req: NextRequest) {
               createdAt: { gte: fromDate },
             },
           },
-          submission: { status: "SUDAH" },
+          submission: { ...participantScope, status: "SUDAH" },
         },
       }),
       db.asesmen.findMany({
         where: {
-          guruId,
+          ...ownerScope,
           createdAt: { gte: fromDate },
         },
         select: {
@@ -143,6 +142,7 @@ export async function GET(req: NextRequest) {
           mapel: { select: { nama: true } },
           submission: {
             where: {
+              ...participantScope,
               status: "SUDAH",
               nilaiAkhir: { not: null },
             },
@@ -152,7 +152,7 @@ export async function GET(req: NextRequest) {
       }),
       db.asesmen.findMany({
         where: {
-          guruId,
+          ...ownerScope,
           createdAt: { gte: fromDate },
           mapelId: { not: null },
         },
@@ -161,6 +161,7 @@ export async function GET(req: NextRequest) {
           mapel: { select: { nama: true } },
           submission: {
             where: {
+              ...participantScope,
               status: "SUDAH",
               nilaiAkhir: { not: null },
             },
@@ -170,7 +171,8 @@ export async function GET(req: NextRequest) {
       }),
       db.tugasSubmission.findMany({
         where: {
-          tugas: { guruId, createdAt: { gte: fromDate } },
+          ...participantScope,
+          tugas: { ...ownerScope, createdAt: { gte: fromDate } },
           status: "SUDAH",
         },
         select: {
@@ -191,11 +193,11 @@ export async function GET(req: NextRequest) {
           soal: {
             tipe: "ESSAY",
             asesmen: {
-              guruId,
+              ...ownerScope,
               createdAt: { gte: fromDate },
             },
           },
-          submission: { status: "SUDAH" },
+          submission: { ...participantScope, status: "SUDAH" },
         },
         select: {
           submission: {
