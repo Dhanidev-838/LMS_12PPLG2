@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
+import { parseDeadlineFields } from "@/lib/deadline-server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -99,6 +100,14 @@ export async function POST(req: NextRequest) {
     requireRole(session, ["GURU", "SUPER_ADMIN"]);
     const body = await req.json();
     const { judul, isi, mapelId, kelasIds, lampiran } = body;
+    const deadlineResult = parseDeadlineFields(body);
+    if ("error" in deadlineResult) return NextResponse.json({ error: deadlineResult.error }, { status: 400 });
+    const deadline = "value" in deadlineResult ? deadlineResult.value : { deadlineAt: null, deadlineDurationMinutes: null };
+    const hasKelas = Array.isArray(kelasIds) && kelasIds.length > 0;
+    const publishedAt = hasKelas ? new Date() : null;
+    const deadlineAt = deadline.deadlineDurationMinutes !== null && publishedAt
+      ? new Date(publishedAt.getTime() + deadline.deadlineDurationMinutes * 60_000)
+      : deadline.deadlineAt;
     const tugasBaru = await db.$transaction(async (tx) => {
       const tugas = await tx.tugas.create({
         data: {
@@ -106,6 +115,9 @@ export async function POST(req: NextRequest) {
           judul: String(judul ?? "").trim() || "Tugas tanpa judul",
           isi: isi || null,
           mapelId: mapelId || null,
+          publishedAt,
+          deadlineAt,
+          deadlineDurationMinutes: deadline.deadlineDurationMinutes,
           lampiran: Array.isArray(lampiran) && lampiran.length > 0
             ? { create: lampiran.map((item: { tipe: string; url: string; judul?: string; thumbnail?: string }) => ({ tipe: item.tipe, url: item.url, judul: item.judul || null, thumbnail: item.thumbnail || null })) }
             : undefined,

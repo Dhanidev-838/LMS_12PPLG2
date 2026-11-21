@@ -5,6 +5,9 @@ import Modal from "./ui/Modal";
 import { Input, Select, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
+import DeadlineField from "./DeadlineField";
+import { selectionToDeadlinePayload, type DeadlineSelection } from "@/lib/deadline";
+import { useLanguage } from "@/lib/i18n";
 
 type Tipe = "KUIS" | "UJIAN";
 type Sumber = "BARU" | "EXISTING";
@@ -44,6 +47,7 @@ interface ModalBuatAsesmenProps {
 }
 
 export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKelasId, fixedTipe, initialSumber = "BARU", initialAsesmenId = "", showSourceToggle = false }: ModalBuatAsesmenProps) {
+  const { t } = useLanguage();
   const [sumber, setSumber] = useState<Sumber>("BARU");
 
   // form buat baru
@@ -52,6 +56,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
   const [mapelId, setMapelId] = useState("");
   const [durasiMenit, setDurasiMenit] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
+  const [deadline, setDeadline] = useState<DeadlineSelection>({ mode: "duration", amount: "", unit: "hours" });
 
   // kirim dari existing
   const [asesmenExistingList, setAsesmenExistingList] = useState<AsesmenExisting[]>([]);
@@ -73,9 +78,13 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
       .catch(() => {});
 
     fetch("/api/mapel")
-      .then((res) => res.json())
-      .then((data) => setMapelList(data.data ?? []))
-      .catch(() => {});
+      .then(async (res) => {
+        const data: { data?: MapelOption[]; error?: string } = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Gagal memuat daftar mapel.");
+        if (!Array.isArray(data.data)) throw new Error("Daftar mapel tidak valid.");
+        setMapelList(data.data);
+      })
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Gagal memuat daftar mapel."));
 
     if (showSourceToggle || initialSumber === "EXISTING") {
       fetch("/api/asesmen")
@@ -94,6 +103,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
     setMapelId("");
     setDurasiMenit("");
     setDeskripsi("");
+    setDeadline({ mode: "duration", amount: "", unit: "hours" });
     setSelectedAsesmenId(initialAsesmenId);
     setSelectedKelasIds(defaultKelasId ? [defaultKelasId] : []);
     setError("");
@@ -110,12 +120,12 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
     const durasi = durasiMenit ? Number(durasiMenit) : null;
     const minimumDurasi = tipe === "KUIS" ? 10 : 20;
     if (durasi !== null && durasi < minimumDurasi) {
-      setError(`${tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi ${minimumDurasi} menit.`);
+      setError(t("Durasi minimal {minimum} menit.").replace("{minimum}", String(minimumDurasi)));
       return;
     }
 
     if (sumber === "EXISTING" && selectedKelasIds.length === 0) {
-      setError("Pilih minimal 1 kelas tujuan.");
+      setError(t("Pilih minimal 1 kelas tujuan."));
       return;
     }
 
@@ -125,7 +135,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
       // ============ KIRIM DARI ASESMEN EXISTING ============
       if (sumber === "EXISTING") {
         if (!selectedAsesmenId) {
-          setError("Pilih asesmen yang mau dikirim.");
+          setError(t("Pilih asesmen yang mau dikirim."));
           setLoading(false);
           return;
         }
@@ -138,7 +148,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
         const data = await res.json();
 
         if (!res.ok) {
-          setError(data.error ?? "Terjadi kesalahan.");
+          setError(t(data.error ?? "Terjadi kesalahan."));
           setLoading(false);
           return;
         }
@@ -149,6 +159,20 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
       }
 
       // ============ BUAT BARU ============
+      const deadlineResult = selectionToDeadlinePayload(deadline);
+      if (!deadlineResult.payload || (
+        deadlineResult.payload.deadlineAt === null
+        && deadlineResult.payload.deadlineDurationMinutes === null
+      )) {
+        setError(t(deadlineResult.error ?? "Deadline wajib untuk asesmen baru."));
+        setLoading(false);
+        return;
+      }
+      if (deadlineResult.payload.deadlineAt && Date.parse(deadlineResult.payload.deadlineAt) <= Date.now()) {
+        setError(t("Tanggal deadline harus berada di masa depan."));
+        setLoading(false);
+        return;
+      }
       const res = await fetch("/api/asesmen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -159,12 +183,13 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
           durasiMenit: durasiMenit ? Number(durasiMenit) : null,
           deskripsi: deskripsi || null,
           kelasIds: selectedKelasIds,
+          ...deadlineResult.payload,
         }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Terjadi kesalahan.");
+        setError(t(data.error ?? "Terjadi kesalahan."));
         setLoading(false);
         return;
       }
@@ -172,14 +197,14 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
       onSuccess(data.data.id);
       onClose();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={fixedTipe === "KUIS" ? "Buat Quiz" : fixedTipe === "UJIAN" ? "Buat Ujian Online" : "Buat Asesmen"} maxWidth="max-w-lg">
+    <Modal open={open} onClose={onClose} title={t(fixedTipe === "KUIS" ? "Buat Quiz" : fixedTipe === "UJIAN" ? "Buat Ujian Online" : "Buat Asesmen")} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* toggle sumber - cuma tampil kalau ada asesmen existing yang bisa dipilih */}
         {showSourceToggle && asesmenExistingList.length > 0 && (
@@ -194,7 +219,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
                   : { borderColor: "var(--border)", color: "var(--foreground)" }
               }
             >
-              Buat Baru
+              {t("Buat Baru")}
             </button>
             <button
               type="button"
@@ -206,15 +231,15 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
                   : { borderColor: "var(--border)", color: "var(--foreground)" }
               }
             >
-              Kirim dari Asesmen
+              {t("Kirim dari Asesmen")}
             </button>
           </div>
         )}
 
         {sumber === "EXISTING" ? (
           <Select
-            label="Pilih Asesmen"
-            placeholder="Pilih asesmen yang sudah dibuat"
+            label={t("Pilih Asesmen")}
+            placeholder={t("Pilih asesmen yang sudah dibuat")}
             value={selectedAsesmenId}
             onChange={(e) => setSelectedAsesmenId(e.target.value)}
             required
@@ -229,27 +254,27 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
           <>
             {!fixedTipe && (
               <div className="grid grid-cols-2 gap-2">
-                {(["KUIS", "UJIAN"] as Tipe[]).map((t) => (
+                {(["KUIS", "UJIAN"] as Tipe[]).map((type) => (
                   <button
-                    key={t}
+                    key={type}
                     type="button"
-                    onClick={() => setTipe(t)}
+                    onClick={() => setTipe(type)}
                     className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors"
                     style={
-                      tipe === t
+                      tipe === type
                         ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
                         : { borderColor: "var(--border)", color: "var(--foreground)" }
                     }
                   >
-                    {t === "KUIS" ? "Kuis" : "Ujian Online"}
+                    {t(type === "KUIS" ? "Kuis" : "Ujian Online")}
                   </button>
                 ))}
               </div>
             )}
 
-            <Input label="Judul Asesmen" value={judul} onChange={(e) => setJudul(e.target.value)} required />
+            <Input label={t("Judul Asesmen")} value={judul} onChange={(e) => setJudul(e.target.value)} required />
 
-            <Select label="Mapel (opsional)" placeholder="Pilih mapel" value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
+            <Select label={t("Mapel (opsional)")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
               {mapelList.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.nama}
@@ -258,7 +283,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
             </Select>
 
             <Input
-              label="Durasi (menit)"
+              label={t("Durasi (menit)")}
               type="number"
               min={tipe === "KUIS" ? 10 : 20}
               value={durasiMenit}
@@ -266,24 +291,33 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
             />
             {durasiMenit && Number(durasiMenit) < (tipe === "KUIS" ? 10 : 20) && (
               <p className="-mt-2 text-xs font-medium text-danger">
-                {tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi {tipe === "KUIS" ? 10 : 20} menit.
+                {t("Durasi minimal {minimum} menit.").replace("{minimum}", String(tipe === "KUIS" ? 10 : 20))}
               </p>
             )}
 
-            <Textarea label="Deskripsi (opsional)" value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} />
+            <Textarea label={t("Deskripsi (opsional)")} value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} />
+
+            {sumber === "BARU" && (
+              <DeadlineField
+                value={deadline}
+                onChange={setDeadline}
+                required
+                startsWhen="Deadline dihitung sejak asesmen diterbitkan."
+              />
+            )}
           </>
         )}
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-foreground">
-            Kirim ke Kelas {sumber === "BARU" && <span className="font-normal text-muted-foreground">(opsional)</span>}
+            {t("Kirim ke Kelas")} {sumber === "BARU" && <span className="font-normal text-muted-foreground">({t("opsional")})</span>}
           </label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
@@ -312,15 +346,14 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
 
         {sumber === "BARU" && (
           <p className="rounded-lg bg-surface-muted p-3 text-xs text-muted-foreground">
-            Setelah dibuat, asesmen berstatus <strong>Proses</strong> — tambahkan soal dulu, baru klik &quot;Selesaikan
-            Asesmen&quot; supaya muncul di kelas.
+            {t("Setelah dibuat, asesmen berstatus Proses, tambahkan soal dulu, baru selesaikan agar muncul di kelas.")}
           </p>
         )}
 
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <Button type="submit" loading={loading} className="w-full">
-          {sumber === "EXISTING" ? "Kirim ke Kelas" : "Lanjut Tambah Soal"}
+          {t(sumber === "EXISTING" ? "Kirim ke Kelas" : "Lanjut Tambah Soal")}
         </Button>
       </form>
     </Modal>

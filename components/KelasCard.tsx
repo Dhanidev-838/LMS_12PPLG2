@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
 
 export interface KelasData {
   id: string;
@@ -28,10 +29,11 @@ export default function KelasCard({
   basePath = "/admin/kelas",
 }: KelasCardProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const label = data.judul || "Tanpa Judul";
+  const label = data.judul || t("Tanpa Judul");
 
   function handleCopyInvite(e: React.MouseEvent) {
     e.stopPropagation();
@@ -49,7 +51,7 @@ export default function KelasCard({
       <div className="flex items-center justify-between px-4 pt-4">
         <div className="flex min-w-0 items-center gap-2">
           <p className="truncate text-sm font-semibold text-foreground">{label}</p>
-          <Badge tone="brand">{data._count?.siswa ?? 0} Siswa</Badge>
+          <Badge tone="brand">{data._count?.siswa ?? 0} {t("siswa")}</Badge>
         </div>
 
         {isEditable && (
@@ -57,7 +59,7 @@ export default function KelasCard({
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              aria-label="Opsi kelas"
+              aria-label={t("Opsi kelas")}
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent-subtle hover:text-foreground"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -77,7 +79,7 @@ export default function KelasCard({
                   }}
                   className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle"
                 >
-                  Edit Kelas
+                  {t("Edit Kelas")}
                 </button>
                 <button
                   type="button"
@@ -87,7 +89,7 @@ export default function KelasCard({
                   }}
                   className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle"
                 >
-                  Hapus Kelas
+                  {t("Hapus Kelas")}
                 </button>
               </div>
             )}
@@ -98,12 +100,12 @@ export default function KelasCard({
       {/* deskripsi -- strip walas dihapus total */}
       <div className="px-4 py-3">
         <p className="line-clamp-2 text-xs italic text-muted-foreground">
-          {data.deskripsi ? `"${data.deskripsi}"` : "Belum ada deskripsi."}
+          {data.deskripsi ? `"${data.deskripsi}"` : t("Belum ada deskripsi.")}
         </p>
       </div>
 
-      {isEditable && (
-        <div className="flex items-center gap-1 border-t border-border px-4 py-2.5">
+      <div className="flex items-center gap-1 border-t border-border px-4 py-2.5">
+        {isEditable ? (
           <button
             type="button"
             onClick={handleCopyInvite}
@@ -113,10 +115,12 @@ export default function KelasCard({
               <rect x="9" y="9" width="12" height="12" rx="2" />
               <path d="M5 15V5a2 2 0 0 1 2-2h10" />
             </svg>
-            {copied ? "Tersalin!" : "Salin Link Undangan"}
+            {copied ? t("Tersalin!") : t("Salin Link Undangan")}
           </button>
-        </div>
-      )}
+        ) : (
+          <span className="flex min-h-10 items-center text-[11px] font-semibold text-accent-text">{t("Lihat kelas")} <span aria-hidden="true" className="ml-1">→</span></span>
+        )}
+      </div>
     </div>
   );
 }

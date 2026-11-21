@@ -11,6 +11,11 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
 import ThemeToggle from "@/components/shared/theme-toggle";
+import ActiveUsersAreaChart from "@/components/ActiveUsersAreaChart";
+import TwoSlicePieChart from "@/components/TwoSlicePieChart";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useLanguage } from "@/lib/i18n";
+import { intlLocaleCodes } from "@/lib/i18n";
 
 const BRAND = "#6B85F6";
 
@@ -59,12 +64,13 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
 
-const FIELD_CLASS = "mt-1 w-full rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-sm font-normal text-[#182033] outline-none focus:border-[#6B85F6]";
-const FIELD_LABEL_CLASS = "block text-xs font-semibold text-[#748096]";
+const FIELD_CLASS = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-[#6B85F6]";
+const FIELD_LABEL_CLASS = "block text-xs font-semibold text-muted-foreground";
 
 export default function KepsekDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, locale } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -127,6 +133,18 @@ export default function KepsekDashboard() {
   useEffect(() => {
     loadTabData(activeTab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "PERFORMA") return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void fetch("/api/admin/dashboard", { cache: "no-store" })
+        .then((response) => response.ok ? response.json() : null)
+        .then((data) => { if (data?.data) setDashboardData(normalizeDashboardData(data.data)); })
+        .catch(() => {});
+    }, 30_000);
+    return () => window.clearInterval(timer);
   }, [activeTab]);
 
   async function loadTabData(tab: Tab) {
@@ -229,14 +247,14 @@ export default function KepsekDashboard() {
   ] : [];
 
   return (
-    <div data-admin-theme={mounted ? theme : "light"} className="admin-shell flex min-h-screen flex-col bg-[#f6f7fb]" style={{ fontFamily: "Inter, sans-serif" }}>
-      <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-[#e6e9f0] bg-white px-4 sm:px-6 lg:px-8">
+    <div data-admin-theme={mounted ? theme : "light"} className="admin-shell flex min-h-screen flex-col bg-background" style={{ fontFamily: "Inter, sans-serif" }}>
+      <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-border bg-surface px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
-          <button onClick={toggleSidebar} aria-label="Toggle sidebar" className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-transparent text-[#4f5b70] transition-colors hover:border-[#dfe4ef] hover:bg-[#f7f8fb]">
+          <button onClick={toggleSidebar} aria-label={t("Toggle sidebar")} className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-[var(--radius-control)] border border-border bg-surface text-muted-foreground transition-colors hover:border-border hover:bg-surface-muted">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 flex-shrink-0"><Image src="/Logo1.png" alt="Logo Classify" fill sizes="32px" className="rounded-[9px] object-contain" /></div>
+            <div className="relative h-8 w-8 flex-shrink-0"><Image src="/Logo1.png" alt="Classify" fill sizes="32px" className="rounded-[9px] object-contain" /></div>
             <span className="text-[17px] font-bold tracking-[-.04em]">Classify</span>
           </div>
         </div>
@@ -247,11 +265,11 @@ export default function KepsekDashboard() {
           />
           {me && (
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold text-[#182033]">{me.nama}</p>
-              <p className="text-xs text-[#9CA3AF]">{me.role}</p>
+              <p className="text-sm font-semibold text-foreground">{me.nama}</p>
+              <p className="text-xs text-muted-foreground">{t("Kepala Sekolah")}</p>
             </div>
           )}
-          <div className="hidden h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280] sm:flex">
+          <div className="hidden h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-xs font-bold text-muted-foreground sm:flex">
             {me?.fotoProfil ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.fotoProfil} alt={me.nama} className="h-full w-full object-cover" />
@@ -266,55 +284,68 @@ export default function KepsekDashboard() {
         {sidebarOpen && <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] lg:hidden" />}
 
         <aside
-          aria-label="Navigasi kepsek"
-          className={`fixed inset-y-0 left-0 z-50 w-72 overflow-hidden bg-[#f6f7fb] p-4 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-[transform,width,padding] duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:sticky lg:top-[88px] lg:z-0 lg:h-[calc(100vh-108px)] lg:translate-x-0 lg:self-start lg:shadow-none ${sidebarCollapsed ? "lg:w-0 lg:border-0 lg:p-0" : "lg:w-72"}`}
+          aria-label={t("Navigasi kepsek")}
+          className={`fixed inset-y-0 left-0 z-50 w-[min(88vw,22.5rem)] overflow-hidden bg-background p-0 shadow-[8px_0_24px_rgba(15,23,42,0.12)] transition-[transform,width,padding] duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:sticky lg:top-[88px] lg:z-0 lg:h-[calc(100vh-108px)] lg:translate-x-0 lg:self-start lg:shadow-none ${sidebarCollapsed ? "lg:w-0 lg:border-0 lg:p-0" : "lg:w-80"}`}
         >
-          <div className="flex min-h-full min-w-64 flex-col border border-[#e1e5ed] bg-white p-4">
-            <p className="mb-3 px-2 pt-2 text-sm font-bold text-[#182033]">
-              Dashboard Kepsek
+          <div className="flex min-h-full min-w-0 flex-col rounded-[var(--radius-card)] border border-border bg-surface p-4">
+            <button type="button" onClick={() => setSidebarOpen(false)} aria-label={t("Tutup navigasi")} className="mb-2 ml-auto flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-border text-muted-foreground lg:hidden">×</button>
+            <p className="mb-3 px-2 pt-2 text-sm font-bold text-foreground">
+              {t("Dashboard Kepsek")}
               <br />
-              <span style={{ color: BRAND }}>- {TABS.find((t) => t.key === activeTab)?.label}</span>
+              <span style={{ color: BRAND }}>- {t(TABS.find((tab) => tab.key === activeTab)?.label ?? "Dashboard")}</span>
             </p>
             <nav className="flex flex-col gap-1">
               {TABS.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => openTab(tab.key)}
-                  title={tab.label}
+                  title={t(tab.label)}
                   className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors"
                   style={
                     activeTab === tab.key
                       ? theme === "dark"
-                        ? { background: "#202b47", color: "#91a5ff", boxShadow: "inset 3px 0 0 #6B85F6" }
-                        : { background: "#ffffff", color: BRAND, boxShadow: "inset 3px 0 0 #6B85F6" }
-                      : { background: "transparent", color: theme === "dark" ? "#aeb8c9" : "#435064" }
+                        ? { background: "var(--accent-subtle)", color: "var(--accent-text)", boxShadow: "inset 3px 0 0 var(--accent)" }
+                        : { background: "var(--accent-subtle)", color: "var(--accent-text)", boxShadow: "inset 3px 0 0 var(--accent)" }
+                      : { background: "transparent", color: "var(--muted-foreground)" }
                   }
                 >
                   <TabIcon tab={tab.key} />
-                  <span>{tab.label}</span>
+                  <span>{t(tab.label)}</span>
                 </button>
               ))}
             </nav>
-            <Button size="md" onClick={handleLogout} className="mt-auto w-full rounded-xl" style={{ background: "#F8CDBD", color: "#7C4A3A" }}>
+            <LanguageSelector className="mt-auto mb-3" />
+            <Button size="md" variant="outline" onClick={handleLogout} className="w-full">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M10 17l5-5-5-5M15 12H3M21 4v16" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              Keluar
+              {t("Keluar")}
             </Button>
           </div>
         </aside>
 
         <main className="min-w-0 flex-1 lg:pl-6">
-          {loading && <p className="text-sm text-[#9CA3AF]">Memuat...</p>}
+          {loading && <p className="text-sm text-muted-foreground">{t("Memuat...")}</p>}
 
           {!loading && activeTab === "DASHBOARD" && dashboardData && (
             <div className="space-y-5">
-              <div className="border border-[#dfe4ef] p-6 text-white" style={{ background: BRAND }}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/75">Dashboard Kepsek</p>
-                <h1 className="mt-2 text-2xl font-bold">Selamat Datang, {me?.nama ?? "Kepsek"}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-white/85">Pantau kelas, akun, dan performa akademik Classify — akses lihat saja.</p>
+              <div className="grid overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface md:grid-cols-[minmax(0,1fr)_240px]">
+                <div className="p-6 sm:p-8">
+                  <p className="text-xs font-bold uppercase tracking-[.12em] text-accent-text">{t("Dashboard Kepsek")}</p>
+                  <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{t("Selamat datang")}, {me?.nama ?? t("Kepala Sekolah")}</h1>
+                  <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("Pantau kelas, akun, dan performa akademik Classify — akses lihat saja.")}</p>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <Button size="sm" onClick={() => openTab("PERFORMA")}>{t("Lihat performa")}</Button>
+                    <Button size="sm" variant="outline" onClick={() => openTab("KELAS")}>{t("Lihat kelas")}</Button>
+                  </div>
+                </div>
+                <div className="border-t border-border bg-accent-subtle p-6 md:border-l md:border-t-0">
+                  <p className="text-xs font-bold uppercase tracking-[.1em] text-accent-text">{t("Gambaran sekolah")}</p>
+                  <p className="mt-5 text-3xl font-bold text-foreground">{dashboardData.statistik.siswa}</p>
+                  <p className="text-sm text-muted-foreground">{t("Siswa dalam")} {dashboardData.statistik.kelas} {t("Kelas")}</p>
+                </div>
               </div>
 
-              <MobileDashboardSummary items={dashboardSummaryItems} theme={theme} />
-              <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+              <MobileDashboardSummary items={dashboardSummaryItems.map((item) => ({ ...item, label: t(item.label), actionLabel: item.actionLabel ? t(item.actionLabel) : undefined, caption: item.caption ? t(item.caption) : undefined }))} theme={theme} />
+              <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
                 {[
                   ["Kelas", dashboardData.statistik.kelas, "Lihat kelas", "KELAS"],
                   ["Siswa", dashboardData.statistik.siswa, "Daftar siswa", "SISWA"],
@@ -325,35 +356,35 @@ export default function KepsekDashboard() {
                   ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "GURU"],
                   ["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Dari asesmen dinilai", "PERFORMA"],
                 ].map(([label, value, caption, tab], index) => (
-                  <button key={label as string} type="button" onClick={() => openTab(tab as Tab)} className={`group border p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff] ${index === 0 ? "border-[#6B85F6] bg-white" : "border-[#e1e5ed] bg-white"}`}>
-                    <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.1em] text-[#8490a3]">{label}</p><span className="text-xs font-bold text-[#6B85F6] group-hover:translate-x-0.5">↗</span></div>
-                    <p className="mt-5 text-3xl font-bold tracking-[-.055em] text-[#182033]">{value}</p>
-                    <p className="mt-1 text-xs text-[#6f7b8d]">{caption}</p>
+                  <button key={label as string} type="button" onClick={() => openTab(tab as Tab)} className={`group rounded-[var(--radius-card)] border p-4 text-left transition-colors hover:border-accent hover:bg-accent-subtle ${index === 0 ? "border-accent bg-accent-subtle" : "border-border bg-surface"}`}>
+                    <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.1em] text-muted-foreground">{t(String(label))}</p><span className="text-xs font-bold text-[#6B85F6] group-hover:translate-x-0.5">↗</span></div>
+                    <p className="mt-5 text-3xl font-bold tracking-[-.055em] text-foreground">{value}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{t(String(caption))}</p>
                   </button>
                 ))}
               </div>
 
-              <section className="border border-[#e1e5ed] bg-white">
-                <div className="flex items-center justify-between gap-3 border-b border-[#edf0f5] px-5 py-4">
+              <section className="border border-border bg-surface">
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                   <div>
-                    <h2 className="text-sm font-bold text-[#182033]">Akun terbaru</h2>
-                    <p className="mt-1 text-xs text-[#748096]">Lima akun siswa dan guru terakhir dibuat.</p>
+                    <h2 className="text-sm font-bold text-foreground">{t("Akun terbaru")}</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">{t("Lima akun siswa dan guru terakhir dibuat.")}</p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => openTab("SISWA")}>Lihat Akun</Button>
+                  <Button size="sm" variant="outline" onClick={() => openTab("SISWA")}>{t("Lihat Akun")}</Button>
                 </div>
-                <div className="divide-y divide-[#edf0f5]">
+                <div className="divide-y divide-border">
                   {dashboardData.akunTerbaru.length === 0 ? (
-                    <p className="p-5 text-sm text-[#94A3B8]">Belum ada akun.</p>
+                    <p className="p-5 text-sm text-muted-foreground">{t("Belum ada akun.")}</p>
                   ) : (
                     dashboardData.akunTerbaru.map((akun) => (
                       <button key={akun.id} type="button" onClick={() => router.push(`/profil/${akun.id}`)} className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left transition-colors hover:bg-[#6B85F6]/10">
                         <span>
-                          <span className="block text-sm font-semibold text-[#182033]">{akun.nama}</span>
-                          <span className="mt-0.5 block text-xs text-[#748096]">{akun.email}</span>
+                          <span className="block text-sm font-semibold text-foreground">{akun.nama}</span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">{akun.email}</span>
                         </span>
                         <span className="text-right">
-                          <Badge tone={akun.role === "GURU" ? "brand" : "gray"}>{akun.role === "GURU" ? "Guru" : "Siswa"}</Badge>
-                          <span className="mt-1 block text-[11px] text-[#94A3B8]">{new Date(akun.createdAt).toLocaleDateString("id-ID")}</span>
+                          <Badge tone={akun.role === "GURU" ? "brand" : "gray"}>{t(akun.role === "GURU" ? "Guru" : "Siswa")}</Badge>
+                          <span className="mt-1 block text-[11px] text-muted-foreground">{new Date(akun.createdAt).toLocaleDateString(intlLocaleCodes[locale])}</span>
                         </span>
                       </button>
                     ))
@@ -366,76 +397,62 @@ export default function KepsekDashboard() {
           {!loading && activeTab === "PERFORMA" && dashboardData && (
             <div className="space-y-5">
               <PageHeader
-                eyebrow="Analitik LMS"
-                title="Performa Akademik & Data"
-                desc="Pantau nilai, aktivitas pembelajaran, dan pengguna aktif berdasarkan data nyata sistem."
+                eyebrow={t("Analitik LMS")}
+                title={t("Performa Akademik & Data")}
+                desc={t("Pantau nilai, aktivitas pembelajaran, dan pengguna aktif berdasarkan data nyata sistem.")}
               />
 
+              <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5 text-foreground">
+                <h2 className="text-sm font-bold">{t("User aktif per hari")}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">{t("Siswa dan guru yang login atau melakukan aktivitas pembelajaran, dihitung sekali per hari.")}</p>
+                <ActiveUsersAreaChart items={dashboardData.aktivitas.aktivitasHarian} />
+              </section>
+
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {[["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Nilai asesmen dinilai"], ["Asesmen Dinilai", dashboardData.statistik.submissionDinilai, "Submission dengan nilai"], ["Tugas Dibuat", dashboardData.statistik.tugasDibuat, "Total tugas guru"], ["Tugas Dikumpulkan", dashboardData.statistik.tugasDikumpulkan, "Submission siswa"], ["Materi Dibagikan", dashboardData.statistik.materi, "Materi di seluruh kelas"]].map(([label, value, caption], index) => (
-                  <div key={label as string} className={`flex flex-col justify-between gap-8 border bg-white p-4 ${index === 0 ? "border-[#6B85F6]" : "border-[#e1e5ed]"}`}>
-                    <p className="text-xs font-semibold text-[#748096]">{label}</p>
+                {[[t("Rata-rata Nilai"), dashboardData.statistik.rataRataNilai, t("Nilai asesmen dinilai")], [t("Asesmen Dinilai"), dashboardData.statistik.submissionDinilai, t("Submission dengan nilai")], [t("Tugas Dibuat"), dashboardData.statistik.tugasDibuat, t("Total tugas guru")], [t("Tugas Dikumpulkan"), dashboardData.statistik.tugasDikumpulkan, t("Submission siswa")], [t("Materi Dibagikan"), dashboardData.statistik.materi, t("Materi di seluruh kelas")]].map(([label, value, caption], index) => (
+                  <div key={label as string} className={`flex flex-col justify-between gap-8 rounded-[var(--radius-card)] border p-4 ${index === 0 ? "border-accent bg-accent-subtle" : "border-border bg-surface"}`}>
+                    <p className="text-xs font-semibold text-muted-foreground">{t(String(label))}</p>
                     <div>
-                      <p className="text-3xl font-bold tracking-[-.055em] text-[#182033]">{value}</p>
-                      <p className="mt-1 text-xs text-[#6f7b8d]">{caption}</p>
+                      <p className="text-3xl font-bold tracking-[-.055em] text-foreground">{value}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t(String(caption))}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="grid gap-3 lg:grid-cols-2">
-                <section className="border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Kuis dan ujian</h2>
-                  <div className="mt-4 space-y-4">
-                    {(() => {
-                      const max = Math.max(dashboardData.statistik.kuis, dashboardData.statistik.ujian, 1);
-                      return (
-                        <>
-                          <BarRow label="Kuis" value={dashboardData.statistik.kuis} max={max} />
-                          <BarRow label="Ujian online" value={dashboardData.statistik.ujian} max={max} color="#b7c3fb" />
-                        </>
-                      );
-                    })()}
-                  </div>
+                <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Kuis dan ujian")}</h2>
+                  <TwoSlicePieChart first={{ label: t("Kuis"), value: dashboardData.statistik.kuis }} second={{ label: t("Ujian online"), value: dashboardData.statistik.ujian }} />
                 </section>
-                <section className="border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Tugas dibuat vs dikumpulkan</h2>
-                  <div className="mt-4 space-y-4">
-                    {(() => {
-                      const max = Math.max(dashboardData.statistik.tugasDibuat, dashboardData.statistik.tugasDikumpulkan, 1);
-                      return (
-                        <>
-                          <BarRow label="Tugas dibuat" value={dashboardData.statistik.tugasDibuat} max={max} />
-                          <BarRow label="Dikumpulkan siswa" value={dashboardData.statistik.tugasDikumpulkan} max={max} color="#b7c3fb" />
-                        </>
-                      );
-                    })()}
-                  </div>
+                <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Tugas dibuat vs dikumpulkan")}</h2>
+                  <TwoSlicePieChart first={{ label: t("Tugas dibuat"), value: dashboardData.statistik.tugasDibuat }} second={{ label: t("Dikumpulkan siswa"), value: dashboardData.statistik.tugasDikumpulkan }} />
                 </section>
               </div>
 
               <div className="grid gap-3 lg:grid-cols-2">
-                <section className="overflow-hidden border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Tren rata-rata nilai akademik sekolah</h2>
-                  <p className="mt-1 text-xs text-[#748096]">Perubahan rata-rata nilai seluruh siswa berdasarkan periode asesmen.</p>
+                <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Tren rata-rata nilai akademik sekolah")}</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Perubahan rata-rata nilai seluruh siswa berdasarkan periode asesmen.")}</p>
                   <AcademicTrendChart items={dashboardData.akademik.trendNilai} />
                 </section>
-                <section className="overflow-hidden border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Rata-rata nilai per kelas</h2>
-                  <p className="mt-1 text-xs text-[#748096]">Perbandingan capaian akademik rata-rata setiap kelas.</p>
+                <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Rata-rata nilai per kelas")}</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Perbandingan capaian akademik rata-rata setiap kelas.")}</p>
                   <AcademicBarChart items={dashboardData.akademik.rataRataPerKelas} label="kelas" />
                 </section>
               </div>
 
               <div className="grid gap-3 lg:grid-cols-2">
-                <section className="border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Rata-rata nilai per mata pelajaran</h2>
-                  <p className="mt-1 text-xs text-[#748096]">Perbandingan rata-rata nilai untuk setiap mata pelajaran.</p>
+                <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Rata-rata nilai per mata pelajaran")}</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Perbandingan rata-rata nilai untuk setiap mata pelajaran.")}</p>
                   <AcademicBarChart items={dashboardData.akademik.rataRataPerMapel} label="mata pelajaran" />
                 </section>
-                <section className="border border-[#e1e5ed] bg-white p-5">
-                  <h2 className="text-sm font-bold text-[#182033]">Progress aktivitas pembelajaran</h2>
-                  <p className="mt-1 text-xs text-[#748096]">Status penyelesaian asesmen dan tugas di seluruh sekolah.</p>
+                <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h2 className="text-sm font-bold text-foreground">{t("Progress aktivitas pembelajaran")}</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Status penyelesaian asesmen dan tugas di seluruh sekolah.")}</p>
                   <LearningProgressChart items={[
                     ["Asesmen sudah dikerjakan", dashboardData.aktivitasPembelajaran.asesmenSelesai, BRAND],
                     ["Asesmen belum dikerjakan", dashboardData.aktivitasPembelajaran.asesmenBelum, "#b7c3fb"],
@@ -449,9 +466,9 @@ export default function KepsekDashboard() {
 
           {!loading && activeTab === "KELAS" && (
             <div className="space-y-5">
-              <PageHeader eyebrow="Pengelolaan akademik" title="Daftar Kelas" desc="Pantau kelas yang tersedia dan aktivitas belajar di setiap kelas." />
+              <PageHeader eyebrow={t("Pengelolaan akademik")} title={t("Daftar Kelas")} desc={t("Pantau kelas yang tersedia dan aktivitas belajar di setiap kelas.")} />
               {kelasList.length === 0 ? (
-                <p className="text-sm text-[#9CA3AF]">Belum ada kelas dibuat.</p>
+                <p className="text-sm text-muted-foreground">{t("Belum ada kelas dibuat.")}</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {kelasList.map((k) => (
@@ -464,8 +481,8 @@ export default function KepsekDashboard() {
 
           {!loading && activeTab === "AKUN" && (
             <div className="space-y-4">
-              <PageHeader eyebrow="Data akun" title="Daftar Akun" desc="Lihat data siswa dan guru dalam satu tempat (akses lihat saja)." />
-              <div className="inline-flex rounded-lg border border-[#dfe4ef] bg-white p-1" role="group" aria-label="Pilih jenis akun">
+              <PageHeader eyebrow={t("Data akun")} title={t("Daftar Akun")} desc={t("Lihat data siswa dan guru dalam satu tempat (akses lihat saja).")} />
+              <div className="inline-flex rounded-[var(--radius-card)] border border-border bg-surface p-1" role="group" aria-label={t("Pilih jenis akun")}>
                 {(["SISWA", "GURU"] as AccountRole[]).map((role) => (
                   <button
                     key={role}
@@ -477,7 +494,7 @@ export default function KepsekDashboard() {
                       ? { background: BRAND, color: "#ffffff" }
                       : { background: "transparent", color: theme === "dark" ? "#aeb8c9" : "#536076" }}
                   >
-                    {role === "SISWA" ? "Siswa" : "Guru"}
+                    {role === "SISWA" ? t("Siswa") : t("Guru")}
                   </button>
                 ))}
               </div>
@@ -486,57 +503,57 @@ export default function KepsekDashboard() {
 
           {!loading && activeTab === "AKUN" && accountRole === "SISWA" && (
             <div className="space-y-5">
-              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
+              <div className="grid gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)_auto] md:items-end">
                 <label className={FIELD_LABEL_CLASS}>
-                  Jurusan
+                  {t("Jurusan")}
                   <select value={jurusanFilter} onChange={(event) => setJurusanFilter(event.target.value)} className={FIELD_CLASS}>
-                    <option value="">Semua Jurusan</option>
+                    <option value="">{t("Semua Jurusan")}</option>
                     {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
-                  Kelas
+                  {t("Kelas")}
                   <select value={kelasFilter} onChange={(event) => setKelasFilter(event.target.value)} className={FIELD_CLASS}>
-                    <option value="">Semua Kelas</option>
+                    <option value="">{t("Semua Kelas")}</option>
                     {kelasOptions.map((kelas) => <option key={kelas} value={kelas}>{kelas}</option>)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
-                  Search
-                  <input value={siswaSearch} onChange={(event) => setSiswaSearch(event.target.value)} placeholder="Nama, email, atau NIS..." className={FIELD_CLASS} />
+                  {t("Cari")}
+                  <input value={siswaSearch} onChange={(event) => setSiswaSearch(event.target.value)} placeholder={t("Nama, email, atau NIS...")} className={FIELD_CLASS} />
                 </label>
-                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setSiswaSearch(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
+                <button type="button" onClick={() => { setJurusanFilter(""); setKelasFilter(""); setSiswaSearch(""); }} className="cursor-pointer rounded-lg border border-border px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-surface-muted">{t("Reset")}</button>
               </div>
               {filteredSiswaList.length === 0 ? (
-                <p className="text-sm text-[#9CA3AF]">Belum ada siswa terdaftar.</p>
+                <p className="text-sm text-muted-foreground">{t("Belum ada siswa terdaftar.")}</p>
               ) : (
-                <div className="overflow-x-auto border border-[#e1e5ed] bg-white">
+                <div className="overflow-x-auto border border-border bg-surface">
                   <table className="w-full min-w-[750px] text-left text-sm">
-                    <thead className="border-b border-[#e1e5ed] text-xs text-[#748096]">
+                    <thead className="border-b border-border text-xs text-muted-foreground">
                       <tr>
-                        <th className="pb-3 font-semibold">No</th>
-                        <th className="pb-3 font-semibold">Profil</th>
-                        <th className="pb-3 font-semibold">Nama</th>
-                        <th className="pb-3 font-semibold">Email</th>
-                        <th className="pb-3 font-semibold">NIS</th>
-                        <th className="pb-3 font-semibold">Status</th>
-                        <th className="pb-3 font-semibold">Kelas/Rombel</th>
-                        <th className="pb-3 font-semibold">Jurusan</th>
+                        <th className="pb-3 font-semibold">{t("No")}</th>
+                        <th className="pb-3 font-semibold">{t("Profil")}</th>
+                        <th className="pb-3 font-semibold">{t("Nama")}</th>
+                        <th className="pb-3 font-semibold">{t("Email")}</th>
+                        <th className="pb-3 font-semibold">{t("NIS")}</th>
+                        <th className="pb-3 font-semibold">{t("Status")}</th>
+                        <th className="pb-3 font-semibold">{t("Kelas/Rombel")}</th>
+                        <th className="pb-3 font-semibold">{t("Jurusan")}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#edf0f5]">
+                    <tbody className="divide-y divide-border">
                       {filteredSiswaList.map((s, index) => (
                         <tr key={s.id} onClick={() => router.push(`/profil/${s.id}`)} className="cursor-pointer hover:bg-[#6B85F6]/10">
-                          <td className="py-3 text-xs text-[#748096]">{index + 1}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{index + 1}</td>
                           <td className="py-3"><Avatar foto={s.fotoProfil} nama={s.nama} /></td>
                           <td className="py-3 font-semibold text-[#111827]">{s.nama}</td>
-                          <td className="py-3 text-xs text-[#748096]">{s.email}</td>
-                          <td className="py-3 text-xs text-[#748096]">{s.nis ?? "-"}</td>
-                          <td className="py-3"><Badge tone="green">Aktif</Badge></td>
-                          <td className="py-3 text-xs text-[#748096]" title={s.kelasSiswa?.map((item) => item.kelas.judul).join(", ") || "Belum ada kelas"}>
-                            {s.kelasSiswa?.length ?? 0} Kelas
+                          <td className="py-3 text-xs text-muted-foreground">{s.email}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{s.nis ?? "-"}</td>
+                          <td className="py-3"><Badge tone="green">{t("Aktif")}</Badge></td>
+                          <td className="py-3 text-xs text-muted-foreground" title={s.kelasSiswa?.map((item) => item.kelas.judul).join(", ") || t("Belum ada kelas")}>
+                            {s.kelasSiswa?.length ?? 0} {t("Kelas")}
                           </td>
-                          <td className="py-3 text-xs text-[#748096]">{s.kelasReferensi?.label ?? "-"}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{s.kelasReferensi?.label ?? "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -548,46 +565,46 @@ export default function KepsekDashboard() {
 
           {!loading && activeTab === "AKUN" && accountRole === "GURU" && (
             <div className="space-y-5">
-              <div className="grid gap-3 border border-[#e1e5ed] bg-white p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
+              <div className="grid gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 md:grid-cols-[240px_minmax(220px,1fr)_auto] md:items-end">
                 <label className={FIELD_LABEL_CLASS}>
-                  Mapel
+                  {t("Mapel")}
                   <select value={mapelFilter} onChange={(event) => setMapelFilter(event.target.value)} className={FIELD_CLASS}>
-                    <option value="">Semua Mapel</option>
+                    <option value="">{t("Semua Mapel")}</option>
                     {mapelOptions.map((mapel) => <option key={mapel} value={mapel}>{mapel}</option>)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
-                  Search
-                  <input value={guruSearch} onChange={(event) => setGuruSearch(event.target.value)} placeholder="Nama, email, atau NIK..." className={FIELD_CLASS} />
+                  {t("Cari")}
+                  <input value={guruSearch} onChange={(event) => setGuruSearch(event.target.value)} placeholder={t("Nama, email, atau NIK...")} className={FIELD_CLASS} />
                 </label>
-                <button type="button" onClick={() => { setMapelFilter(""); setGuruSearch(""); }} className="cursor-pointer rounded-lg border border-[#dfe4ef] px-3 py-2 text-xs font-semibold text-[#536076] hover:bg-[#f8f9fc]">Reset</button>
+                <button type="button" onClick={() => { setMapelFilter(""); setGuruSearch(""); }} className="cursor-pointer rounded-lg border border-border px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-surface-muted">{t("Reset")}</button>
               </div>
               {filteredGuruList.length === 0 ? (
-                <p className="text-sm text-[#9CA3AF]">Belum ada guru terdaftar.</p>
+                <p className="text-sm text-muted-foreground">{t("Belum ada guru terdaftar.")}</p>
               ) : (
-                <div className="overflow-x-auto border border-[#e1e5ed] bg-white">
+                <div className="overflow-x-auto border border-border bg-surface">
                   <table className="w-full min-w-[680px] text-left text-sm">
-                    <thead className="border-b border-[#e1e5ed] text-xs text-[#748096]">
+                    <thead className="border-b border-border text-xs text-muted-foreground">
                       <tr>
-                        <th className="pb-3 font-semibold">No</th>
-                        <th className="pb-3 font-semibold">Profil</th>
-                        <th className="pb-3 font-semibold">Nama</th>
-                        <th className="pb-3 font-semibold">Email</th>
-                        <th className="pb-3 font-semibold">NIK</th>
-                        <th className="pb-3 font-semibold">Status</th>
-                        <th className="pb-3 font-semibold">Mapel</th>
+                        <th className="pb-3 font-semibold">{t("No")}</th>
+                        <th className="pb-3 font-semibold">{t("Profil")}</th>
+                        <th className="pb-3 font-semibold">{t("Nama")}</th>
+                        <th className="pb-3 font-semibold">{t("Email")}</th>
+                        <th className="pb-3 font-semibold">{t("NIK")}</th>
+                        <th className="pb-3 font-semibold">{t("Status")}</th>
+                        <th className="pb-3 font-semibold">{t("Mapel")}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#edf0f5]">
+                    <tbody className="divide-y divide-border">
                       {filteredGuruList.map((g, index) => (
                         <tr key={g.id} onClick={() => router.push(`/profil/${g.id}`)} className="cursor-pointer hover:bg-[#6B85F6]/10">
-                          <td className="py-3 text-xs text-[#748096]">{index + 1}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{index + 1}</td>
                           <td className="py-3"><Avatar foto={g.fotoProfil} nama={g.nama} /></td>
                           <td className="py-3 font-semibold text-[#111827]">{g.nama}</td>
-                          <td className="py-3 text-xs text-[#748096]">{g.email}</td>
-                          <td className="py-3 text-xs text-[#748096]">{g.nik ?? "-"}</td>
-                          <td className="py-3"><Badge tone="green">Aktif</Badge></td>
-                          <td className="py-3 text-xs text-[#748096]">{Array.from(new Set(g.kelasGuruMapel?.map((item) => item.mapel.nama) ?? [])).join(", ") || "Belum ada mapel"}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{g.email}</td>
+                          <td className="py-3 text-xs text-muted-foreground">{g.nik ?? "-"}</td>
+                          <td className="py-3"><Badge tone="green">{t("Aktif")}</Badge></td>
+                          <td className="py-3 text-xs text-muted-foreground">{Array.from(new Set(g.kelasGuruMapel?.map((item) => item.mapel.nama) ?? [])).join(", ") || t("Belum ada mapel")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -599,32 +616,32 @@ export default function KepsekDashboard() {
 
           {!loading && activeTab === "ASESMEN" && (
             <div className="space-y-4">
-              <PageHeader eyebrow="Monitoring" title="Asesmen Guru" desc="Pilih guru untuk melihat seluruh asesmen yang dibuatnya." />
+              <PageHeader eyebrow={t("Monitoring")} title={t("Asesmen Guru")} desc={t("Pilih guru untuk melihat seluruh asesmen yang dibuatnya.")} />
               {asesmenByGuru.length === 0 ? (
-                <div className="border border-[#e1e5ed] bg-white p-5">
-                  <p className="text-sm text-[#9CA3AF]">Belum ada asesmen yang dibuat guru.</p>
+                <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <p className="text-sm text-muted-foreground">{t("Belum ada asesmen yang dibuat guru.")}</p>
                 </div>
               ) : (
                 asesmenByGuru.map(({ guru, asesmen }) => {
                   const expanded = expandedGuruId === guru.id;
                   return (
-                    <section key={guru.id} className="border border-[#e1e5ed] bg-white">
+                    <section key={guru.id} className="border border-border bg-surface">
                       <button
                         type="button"
                         onClick={() => setExpandedGuruId(expanded ? null : guru.id)}
                         className="flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left hover:bg-[#6B85F6]/10"
                       >
                         <span className="flex min-w-0 items-center gap-3">
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#EEF2FF] text-sm font-bold text-[#6B85F6]">{guru.nama.charAt(0)}</span>
+                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-subtle text-sm font-bold text-[#6B85F6]">{guru.nama.charAt(0)}</span>
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-bold text-[#182033]">{guru.nama}</span>
-                            <span className="block text-xs text-[#64748B]">{asesmen.length} asesmen</span>
+                            <span className="block truncate text-sm font-bold text-foreground">{guru.nama}</span>
+                            <span className="block text-xs text-muted-foreground">{asesmen.length} {t("Asesmen")}</span>
                           </span>
                         </span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" className={`h-5 w-5 flex-shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
                       </button>
                       {expanded && (
-                        <div className="border-t border-[#edf0f5] p-5">
+                        <div className="border-t border-border p-5">
                           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {asesmen.map((item) => <AsesmenCard key={item.id} data={item} basePath="/kepsek/asesmen" />)}
                           </div>
@@ -639,47 +656,47 @@ export default function KepsekDashboard() {
         </main>
       </div>
 
-      <footer className="border-t border-[#e1e5ed] bg-white px-4 py-5 text-center text-xs text-[#8290a3] sm:px-6">© 2026 Classify. Sistem pembelajaran yang lebih terarah.</footer>
+      <footer className="border-t border-border bg-surface px-4 py-5 text-center text-xs text-muted-foreground sm:px-6">      © 2026 Classify. {t("Sistem pembelajaran yang lebih terarah.")}</footer>
 
       <style jsx global>{`
-        .admin-shell main table thead { background: #f8f9fc; }
+        .admin-shell main table thead { background: var(--surface-muted); }
         .admin-shell main table th { padding: 12px 10px; }
         .admin-shell main table td { padding-left: 10px; padding-right: 10px; }
         .admin-shell main input:focus,
         .admin-shell main select:focus { box-shadow: 0 0 0 3px rgba(107, 133, 246, .12); }
 
         [data-admin-theme="dark"] { color-scheme: dark; }
-        .admin-shell[data-admin-theme="dark"] { background: #10141d !important; color: #eef2f8; }
+        .admin-shell[data-admin-theme="dark"] { background: var(--background) !important; color: var(--foreground); }
 
         [data-admin-theme="dark"] header,
-        [data-admin-theme="dark"] .bg-white { background-color: #171d28 !important; }
+        [data-admin-theme="dark"] .bg-white { background-color: var(--surface) !important; }
         [data-admin-theme="dark"] [class~="bg-[#F9FAFB]"],
         [data-admin-theme="dark"] [class~="bg-[#F8FAFC]"],
         [data-admin-theme="dark"] [class~="bg-[#f7f8fd]"],
         [data-admin-theme="dark"] [class~="bg-[#f6f7fb]"],
         [data-admin-theme="dark"] [class~="bg-[#f8f9fc]"],
         [data-admin-theme="dark"] [class~="bg-gray-50"],
-        [data-admin-theme="dark"] [class~="bg-slate-50"] { background-color: #10141d !important; }
+        [data-admin-theme="dark"] [class~="bg-slate-50"] { background-color: var(--background) !important; }
         [data-admin-theme="dark"] [class~="bg-gray-100"],
         [data-admin-theme="dark"] [class~="bg-slate-100"],
-        [data-admin-theme="dark"] [class~="bg-[#EEF2FF]"] { background-color: #1b2230 !important; }
-        [data-admin-theme="dark"] [class~="bg-[#eef1f8]"] { background-color: #232c3d !important; }
-        [data-admin-theme="dark"] [class~="bg-[#E5E7EB]"] { background-color: #2a3343 !important; }
+        [data-admin-theme="dark"] [class~="bg-[#EEF2FF]"] { background-color: var(--surface-muted) !important; }
+        [data-admin-theme="dark"] [class~="bg-[#eef1f8]"] { background-color: var(--surface-muted) !important; }
+        [data-admin-theme="dark"] [class~="bg-[#E5E7EB]"] { background-color: var(--border) !important; }
 
         [data-admin-theme="dark"] header,
-        [data-admin-theme="dark"] .border:not([class~="border-[#6B85F6]"]),
+        [data-admin-theme="dark"] .border:not([class~="border-[#6B85F6]"]):not([class~="border-accent"]):not([class~="border-danger"]),
         [data-admin-theme="dark"] [class~="border-[#e1e5ed]"],
         [data-admin-theme="dark"] [class~="border-[#dfe4ef]"],
         [data-admin-theme="dark"] [class~="border-[#e6e9f0]"],
         [data-admin-theme="dark"] [class~="border-[#edf0f5]"],
         [data-admin-theme="dark"] [class~="border-[#E2E8F0]"],
-        [data-admin-theme="dark"] [class~="border-[#F1F5F9]"] { border-color: #2a3343 !important; }
-        [data-admin-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #2a3343 !important; }
+        [data-admin-theme="dark"] [class~="border-[#F1F5F9]"] { border-color: var(--border) !important; }
+        [data-admin-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: var(--border) !important; }
 
         [data-admin-theme="dark"] :is(
           [class*="text-[#111827]" i], [class*="text-[#182033]" i], [class*="text-[#374151]" i],
           [class~="text-gray-900"], [class~="text-gray-800"], [class~="text-gray-700"]
-        ) { color: #f3f6fb !important; }
+        ) { color: var(--foreground) !important; }
 
         [data-admin-theme="dark"] :is(
           [class*="text-[#64748B]" i], [class*="text-[#6B7280]" i], [class*="text-[#94A3B8]" i],
@@ -688,7 +705,7 @@ export default function KepsekDashboard() {
           [class*="text-[#4f5b70]" i], [class*="text-[#576277]" i], [class*="text-[#8490a3]" i],
           [class*="text-[#8290a3]" i],
           [class~="text-gray-600"], [class~="text-gray-500"], [class~="text-gray-400"]
-        ) { color: #aeb8c9 !important; }
+        ) { color: var(--muted-foreground) !important; }
 
         [data-admin-theme="dark"] [class*="hover:bg-"]:hover:not([class~="hover:bg-red-50"]) { background-color: rgba(107, 133, 246, .14) !important; }
         [data-admin-theme="dark"] [class~="hover:border-[#bdc8f8]"]:hover { border-color: #6B85F6 !important; }
@@ -696,29 +713,30 @@ export default function KepsekDashboard() {
 
         [data-admin-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
         [data-admin-theme="dark"] select,
-        [data-admin-theme="dark"] textarea { background-color: #111722 !important; border-color: #344054 !important; color: #e9eef8 !important; }
-        [data-admin-theme="dark"] input::placeholder { color: #7d889b !important; }
-        [data-admin-theme="dark"] option { background-color: #111722; color: #e9eef8; }
+        [data-admin-theme="dark"] textarea { background-color: var(--surface) !important; border-color: var(--border) !important; color: var(--foreground) !important; }
+        [data-admin-theme="dark"] input::placeholder { color: var(--muted-foreground) !important; }
+        [data-admin-theme="dark"] option { background-color: var(--surface); color: var(--foreground); }
 
-        .admin-shell[data-admin-theme="dark"] main table thead { background-color: #1b2230 !important; }
-        .admin-shell[data-admin-theme="dark"] main table tbody td { color: #aeb8c9; }
+        .admin-shell[data-admin-theme="dark"] main table thead { background-color: var(--surface-muted) !important; }
+        .admin-shell[data-admin-theme="dark"] main table tbody td { color: var(--muted-foreground); }
 
-        [data-admin-theme="dark"] svg line[stroke="#e6e9f0"] { stroke: #2a3343; }
-        [data-admin-theme="dark"] svg circle[fill="#ffffff"] { fill: #171d28; }
-        [data-admin-theme="dark"] svg text[fill="#8490a3"] { fill: #aeb8c9; }
+        [data-admin-theme="dark"] svg line[stroke="#e6e9f0"] { stroke: var(--border); }
+        [data-admin-theme="dark"] svg circle[fill="#ffffff"] { fill: var(--surface); }
+        [data-admin-theme="dark"] svg text[fill="#8490a3"] { fill: var(--muted-foreground); }
 
-        [data-admin-theme="dark"] footer { background: #121824 !important; border-color: #2a3343 !important; }
+        [data-admin-theme="dark"] footer { background: var(--surface) !important; border-color: var(--border) !important; }
       `}</style>
     </div>
   );
 }
 
 function PageHeader({ eyebrow, title, desc }: { eyebrow: string; title: string; desc: string }) {
+  const { t } = useLanguage();
   return (
     <div className="border-b border-[#e1e5ed] pb-5">
-      <p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">{eyebrow}</p>
-      <h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">{title}</h1>
-      <p className="mt-1 text-sm text-[#6e798b]">{desc}</p>
+      <p className="text-xs font-bold uppercase tracking-[.14em] text-[#6B85F6]">{t(eyebrow)}</p>
+      <h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#182033]">{t(title)}</h1>
+      <p className="mt-1 text-sm text-[#6e798b]">{t(desc)}</p>
     </div>
   );
 }
@@ -737,10 +755,11 @@ function Avatar({ foto, nama }: { foto: string | null | undefined; nama: string 
 }
 
 function BarRow({ label, value, max, color = BRAND }: { label: string; value: number; max: number; color?: string }) {
+  const { t } = useLanguage();
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
-        <span className="truncate font-semibold text-[#435064]">{label}</span>
+        <span className="truncate font-semibold text-[#435064]">{t(label)}</span>
         <span className="font-bold text-[#182033]">{value}</span>
       </div>
       <div className="h-2 bg-[#eef1f8]">
@@ -754,8 +773,9 @@ type AcademicTrend = AdminDashboardData["akademik"]["trendNilai"][number];
 type AcademicAverage = AdminDashboardData["akademik"]["rataRataPerKelas"][number];
 
 function AcademicTrendChart({ items }: { items: AcademicTrend[] }) {
+  const { t } = useLanguage();
   if (items.length === 0) {
-    return <p className="mt-5 text-sm text-[#748096]">Data tren nilai belum tersedia.</p>;
+    return <p className="mt-5 text-sm text-[#748096]">{t("Data tren nilai belum tersedia.")}</p>;
   }
 
   const width = 640;
@@ -774,7 +794,7 @@ function AcademicTrendChart({ items }: { items: AcademicTrend[] }) {
 
   return (
     <div className="mt-4 overflow-x-auto">
-      <svg viewBox={`0 0 ${width} ${height}`} className="block min-w-[560px]" role="img" aria-label="Tren rata-rata nilai akademik sekolah">
+      <svg viewBox={`0 0 ${width} ${height}`} className="block min-w-[560px]" role="img" aria-label={t("Tren rata-rata nilai akademik sekolah")}>
         {gridValues.map((value) => (
           <g key={value}>
             <line x1={left} x2={width - right} y1={yFor(value)} y2={yFor(value)} stroke="#e6e9f0" />
@@ -796,8 +816,9 @@ function AcademicTrendChart({ items }: { items: AcademicTrend[] }) {
 }
 
 function AcademicBarChart({ items, label }: { items: AcademicAverage[]; label: string }) {
+  const { t } = useLanguage();
   if (items.length === 0) {
-    return <p className="mt-5 text-sm text-[#748096]">Data nilai per {label} belum tersedia.</p>;
+    return <p className="mt-5 text-sm text-[#748096]">{t("Data nilai per")} {t(label)} {t("belum tersedia.")}</p>;
   }
 
   return (

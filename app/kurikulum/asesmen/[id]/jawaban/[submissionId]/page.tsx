@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import KurikulumShell from "@/components/KurikulumShell";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 const BRAND = "#6B85F6";
 
@@ -59,9 +60,9 @@ const STATUS_BADGE: Record<StatusSoal, { label: string; tone: "green" | "red" | 
   SUDAH_DINILAI: { label: "Sudah Dinilai", tone: "green" },
 };
 
-function formatTanggal(value: string | null) {
+function formatTanggal(value: string | null, locale: string) {
   if (!value) return "-";
-  return new Date(value).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(value).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function statusTone(status: StatusSoal): string {
@@ -73,20 +74,21 @@ function statusTone(status: StatusSoal): string {
 
 // Tampilan satu soal read-only untuk monitoring Kurikulum.
 function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number; onOpenGrid: () => void }) {
+  const { t } = useLanguage();
   return (
     <div>
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge tone="gray">
-            {soal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : soal.tipe === "CHECKBOX" ? "Checkbox" : "Essay"}
+            {t(soal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : soal.tipe === "CHECKBOX" ? "Checkbox" : "Essay")}
           </Badge>
-          <Badge tone={STATUS_BADGE[soal.status].tone}>{STATUS_BADGE[soal.status].label}</Badge>
+          <Badge tone={STATUS_BADGE[soal.status].tone}>{t(STATUS_BADGE[soal.status].label)}</Badge>
         </div>
         <button
           onClick={onOpenGrid}
-          title="Buka daftar soal"
-          aria-label="Buka daftar soal"
-          className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
+          title={t("Buka daftar soal")}
+          aria-label={t("Buka daftar soal")}
+          className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-[#6B85F6]/10"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -97,13 +99,13 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
         </button>
       </div>
 
-      <p className="mt-5 text-base font-semibold leading-relaxed text-[#182033]">
+      <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
         {nomor}. {soal.pertanyaan}
       </p>
 
       {soal.gambar && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={soal.gambar} alt="Gambar soal" className="mt-3 max-h-64 rounded-xl object-contain" />
+        <img src={soal.gambar} alt={t("Gambar soal")} className="mt-3 max-h-64 rounded-xl object-contain" />
       )}
 
       {soal.tipe !== "ESSAY" ? (
@@ -118,7 +120,7 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
             return (
               <div
                 key={o.id}
-                className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${colorStyle ? "" : "border-[#dfe4ef]"}`}
+                className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${colorStyle ? "" : "border-border"}`}
                 style={colorStyle}
               >
                 <div className="flex items-center gap-3">
@@ -126,8 +128,8 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
                   <span className="text-[#374151]">{o.teks}</span>
                 </div>
                 <div className="flex gap-1.5">
-                  {dipilihSiswa && <Badge tone="brand">Dipilih Siswa</Badge>}
-                  {o.isBenar && <Badge tone="green">Kunci Jawaban</Badge>}
+                  {dipilihSiswa && <Badge tone="brand">{t("Dipilih Siswa")}</Badge>}
+                  {o.isBenar && <Badge tone="green">{t("Kunci Jawaban")}</Badge>}
                 </div>
               </div>
             );
@@ -135,17 +137,17 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
         </div>
       ) : (
         <div className="mt-4 space-y-3">
-          <div className="rounded-lg border border-[#dfe4ef] bg-[#F8FAFC] p-4 text-sm text-[#374151]">
-            {soal.jawabanSiswa?.jawabanEssay || <span className="text-[#9CA3AF]">Siswa belum menjawab.</span>}
+          <div className="rounded-lg rounded-[var(--radius-card)] border border-border bg-surface-muted p-4 text-sm text-[#374151]">
+            {soal.jawabanSiswa?.jawabanEssay || <span className="text-muted-foreground">{t("Siswa belum menjawab.")}</span>}
           </div>
 
           {soal.jawabanSiswa && (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#64748B]">Nilai Essay (0-100)</span>
+              <span className="text-xs font-semibold text-muted-foreground">{t("Nilai Essay (0-100)")}</span>
               {soal.jawabanSiswa.nilaiSoal !== null ? (
                 <Badge tone="green">{soal.jawabanSiswa.nilaiSoal}</Badge>
               ) : (
-                <Badge tone="amber">Belum dinilai guru</Badge>
+                <Badge tone="amber">{t("Belum dinilai guru")}</Badge>
               )}
             </div>
           )}
@@ -156,6 +158,7 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
 }
 
 export default function KurikulumDetailJawabanSiswaPage() {
+  const { t, locale } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const asesmenId = params.id as string;
@@ -179,7 +182,7 @@ export default function KurikulumDetailJawabanSiswaPage() {
       ]);
       const detailData = await detailRes.json();
       if (!detailRes.ok) {
-        setError(detailData.error ?? "Gagal memuat jawaban siswa.");
+        setError(t(detailData.error ?? "Gagal memuat jawaban siswa."));
         return;
       }
       setDetail(detailData.data);
@@ -190,7 +193,7 @@ export default function KurikulumDetailJawabanSiswaPage() {
         setUrutanSiswa((nilaiData.data?.nilai ?? []).map((r: { submissionId: string }) => r.submissionId));
       }
     } catch {
-      setError("Terjadi kesalahan saat memuat jawaban siswa.");
+      setError(t("Terjadi kesalahan saat memuat jawaban siswa."));
     } finally {
       setLoading(false);
     }
@@ -215,7 +218,7 @@ export default function KurikulumDetailJawabanSiswaPage() {
   if (loading) {
     return (
       <KurikulumShell activeTab="ASESMEN">
-        <p className="text-sm text-[#9CA3AF]">Memuat jawaban siswa...</p>
+        <p className="text-sm text-muted-foreground">{t("Memuat jawaban siswa...")}</p>
       </KurikulumShell>
     );
   }
@@ -223,9 +226,9 @@ export default function KurikulumDetailJawabanSiswaPage() {
     return (
       <KurikulumShell activeTab="ASESMEN">
         <div className="flex flex-col items-center gap-3 py-10">
-          <p className="text-sm text-red-500">{error || "Jawaban siswa tidak ditemukan."}</p>
+          <p className="text-sm text-red-500">{t(error || "Jawaban siswa tidak ditemukan.")}</p>
           <Button variant="outline" onClick={() => router.push(`/kurikulum/asesmen/${asesmenId}/jawaban`)}>
-            Kembali
+            {t("Kembali")}
           </Button>
         </div>
       </KurikulumShell>
@@ -239,17 +242,17 @@ export default function KurikulumDetailJawabanSiswaPage() {
       <div className="mx-auto max-w-6xl pb-10">
         <Link
           href={`/kurikulum/asesmen/${asesmenId}/jawaban`}
-          className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[#64748B] hover:text-[#6B85F6]"
+          className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-[#6B85F6]"
         >
-          &larr; Kembali ke Daftar Jawaban
+          &larr; {t("Kembali ke Daftar Jawaban")}
         </Link>
 
-        <div className="flex flex-wrap items-start justify-between gap-5 border border-[#e1e5ed] border-t-4 border-t-[#6B85F6] bg-white p-6">
+        <div className="flex flex-wrap items-start justify-between gap-5 border border-border border-t-4 border-t-[#6B85F6] bg-surface p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">Jawaban Siswa</p>
-            <h1 className="mt-1 text-2xl font-bold text-[#182033]">{detail.siswa.nama}</h1>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Jawaban Siswa")}</p>
+            <h1 className="mt-1 text-2xl font-bold text-foreground">{detail.siswa.nama}</h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge tone="gray">NIS {detail.siswa.nis}</Badge>
+              <Badge tone="gray">{t("NIS")} {detail.siswa.nis}</Badge>
               <Badge tone="gray">{detail.siswa.kelasJurusan}</Badge>
               <Badge tone="gray">{detail.kelas}</Badge>
               {detail.asesmen.mapel && <Badge tone="brand">{detail.asesmen.mapel}</Badge>}
@@ -258,46 +261,46 @@ export default function KurikulumDetailJawabanSiswaPage() {
           </div>
         </div>
 
-        <div className="mt-4 border border-[#e1e5ed] bg-white">
+        <div className="mt-4 border border-border bg-surface">
           <div className="grid lg:grid-cols-[1fr_220px]">
             <div className="overflow-x-auto p-4 sm:p-5">
               <table className="w-full min-w-[420px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-[#dfe4ef] text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-                    <th className="whitespace-nowrap pb-3">Ringkasan</th>
-                    <th className="whitespace-nowrap pb-3 text-right">Hasil</th>
+                  <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <th className="whitespace-nowrap pb-3">{t("Ringkasan")}</th>
+                    <th className="whitespace-nowrap pb-3 text-right">{t("Hasil")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#edf0f5]">
+                <tbody className="divide-y divide-border">
                   <tr>
-                    <td className="whitespace-nowrap py-3 text-[#64748B]">Mulai</td>
-                    <td className="whitespace-nowrap py-3 text-right font-semibold text-[#182033]">{formatTanggal(detail.mulaiPada)}</td>
+                    <td className="whitespace-nowrap py-3 text-muted-foreground">{t("Mulai")}</td>
+                    <td className="whitespace-nowrap py-3 text-right font-semibold text-foreground">{formatTanggal(detail.mulaiPada, intlLocaleCodes[locale])}</td>
                   </tr>
                   <tr>
-                    <td className="whitespace-nowrap py-3 text-[#64748B]">Dikumpulkan</td>
-                    <td className="whitespace-nowrap py-3 text-right font-semibold text-[#182033]">{formatTanggal(detail.submittedAt)}</td>
+                    <td className="whitespace-nowrap py-3 text-muted-foreground">{t("Dikumpulkan")}</td>
+                    <td className="whitespace-nowrap py-3 text-right font-semibold text-foreground">{formatTanggal(detail.submittedAt, intlLocaleCodes[locale])}</td>
                   </tr>
                   <tr>
-                    <td className="whitespace-nowrap py-3 text-[#64748B]">Pilihan Ganda Dikerjakan</td>
-                    <td className="whitespace-nowrap py-3 text-right font-bold text-[#182033]">{rekap.totalObjektifDijawab}/{rekap.totalObjektif}</td>
+                    <td className="whitespace-nowrap py-3 text-muted-foreground">{t("Pilihan Ganda Dikerjakan")}</td>
+                    <td className="whitespace-nowrap py-3 text-right font-bold text-foreground">{rekap.totalObjektifDijawab}/{rekap.totalObjektif}</td>
                   </tr>
                   <tr>
-                    <td className="whitespace-nowrap py-3 text-[#64748B]">Essay Dikerjakan</td>
-                    <td className="whitespace-nowrap py-3 text-right font-bold text-[#182033]">{rekap.totalEssayDijawab}/{rekap.totalEssay}</td>
+                    <td className="whitespace-nowrap py-3 text-muted-foreground">{t("Essay Dikerjakan")}</td>
+                    <td className="whitespace-nowrap py-3 text-right font-bold text-foreground">{rekap.totalEssayDijawab}/{rekap.totalEssay}</td>
                   </tr>
                   <tr>
-                    <td className="whitespace-nowrap py-3 text-[#64748B]">Jumlah Ragu-ragu</td>
-                    <td className="whitespace-nowrap py-3 text-right font-bold text-[#182033]">{rekap.totalRaguRagu}</td>
+                    <td className="whitespace-nowrap py-3 text-muted-foreground">{t("Jumlah Ragu-ragu")}</td>
+                    <td className="whitespace-nowrap py-3 text-right font-bold text-foreground">{rekap.totalRaguRagu}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div className="order-first flex items-center justify-center border-b border-[#dfe4ef] bg-[#F8FAFC] p-5 text-center lg:order-last lg:border-b-0 lg:border-l">
+            <div className="order-first flex items-center justify-center border-b border-border bg-surface-muted p-5 text-center lg:order-last lg:border-b-0 lg:border-l">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Nilai Objektif</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Nilai Objektif")}</p>
                 <p className="mt-1 text-3xl font-bold text-green-600">{rekap.nilaiObjektif}</p>
-                <div className="my-4 border-t border-[#e1e5ed]" />
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Nilai Akhir</p>
+                <div className="my-4 border-t border-border" />
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Nilai Akhir")}</p>
                 <p className="mt-1 text-3xl font-bold" style={{ color: BRAND }}>
                   {detail.nilaiAkhir ?? "-"}
                 </p>
@@ -308,10 +311,10 @@ export default function KurikulumDetailJawabanSiswaPage() {
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" disabled={!prevSiswaId} onClick={() => prevSiswaId && router.push(`/kurikulum/asesmen/${asesmenId}/jawaban/${prevSiswaId}`)}>
-            &larr; Siswa Sebelumnya
+            &larr; {t("Siswa Sebelumnya")}
           </Button>
           <Button size="sm" variant="outline" disabled={!nextSiswaId} onClick={() => nextSiswaId && router.push(`/kurikulum/asesmen/${asesmenId}/jawaban/${nextSiswaId}`)}>
-            Siswa Berikutnya &rarr;
+            {t("Siswa Berikutnya")} &rarr;
           </Button>
         </div>
 
@@ -319,10 +322,10 @@ export default function KurikulumDetailJawabanSiswaPage() {
         {detail.soal.length > 0 && (
           <div className="mt-3 flex items-center gap-2">
             <button
-              aria-label="Soal sebelumnya"
+              aria-label={t("Soal sebelumnya")}
               onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
               disabled={activeIndex === 0}
-              className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
             >
               {"<<"}
             </button>
@@ -350,47 +353,47 @@ export default function KurikulumDetailJawabanSiswaPage() {
             </div>
 
             <button
-              aria-label="Soal berikutnya"
+              aria-label={t("Soal berikutnya")}
               onClick={() => setActiveIndex((i) => Math.min(detail.soal.length - 1, i + 1))}
               disabled={activeIndex >= detail.soal.length - 1}
-              className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
             >
               {">>"}
             </button>
           </div>
         )}
 
-        <div className="mt-4 min-h-[300px] border border-[#e1e5ed] bg-white p-6 sm:p-8">
+        <div className="mt-4 min-h-[300px] rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
           {detail.soal.length === 0 ? (
-            <p className="text-sm text-[#9CA3AF]">Siswa ini belum menjawab soal apapun.</p>
+            <p className="text-sm text-muted-foreground">{t("Siswa ini belum menjawab soal apapun.")}</p>
           ) : currentSoal ? (
             <SoalView soal={currentSoal} nomor={activeIndex + 1} onOpenGrid={() => setShowGrid(true)} />
           ) : null}
         </div>
 
         {/* Overlay Daftar Soal: terpusat, ringkasan dari rekap */}
-        <Modal open={showGrid} onClose={() => setShowGrid(false)} title="Daftar Soal" maxWidth="max-w-lg">
+        <Modal open={showGrid} onClose={() => setShowGrid(false)} title={t("Daftar Soal")} maxWidth="max-w-lg">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="border border-[#e1e5ed] bg-white p-3 text-center">
-              <p className="text-xs font-semibold text-[#16A34A]">Benar</p>
+            <div className="rounded-[var(--radius-card)] border border-border bg-surface p-3 text-center">
+              <p className="text-xs font-semibold text-[#16A34A]">{t("Benar")}</p>
               <p className="mt-1 text-lg font-bold text-[#16A34A]">{rekap.totalBenar}</p>
             </div>
-            <div className="border border-[#e1e5ed] bg-white p-3 text-center">
-              <p className="text-xs font-semibold text-[#DC2626]">Salah</p>
+            <div className="rounded-[var(--radius-card)] border border-border bg-surface p-3 text-center">
+              <p className="text-xs font-semibold text-[#DC2626]">{t("Salah")}</p>
               <p className="mt-1 text-lg font-bold text-[#DC2626]">{rekap.totalSalah}</p>
             </div>
-            <div className="border border-[#e1e5ed] bg-white p-3 text-center">
-              <p className="text-xs font-semibold text-[#D97706]">Ragu-ragu</p>
+            <div className="rounded-[var(--radius-card)] border border-border bg-surface p-3 text-center">
+              <p className="text-xs font-semibold text-[#D97706]">{t("Ragu-ragu")}</p>
               <p className="mt-1 text-lg font-bold text-[#D97706]">{rekap.totalRaguRagu}</p>
             </div>
-            <div className="border border-[#e1e5ed] bg-white p-3 text-center">
-              <p className="text-xs font-semibold text-[#435064]">Belum Dinilai</p>
-              <p className="mt-1 text-lg font-bold text-[#435064]">{rekap.totalEssayBelumDinilai}</p>
+            <div className="rounded-[var(--radius-card)] border border-border bg-surface p-3 text-center">
+              <p className="text-xs font-semibold text-muted-foreground">{t("Belum Dinilai")}</p>
+              <p className="mt-1 text-lg font-bold text-muted-foreground">{rekap.totalEssayBelumDinilai}</p>
             </div>
           </div>
 
           {detail.soal.length === 0 ? (
-            <p className="mt-4 text-xs text-[#94A3B8]">Belum ada soal.</p>
+            <p className="mt-4 text-xs text-muted-foreground">{t("Belum ada soal.")}</p>
           ) : (
             <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6">
               {detail.soal.map((s, i) => {

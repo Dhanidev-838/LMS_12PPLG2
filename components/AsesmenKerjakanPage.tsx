@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { showConfirm } from "@/lib/dialog";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import { useLanguage } from "@/lib/i18n";
 
 interface OpsiSoal {
   id: string;
@@ -54,6 +55,7 @@ export function AsesmenKerjakanPage({
   const router = useRouter();
   const params = useParams();
   const asesmenId = params.id as string;
+  const { t } = useLanguage();
 
   const [asesmen, setAsesmen] = useState<AsesmenDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,7 @@ export function AsesmenKerjakanPage({
       const res = await fetch(`/api/asesmen/${asesmenId}`);
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Gagal memuat asesmen.");
+        setError(t(data.error ?? "Gagal memuat asesmen."));
         setLoading(false);
         return;
       }
@@ -109,7 +111,7 @@ export function AsesmenKerjakanPage({
         setSisaDetik(Math.max(0, Math.floor((deadline - Date.now()) / 1000)));
       }
     } catch {
-      setError("Terjadi kesalahan.");
+      setError(t("Terjadi kesalahan."));
     } finally {
       setLoading(false);
     }
@@ -236,7 +238,7 @@ export function AsesmenKerjakanPage({
   async function handleSelesai(otomatis: boolean) {
     if (sudahSelesai) return;
     if (!otomatis) {
-      if (!(await showConfirm("Selesaikan asesmen sekarang? Jawaban yang sudah tersimpan tidak bisa diubah lagi."))) return;
+      if (!(await showConfirm(t("Selesaikan asesmen sekarang? Jawaban yang sudah tersimpan tidak bisa diubah lagi.")))) return;
     }
     setSelesaiLoading(true);
     try {
@@ -269,13 +271,13 @@ export function AsesmenKerjakanPage({
     return { background: "#F3F4F6", color: "#374151" };
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
+  if (loading) return <p className="text-sm text-[#9CA3AF]">{t("Memuat...")}</p>;
   if (error || !asesmen) {
     return (
       <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-sm text-[#9CA3AF]">{error || "Asesmen tidak ditemukan."}</p>
+        <p className="text-sm text-[#9CA3AF]">{t(error || "Asesmen tidak ditemukan.")}</p>
         <Button variant="outline" onClick={() => router.push(`${dashboardPath}/asesmen`)}>
-          Kembali
+          {t("Kembali")}
         </Button>
       </div>
     );
@@ -284,10 +286,10 @@ export function AsesmenKerjakanPage({
   if (sudahSelesai) {
     return (
       <div className="flex flex-col items-center gap-3 border border-[#e1e5ed] bg-white p-10 text-center">
-        <Badge tone="green">Sudah Dikumpulkan</Badge>
+        <Badge tone="green">{t("Sudah Dikumpulkan")}</Badge>
         <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
-        <p className="text-sm text-[#64748B]">Jawabanmu sudah tersimpan. Nilai akan diumumkan oleh guru.</p>
-        <Button onClick={() => router.push(`${dashboardPath}/asesmen`)}>Kembali ke Asesmen</Button>
+        <p className="text-sm text-[#64748B]">{t("Jawabanmu sudah tersimpan. Nilai akan diumumkan oleh guru.")}</p>
+        <Button onClick={() => router.push(`${dashboardPath}/asesmen`)}>{t("Kembali ke Asesmen")}</Button>
       </div>
     );
   }
@@ -298,15 +300,15 @@ export function AsesmenKerjakanPage({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
-            <Badge tone="amber">Sedang Mengerjakan {isKuis ? "Kuis" : "Ujian Online"}</Badge>
+            <Badge tone="amber">{t("Sedang Mengerjakan")} {t(isKuis ? "Kuis" : "Ujian Online")}</Badge>
           </div>
-          <p className="mt-0.5 text-sm text-[#64748B]">Mapel - {asesmen.mapel?.nama ?? "-"}</p>
+          <p className="mt-0.5 text-sm text-[#64748B]">{t("Mapel")} - {asesmen.mapel?.nama ?? "-"}</p>
         </div>
         {asesmen.durasiMenit && (
           <div className={`rounded-xl border px-4 py-2 text-right ${sisaDetik <= 300 ? "border-red-300 bg-red-50" : "border-[#e1e5ed] bg-[#f7f8fd]"}`}>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Sisa Waktu</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">{t("Sisa Waktu")}</p>
             <p className={`text-lg font-bold ${sisaDetik <= 300 ? "text-red-600" : "text-[#182033]"}`}>{formatTimer(sisaDetik)}</p>
-            {sisaDetik <= 300 && <p className="text-[10px] font-semibold text-red-500">Waktu hampir habis!</p>}
+            {sisaDetik <= 300 && <p className="text-[10px] font-semibold text-red-500">{t("Waktu hampir habis!")}</p>}
           </div>
         )}
       </div>
@@ -319,7 +321,7 @@ export function AsesmenKerjakanPage({
             setSearch(e.target.value);
             setActiveIndex(0);
           }}
-          placeholder="Cari soal..."
+          placeholder={t("Cari soal...")}
           className="w-full rounded-lg border border-[#dfe4ef] px-3 py-1.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
         />
       </div>
@@ -328,7 +330,7 @@ export function AsesmenKerjakanPage({
       {soalTerfilter.length > 0 && (
         <div className="mt-3 flex items-center gap-2">
           <button
-            aria-label="Soal sebelumnya"
+            aria-label={t("Soal sebelumnya")}
             onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
             disabled={activeIndex === 0}
             className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
@@ -352,7 +354,7 @@ export function AsesmenKerjakanPage({
           </div>
 
           <button
-            aria-label="Soal berikutnya"
+            aria-label={t("Soal berikutnya")}
             onClick={() => setActiveIndex((i) => Math.min(soalTerfilter.length - 1, i + 1))}
             disabled={activeIndex >= soalTerfilter.length - 1}
             className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
@@ -367,12 +369,12 @@ export function AsesmenKerjakanPage({
         {soalTerfilter.length > 0 && (
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-semibold text-[#435064]">
-              {soalTerfilter.length === 0 ? "0/0" : `Soal ${activeIndex + 1}/${soalTerfilter.length}`}
+              {soalTerfilter.length === 0 ? "0/0" : t("Soal {current}/{total}").replace("{current}", String(activeIndex + 1)).replace("{total}", String(soalTerfilter.length))}
             </span>
             <button
               onClick={() => setShowGrid(true)}
-              title="Buka daftar soal"
-              aria-label="Buka daftar soal"
+              title={t("Buka daftar soal")}
+              aria-label={t("Buka daftar soal")}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -386,12 +388,12 @@ export function AsesmenKerjakanPage({
         )}
 
         {!currentSoal ? (
-          <p className="text-sm text-[#9CA3AF]">Belum ada soal.</p>
+          <p className="text-sm text-[#9CA3AF]">{t("Belum ada soal.")}</p>
         ) : (
           <div>
             <div className="flex items-start justify-between gap-2">
               <Badge tone="gray">
-                {currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay"}
+                {t(currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay")}
               </Badge>
               {!isKuis && (
                 <button
@@ -400,7 +402,7 @@ export function AsesmenKerjakanPage({
                     jawabanSaatIni?.raguRagu ? "border-[#FDE68A] bg-[#FEF3C7] text-[#92400E]" : "border-[#dfe4ef] text-[#435064]"
                   }`}
                 >
-                  Ragu-ragu
+                  {t("Ragu-ragu")}
                 </button>
               )}
             </div>
@@ -411,7 +413,7 @@ export function AsesmenKerjakanPage({
 
             {currentSoal.gambar && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentSoal.gambar} alt="Gambar soal" className="mt-3 max-h-64 rounded-xl object-contain" />
+              <img src={currentSoal.gambar} alt={t("Gambar soal")} className="mt-3 max-h-64 rounded-xl object-contain" />
             )}
 
             {currentSoal.tipe === "ESSAY" ? (
@@ -420,7 +422,7 @@ export function AsesmenKerjakanPage({
                 onChange={(e) => handleEssayChange(currentSoal.id, e.target.value)}
                 onBlur={() => !isKuis && simpanJawaban(currentSoal.id, { jawabanEssay: jawabanMap[currentSoal.id]?.jawabanEssay ?? "" })}
                 rows={5}
-                placeholder="Tulis jawabanmu di sini..."
+                placeholder={t("Tulis jawabanmu di sini...")}
                 className="mt-4 w-full rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
               />
             ) : (
@@ -448,7 +450,7 @@ export function AsesmenKerjakanPage({
             {/* tombol Lanjut eksplisit -- cuma di Kuis, cuma buat Checkbox & Essay (PG udah auto-lanjut) */}
             {isKuis && currentSoal.tipe !== "PILIHAN_GANDA" && (
               <div className="mt-4 flex justify-end">
-                <Button onClick={handleLanjutManual}>Lanjut</Button>
+                <Button onClick={handleLanjutManual}>{t("Lanjut")}</Button>
               </div>
             )}
           </div>
@@ -458,27 +460,27 @@ export function AsesmenKerjakanPage({
       {!isKuis && (
         <div className="mt-4 flex justify-end">
           <Button loading={selesaiLoading} onClick={() => handleSelesai(false)}>
-            Selesai Ujian
+            {t("Selesai Ujian")}
           </Button>
         </div>
       )}
 
       {isKuis && (
         <p className="mt-3 text-center text-xs text-[#9CA3AF]">
-          Jawab soal untuk otomatis lanjut ke soal berikutnya. Kamu tidak bisa kembali ke soal sebelumnya.
+          {t("Jawab soal untuk otomatis lanjut ke soal berikutnya. Kamu tidak bisa kembali ke soal sebelumnya.")}
         </p>
       )}
 
       {/* Overlay daftar soal — terpusat, seperti di RuangGuru */}
-      <Modal open={showGrid} onClose={() => setShowGrid(false)} title={`Soal yang terisi : ${dijawabCount}/${soalTerfilter.length}`} maxWidth="max-w-lg">
+      <Modal open={showGrid} onClose={() => setShowGrid(false)} title={t("Soal yang terisi: {answered}/{total}").replace("{answered}", String(dijawabCount)).replace("{total}", String(soalTerfilter.length))} maxWidth="max-w-lg">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-[#EEF2FF] p-3 text-center">
-            <p className="text-xs font-semibold text-[#4338CA]">Terjawab</p>
-            <p className="mt-1 text-lg font-bold text-[#4338CA]">{dijawabCount}/{soalTerfilter.length}</p>
+          <div className="rounded-lg border border-border bg-accent-subtle p-3 text-center">
+            <p className="text-xs font-semibold text-accent-text">{t("Terjawab")}</p>
+            <p className="mt-1 text-lg font-bold text-accent-text">{dijawabCount}/{soalTerfilter.length}</p>
           </div>
-          <div className="rounded-lg bg-[#FEF3C7] p-3 text-center">
-            <p className="text-xs font-semibold text-[#92400E]">Ragu-ragu</p>
-            <p className="mt-1 text-lg font-bold text-[#92400E]">{raguCount}</p>
+          <div className="rounded-lg border border-border bg-warning-subtle p-3 text-center">
+            <p className="text-xs font-semibold text-warning">{t("Ragu-ragu")}</p>
+            <p className="mt-1 text-lg font-bold text-warning">{raguCount}</p>
           </div>
         </div>
 
@@ -503,24 +505,28 @@ export function AsesmenKerjakanPage({
         open={!!pelanggaranModal}
         onClose={() => {}}
         dismissible={false}
-        title="Peringatan Asesmen"
+        title={t("Peringatan Asesmen")}
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
           <p className="text-sm leading-6 text-[#374151]">
-            Kamu keluar dari tab atau halaman asesmen. Klik <strong>Lanjut Asesmen</strong> untuk kembali mengerjakan.
+            {t("Kamu keluar dari tab atau halaman asesmen. Klik Lanjut Asesmen untuk kembali mengerjakan.")}
           </p>
           {pelanggaranModal && pelanggaranModal.jumlahDireset > 0 ? (
             <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              Pelanggaran ke-{pelanggaranModal.violationCount}: {pelanggaranModal.jumlahDireset} jawaban pilihan ganda/checkbox direset. Jawaban essay tetap aman.
+              {t("Pelanggaran ke-{count}: {reset} jawaban pilihan ganda/checkbox direset. Jawaban essay tetap aman.")
+                .replace("{count}", String(pelanggaranModal.violationCount))
+                .replace("{reset}", String(pelanggaranModal.jumlahDireset))}
             </p>
           ) : pelanggaranModal && (
             <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-              Pelanggaran ke-{pelanggaranModal.violationCount} tercatat. Reset berikutnya terjadi pada pelanggaran ke-{pelanggaranModal.violationCount + (3 - (pelanggaranModal.violationCount % 3 || 3))}. Jawaban essay tetap aman.
+              {t("Pelanggaran ke-{count} tercatat. Reset berikutnya terjadi pada pelanggaran ke-{next}. Jawaban essay tetap aman.")
+                .replace("{count}", String(pelanggaranModal.violationCount))
+                .replace("{next}", String(pelanggaranModal.violationCount + (3 - (pelanggaranModal.violationCount % 3 || 3))))}
             </p>
           )}
           <Button className="w-full" onClick={() => setPelanggaranModal(null)}>
-            Lanjut Asesmen
+            {t("Lanjut Asesmen")}
           </Button>
         </div>
       </Modal>

@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         guru: { select: { id: true, nama: true } },
+        mapel: { select: { id: true, nama: true } },
         kelasTujuan: {
           where: filterKelas,
           include: { kelas: { select: { id: true, judul: true } } },
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     requireRole(session, ["GURU", "SUPER_ADMIN"]);
 
     const body = await req.json();
-    const { judul, tipe, url, deskripsi, kelasIds } = body;
+    const { judul, tipe, url, deskripsi, kelasIds, mapelId } = body;
 
     if (!judul || !tipe || !url || !Array.isArray(kelasIds) || kelasIds.length === 0) {
       return NextResponse.json(
@@ -78,6 +79,9 @@ export async function POST(req: NextRequest) {
       if (!["PDF", "FILE", "IMAGE", "LINK"].includes(tipe)) {
       return NextResponse.json({ error: "Tipe materi tidak valid." }, { status: 400 });
     }
+    if (mapelId && !(await db.mapel.findUnique({ where: { id: mapelId } }))) {
+      return NextResponse.json({ error: "Mapel tidak ditemukan." }, { status: 400 });
+    }
 
     const materiBaru = await db.$transaction(async (tx) => {
       const materi = await tx.materi.create({
@@ -87,6 +91,7 @@ export async function POST(req: NextRequest) {
           tipe,
           url,
           deskripsi: deskripsi || null,
+          mapelId: mapelId || null,
         },
       });
 

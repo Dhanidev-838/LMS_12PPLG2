@@ -31,6 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <input
+          data-ui="field"
           ref={ref}
           id={fieldId}
           aria-invalid={error ? true : undefined}
@@ -69,6 +70,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           </label>
         )}
         <textarea
+          data-ui="field"
           ref={ref}
           id={fieldId}
           rows={3}
@@ -109,6 +111,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </label>
         )}
         <select
+          data-ui="field"
           ref={ref}
           id={fieldId}
           aria-invalid={error ? true : undefined}

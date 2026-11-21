@@ -6,9 +6,11 @@ import Button from "@/components/ui/Button";
 import TugasCard, { TugasData } from "@/components/TugasCard";
 import ModalTugas from "@/components/ModalTugas";
 import ModalKirimTugas from "@/components/ModalKirimTugas";
+import RolePageHero from "@/components/shared/RolePageHero";
+import CreatorScopeFilter, { type CreatorScope } from "@/components/shared/CreatorScopeFilter";
 import { showConfirm } from "@/lib/dialog";
+import { useLanguage } from "@/lib/i18n";
 
-const BRAND = "#6B85F6";
 
 interface KelasOption {
   id: string;
@@ -16,6 +18,7 @@ interface KelasOption {
 }
 
 export default function SuperAdminTugasPage() {
+  const { t } = useLanguage();
   const [tugasList, setTugasList] = useState<TugasData[]>([]);
   const [loading, setLoading] = useState(true);
   const [me, setMe] = useState<{ id: string } | null>(null);
@@ -23,6 +26,7 @@ export default function SuperAdminTugasPage() {
   const [editingTugas, setEditingTugas] = useState<TugasData | null>(null);
   const [sendingTugas, setSendingTugas] = useState<TugasData | null>(null);
   const [filterKelasId, setFilterKelasId] = useState("");
+  const [creatorScope, setCreatorScope] = useState<CreatorScope>("ALL");
   const [kelasOptions, setKelasOptions] = useState<{ id: string; label: string }[]>([]);
 
   useEffect(() => {
@@ -64,58 +68,58 @@ export default function SuperAdminTugasPage() {
     loadTugas();
   }
   async function handleDelete(id: string) {
-    if (!(await showConfirm("Hapus tugas ini?"))) return;
+    if (!(await showConfirm(t("Hapus tugas ini?")))) return;
     await fetch(`/api/tugas/${id}`, { method: "DELETE" });
     loadTugas();
   }
 
+  const visibleTugas = creatorScope === "MINE" ? tugasList.filter((tugas) => tugas.guru.id === me?.id) : tugasList;
+  const selectedClassName = kelasOptions.find((kelas) => kelas.id === filterKelasId)?.label;
+  const summaryScope = selectedClassName
+    ? `${t(creatorScope === "MINE" ? "Dibuat Saya" : "Semua")} · ${selectedClassName}`
+    : t(creatorScope === "MINE" ? "Dibuat Saya" : "Seluruh sekolah");
   const todayStr = new Date().toDateString();
-  const hariIni = tugasList.filter((t) => new Date(t.createdAt).toDateString() === todayStr);
-  const history = tugasList.filter((t) => new Date(t.createdAt).toDateString() !== todayStr);
+  const hariIni = visibleTugas.filter((tugas) => new Date(tugas.createdAt).toDateString() === todayStr);
+  const history = visibleTugas.filter((tugas) => new Date(tugas.createdAt).toDateString() !== todayStr);
 
   return (
     <div>
-      <div className="flex items-center gap-4 border border-[#dfe4ef] p-5 text-white sm:p-6" style={{ background: BRAND }}>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
-            <path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01" />
-          </svg>
-        </span>
-        <div>
-          <p className="text-sm font-bold">Tugas Kelas</p>
-          <p className="mt-1 text-sm text-white/85">Buat tugas kemudian kirim ke suatu kelas untuk memulai tugas.</p>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+      <RolePageHero
+        eyebrow={t("Ruang Pembelajaran")}
+        title={t("Tugas kelas")}
+        description={t("Buat tugas, kirim ke kelas, lalu pantau pengumpulan siswa.")}
+        summary={{ label: t("Tugas dibuat"), value: loading ? "—" : visibleTugas.length, description: summaryScope }}
+      >
         <Button onClick={openBuat}>
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Buat Tugas
+          {t("Buat Tugas")}
         </Button>
+        <CreatorScopeFilter value={creatorScope} onChange={setCreatorScope} mineDisabled={!me?.id} />
         <select
-          className="rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+          aria-label={t("Filter kelas")}
+          className="min-h-10 rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           value={filterKelasId}
           onChange={(e) => setFilterKelasId(e.target.value)}
         >
-          <option value="">Semua Kelas</option>
+          <option value="">{t("Semua Kelas")}</option>
           {kelasOptions.map((k) => (
             <option key={k.id} value={k.id}>
               {k.label}
             </option>
           ))}
         </select>
-      </div>
+      </RolePageHero>
 
       {loading ? (
-        <p className="mt-4 text-sm text-[#9CA3AF]">Memuat...</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t("Memuat...")}</p>
       ) : (
         <>
           <div className="mt-6">
-            <p className="mb-3 text-sm font-bold text-[#182033]">Tugas Hari Ini</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Tugas Hari Ini")}</p>
             {hariIni.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Belum ada tugas dibuat hari ini.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada tugas dibuat hari ini.")}</p>
             ) : (
               <div className="space-y-3">
                 {hariIni.map((t) => (
@@ -126,9 +130,9 @@ export default function SuperAdminTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#182033]">History</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Riwayat Tugas")}</p>
             {history.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Belum ada riwayat tugas.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada riwayat tugas.")}</p>
             ) : (
               <div className="space-y-3">
                 {history.map((t) => (

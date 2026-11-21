@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
 
 interface ModalKirimAsesmenProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface ModalKirimAsesmenProps {
 }
 
 export default function ModalKirimAsesmen({ open, asesmenId, onClose, onSuccess }: ModalKirimAsesmenProps) {
+  const { t } = useLanguage();
   const [kelasList, setKelasList] = useState<{ id: string; judul: string }[]>([]);
   const [selectedKelasIds, setSelectedKelasIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export default function ModalKirimAsesmen({ open, asesmenId, onClose, onSuccess 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!asesmenId || selectedKelasIds.length === 0) {
-      setError("Pilih minimal 1 kelas tujuan.");
+      setError(t("Pilih minimal 1 kelas tujuan."));
       return;
     }
     setLoading(true);
@@ -49,29 +51,29 @@ export default function ModalKirimAsesmen({ open, asesmenId, onClose, onSuccess 
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Asesmen gagal dikirim.");
+        setError(t(data.error ?? "Asesmen gagal dikirim."));
         return;
       }
       onSuccess();
       onClose();
     } catch {
-      setError("Asesmen gagal dikirim.");
+      setError(t("Asesmen gagal dikirim."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Kirim Asesmen ke Kelas" maxWidth="max-w-lg">
+    <Modal open={open} onClose={onClose} title={t("Kirim Asesmen ke Kelas")} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Pilih kelas tujuan</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Pilih kelas tujuan")}</label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(event) => event.target.value && toggleKelas(event.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList.filter((kelas) => !selectedKelasIds.includes(kelas.id)).map((kelas) => (
               <option key={kelas.id} value={kelas.id}>{kelas.judul}</option>
             ))}
@@ -80,15 +82,15 @@ export default function ModalKirimAsesmen({ open, asesmenId, onClose, onSuccess 
             <div className="mt-2 flex flex-wrap gap-2">
               {selectedKelasIds.map((id) => {
                 const kelas = kelasList.find((item) => item.id === id);
-                return <Badge key={id} tone="brand" className="flex items-center gap-1">{kelas?.judul}<button type="button" onClick={() => toggleKelas(id)}>x</button></Badge>;
+                return <Badge key={id} tone="brand" className="flex items-center gap-1">{kelas?.judul}<button type="button" aria-label={t("Hapus")} onClick={() => toggleKelas(id)}>x</button></Badge>;
               })}
             </div>
           )}
         </div>
-        {error && <p className="text-xs font-medium text-danger">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Batal</Button>
-          <Button type="submit" loading={loading} className="flex-1">Kirim Asesmen</Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t("Batal")}</Button>
+          <Button type="submit" loading={loading} className="flex-1">{t("Kirim Asesmen")}</Button>
         </div>
       </form>
     </Modal>

@@ -6,6 +6,8 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import MateriCard, { MateriData } from "@/components/MateriCard";
 import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
+import RolePageHero from "@/components/shared/RolePageHero";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 type DashboardData = {
   siswa: {
@@ -77,17 +79,18 @@ type DashboardData = {
   }>;
 };
 
-function StatCard({ label, value, helper }: { label: string; value: string; helper: string }) {
+function StatCard({ label, value, helper, featured = false }: { label: string; value: string; helper: string; featured?: boolean }) {
   return (
-    <div className="border border-[#e1e5ed] bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-[#182033]">{value}</p>
-      <p className="mt-1 text-xs text-[#64748B]">{helper}</p>
+    <div className={`rounded-[var(--radius-card)] border p-5 ${featured ? "border-accent bg-accent-subtle" : "border-border bg-surface"}`}>
+      <p className="text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">{label}</p>
+      <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
     </div>
   );
 }
 
 export default function SiswaDashboardPage() {
+  const { t, locale } = useLanguage();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,13 +134,13 @@ export default function SiswaDashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="border border-[#e1e5ed] bg-white p-5">
+        <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
           <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
           <div className="mt-4 h-10 w-72 animate-pulse rounded bg-slate-200" />
         </div>
-        <div className="h-12 animate-pulse border border-[#e1e5ed] bg-white sm:hidden" />
+        <div className="h-12 animate-pulse border border-border bg-surface sm:hidden" />
         <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-32 animate-pulse border border-[#e1e5ed] bg-white p-5" />)}
+          {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-32 animate-pulse rounded-[var(--radius-card)] border border-border bg-surface p-5" />)}
         </div>
       </div>
     );
@@ -146,7 +149,7 @@ export default function SiswaDashboardPage() {
   if (error) {
     return (
       <div className="border border-red-200 bg-red-50 p-6 text-red-700">
-        <p className="text-lg font-bold">Gagal memuat dashboard</p>
+        <p className="text-lg font-bold">{t("Gagal memuat dashboard")}</p>
         <p className="mt-2 text-sm">{error}</p>
       </div>
     );
@@ -154,9 +157,9 @@ export default function SiswaDashboardPage() {
 
   if (!data) {
     return (
-      <div className="border border-dashed border-[#dfe4ef] bg-white p-6 text-center">
-        <p className="text-lg font-semibold text-[#182033]">Belum ada data</p>
-        <p className="mt-2 text-sm text-[#64748B]">Belum ada aktivitas kelas, tugas, atau asesmen untuk akun Anda.</p>
+      <div className="border border-dashed border-border bg-surface p-6 text-center">
+        <p className="text-lg font-semibold text-foreground">{t("Belum ada data")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("Belum ada aktivitas kelas, tugas, atau asesmen untuk akun Anda.")}</p>
       </div>
     );
   }
@@ -164,8 +167,8 @@ export default function SiswaDashboardPage() {
   const today = new Date().toDateString();
   const materiHariIni = data.materiTerbaru.filter((materi) => new Date(materi.createdAt).toDateString() === today).slice(0, 4);
   const rataRataCaption = data.statistik.rataRataNilai !== null && data.statistik.rataRataNilaiKelas !== null
-    ? `${data.statistik.statusNilaiKelas ?? "Sejajar rata-rata kelas"} (${data.statistik.rataRataNilaiKelas})`
-    : "Pembanding kelas belum tersedia";
+    ? `${t(data.statistik.statusNilaiKelas ?? "Sejajar rata-rata kelas")} (${data.statistik.rataRataNilaiKelas})`
+    : t("Pembanding kelas belum tersedia");
   const statistik: MobileDashboardSummaryItem[] = [
     { label: "Total Kelas", value: data.statistik.totalKelas, caption: "Kelas yang diikuti" },
     { label: "Total Asesmen", value: data.statistik.totalAsesmen, caption: "Kuis dan ujian" },
@@ -181,75 +184,79 @@ export default function SiswaDashboardPage() {
 
   return (
     <div className="student-dashboard space-y-6">
-      <div className="border border-[#dfe4ef] p-6 text-white" style={{ background: "#6B85F6" }}>
-        <p className="text-xs font-semibold uppercase tracking-wide text-white/75">Dashboard Siswa</p>
-        <h1 className="mt-2 text-2xl font-bold">Selamat Datang, {data.siswa.nama}</h1>
-        <p className="mt-2 text-sm text-white/85">{data.siswa.kelasJurusan}</p>
+      <RolePageHero
+        eyebrow={t("Ruang belajar siswa")}
+        title={`${t("Selamat datang")}, ${data.siswa.nama}`}
+        description={data.siswa.kelasJurusan}
+        summary={{ label: t("Perlu perhatian"), value: data.statistik.asesmenBelum + data.statistik.tugasBelum, description: t("Asesmen dan tugas yang belum selesai") }}
+      >
+        <Link href="/siswa/asesmen" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent-hover">{t("Lihat asesmen")}</Link>
+        <Link href="/siswa/tugas" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] border border-border bg-surface px-4 text-sm font-semibold text-foreground hover:bg-surface-muted">{t("Lihat tugas")}</Link>
+      </RolePageHero>
+
+      <MobileDashboardSummary items={statistik.map((item) => ({ ...item, label: t(item.label), caption: item.caption ? t(item.caption) : undefined }))} />
+      <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label={t("Total Kelas")} value={String(data.statistik.totalKelas)} helper={t("Kelas yang diikuti")} />
+        <StatCard label={t("Asesmen Belum")} value={String(data.statistik.asesmenBelum)} helper={t("Belum dikerjakan")} featured />
+        <StatCard label={t("Tugas Belum")} value={String(data.statistik.tugasBelum)} helper={t("Belum dikumpulkan")} featured />
+        <StatCard label={t("Rata-rata Nilai")} value={String(data.statistik.rataRataNilai ?? "-")} helper={t(rataRataCaption)} />
+        <StatCard label={t("Total Asesmen")} value={String(data.statistik.totalAsesmen)} helper={t("Kuis dan ujian")} />
+        <StatCard label={t("Asesmen Selesai")} value={String(data.statistik.asesmenSudah)} helper={t("Sudah dikerjakan")} />
+        <StatCard label={t("Asesmen Sedang")} value={String(data.statistik.asesmenSedang)} helper={t("Dikerjakan saat ini")} />
+        <StatCard label={t("Total Tugas")} value={String(data.statistik.totalTugas)} helper={t("Tugas yang tersedia")} />
+        <StatCard label={t("Total Materi")} value={String(data.statistik.totalMateri)} helper={t("Materi dari kelas yang diikuti")} />
+        <StatCard label={t("Tugas Sudah")} value={String(data.statistik.tugasSudah)} helper={t("Sudah dikumpulkan")} />
       </div>
 
-      <MobileDashboardSummary items={statistik} />
-      <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Total Kelas" value={String(data.statistik.totalKelas)} helper="Kelas yang diikuti" />
-        <StatCard label="Total Asesmen" value={String(data.statistik.totalAsesmen)} helper="Kuis & ujian" />
-        <StatCard label="Asesmen Selesai" value={String(data.statistik.asesmenSudah)} helper="Sudah dikerjakan" />
-        <StatCard label="Asesmen Sedang" value={String(data.statistik.asesmenSedang)} helper="Dikerjakan saat ini" />
-        <StatCard label="Asesmen Belum" value={String(data.statistik.asesmenBelum)} helper="Belum dikerjakan" />
-        <StatCard label="Total Tugas" value={String(data.statistik.totalTugas)} helper="Tugas yang tersedia" />
-        <StatCard label="Total Materi" value={String(data.statistik.totalMateri)} helper="Materi dari kelas yang diikuti" />
-        <StatCard label="Tugas Sudah" value={String(data.statistik.tugasSudah)} helper="Sudah dikumpulkan" />
-        <StatCard label="Tugas Belum" value={String(data.statistik.tugasBelum)} helper="Belum dikumpulkan" />
-        <StatCard label="Rata-rata Nilai" value={String(data.statistik.rataRataNilai ?? "-")} helper={rataRataCaption} />
-      </div>
-
-      <div className="student-card hidden border border-[#e1e5ed] bg-white p-5 sm:block">
+      <div className="student-card hidden rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:block">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-bold text-[#182033]">Rata-rata Nilai Asesmen</p>
+          <p className="text-sm font-bold text-foreground">{t("Rata-rata Nilai Asesmen")}</p>
           <Badge tone={data.statistik.rataRataNilai !== null ? "green" : "gray"}>
-            {data.statistik.rataRataNilai !== null ? `${data.statistik.rataRataNilai}` : "Belum ada nilai"}
+            {data.statistik.rataRataNilai !== null ? `${data.statistik.rataRataNilai}` : t("Belum ada nilai")}
           </Badge>
         </div>
         {data.statistik.rataRataNilai !== null && data.statistik.rataRataNilaiKelas !== null ? (
-          <p className="mt-3 text-sm text-[#435064]">
+          <p className="mt-3 text-sm text-muted-foreground">
             {data.statistik.statusNilaiKelas === "Di bawah rata-rata kelas"
-              ? `Nilai Anda masih di bawah rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`
+              ? `${t("Nilai Anda masih di bawah rata-rata kelas.")} (${data.statistik.rataRataNilaiKelas}).`
               : data.statistik.statusNilaiKelas === "Di atas rata-rata kelas"
-                ? `Nilai Anda di atas rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`
-                : `Nilai Anda sejajar dengan rata-rata kelas (${data.statistik.rataRataNilaiKelas}).`}
+                ? `${t("Nilai Anda di atas rata-rata kelas.")} (${data.statistik.rataRataNilaiKelas}).`
+                : `${t("Nilai Anda sejajar dengan rata-rata kelas.")} (${data.statistik.rataRataNilaiKelas}).`}
           </p>
         ) : (
-          <p className="mt-3 text-sm text-[#64748B]">Belum ada pembanding rata-rata kelas untuk saat ini.</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("Belum ada pembanding rata-rata kelas untuk saat ini.")}</p>
         )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="student-card border border-[#e1e5ed] bg-white p-5">
+        <div className="student-card rounded-[var(--radius-card)] border border-border bg-surface p-5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-[#182033]">Aksi Cepat</p>
+            <p className="text-sm font-bold text-foreground">{t("Aksi Cepat")}</p>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <Link href="/siswa/asesmen">
-              <Button className="w-full" size="sm">Kerjakan Asesmen</Button>
+              <Button className="w-full" size="sm">{t("Kerjakan Asesmen")}</Button>
             </Link>
             <Link href="/siswa/tugas">
-              <Button className="w-full" size="sm" variant="outline">Lihat Tugas</Button>
+              <Button className="w-full" size="sm" variant="outline">{t("Lihat tugas")}</Button>
             </Link>
             <Link href="/siswa/kelas">
-              <Button className="w-full" size="sm" variant="outline">Lihat Kelas</Button>
+              <Button className="w-full" size="sm" variant="outline">{t("Lihat kelas")}</Button>
             </Link>
           </div>
         </div>
 
-        <div className="student-card border border-[#e1e5ed] bg-white p-5">
-          <p className="text-sm font-bold text-[#182033]">Nilai Terbaru</p>
+        <div className="student-card rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-foreground">{t("Nilai Terbaru")}</p>
           <div className="mt-3 space-y-3">
             {data.nilaiTerbaru.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Belum ada nilai yang tersedia.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada nilai yang tersedia.")}</p>
             ) : (
               data.nilaiTerbaru.map((item) => (
-                <div key={item.id} className="student-list-row flex items-center justify-between rounded-xl border border-[#edf0f5] bg-[#f7f8fd] px-3 py-2">
+                <div key={item.id} className="student-list-row flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2">
                   <div>
-                    <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
-                    <p className="text-xs text-[#64748B]">{item.mapel}</p>
+                    <p className="text-sm font-semibold text-foreground">{item.judul}</p>
+                    <p className="text-xs text-muted-foreground">{item.mapel}</p>
                   </div>
                   <Badge tone={item.nilai !== null && item.nilai >= 75 ? "green" : item.nilai !== null ? "amber" : "gray"}>
                     {item.nilai !== null ? `${item.nilai}` : "-"}
@@ -260,31 +267,31 @@ export default function SiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="student-card lg:col-span-2 border border-[#e1e5ed] bg-white p-5">
+        <div className="student-card lg:col-span-2 rounded-[var(--radius-card)] border border-border bg-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-bold text-[#182033]">Pengumuman Kelas</p>
-            <Badge tone="gray">7 hari terakhir</Badge>
+            <p className="text-sm font-bold text-foreground">{t("Pengumuman Kelas")}</p>
+            <Badge tone="gray">{t("7 hari terakhir")}</Badge>
           </div>
           <div className="mt-3 space-y-3">
             {data.pengumumanTerbaru.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Belum ada pengumuman aktif dalam 7 hari terakhir.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada pengumuman aktif dalam 7 hari terakhir.")}</p>
             ) : (
               data.pengumumanTerbaru.map((item) => (
-                <div key={item.id} className="student-announce-item border border-[#edf0f5] bg-[#f7f8fd] p-3">
+                <div key={item.id} className="student-announce-item rounded-[var(--radius-card)] border border-border bg-surface-muted p-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#6B85F6]">{item.kelasJudul}</p>
                     {item.isToday ? (
-                      <Badge tone="brand">Hari ini</Badge>
+                      <Badge tone="brand">{t("Hari ini")}</Badge>
                     ) : (
-                      <span className="text-[11px] text-[#64748B]">
-                        {new Date(item.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(item.createdAt).toLocaleDateString(intlLocaleCodes[locale], { day: "numeric", month: "short" })}
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-[#182033]">{item.isi}</p>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-[#64748B]">
-                    <span>oleh {item.authorNama}</span>
-                    <span>{item.lampiranCount > 0 ? `${item.lampiranCount} lampiran` : "tanpa lampiran"}</span>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{item.isi}</p>
+                  <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{t("oleh")} {item.authorNama}</span>
+                    <span>{item.lampiranCount > 0 ? `${item.lampiranCount} ${t("lampiran")}` : t("tanpa lampiran")}</span>
                   </div>
                 </div>
               ))
@@ -292,13 +299,13 @@ export default function SiswaDashboardPage() {
           </div>
         </div>
 
-        <section className="student-card lg:col-span-2 border border-[#e1e5ed] bg-white p-5">
+        <section className="student-card lg:col-span-2 rounded-[var(--radius-card)] border border-border bg-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-bold text-[#182033]">Materi Hari Ini</p>
-            <Link href="/siswa/materi" className="text-xs font-semibold text-[#6B85F6] hover:underline">Lihat semua</Link>
+            <p className="text-sm font-bold text-foreground">{t("Materi Hari Ini")}</p>
+            <Link href="/siswa/materi" className="text-xs font-semibold text-[#6B85F6] hover:underline">{t("Lihat semua")}</Link>
           </div>
           {materiHariIni.length === 0 ? (
-            <p className="mt-3 text-sm text-[#94A3B8]">Belum ada materi baru hari ini.</p>
+            <p className="mt-3 text-sm text-muted-foreground">{t("Belum ada materi baru hari ini.")}</p>
           ) : (
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {materiHariIni.map((materi) => <MateriCard key={materi.id} data={materi} />)}
@@ -308,21 +315,21 @@ export default function SiswaDashboardPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="border border-[#e1e5ed] bg-white p-5">
-          <p className="text-sm font-bold text-[#182033]">Asesmen Terbaru</p>
+        <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-foreground">{t("Asesmen Terbaru")}</p>
           <div className="mt-3 space-y-3">
             {data.asesmenTerbaru.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Belum ada asesmen.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada asesmen.")}</p>
             ) : (
               data.asesmenTerbaru.map((item) => (
-                <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block border border-[#edf0f5] p-3 transition-colors hover:bg-[#6B85F6]/10">
+                <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
-                      <p className="text-xs text-[#64748B]">{item.mapel?.nama ?? "Umum"}</p>
+                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
+                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
                     </div>
                     <Badge tone={item.statusSubmission === "SUDAH" ? "green" : item.statusSubmission === "SEDANG" ? "amber" : "red"}>
-                      {item.statusSubmission === "SUDAH" ? "Selesai" : item.statusSubmission === "SEDANG" ? "Sedang" : "Belum"}
+                      {item.statusSubmission === "SUDAH" ? t("Selesai") : item.statusSubmission === "SEDANG" ? t("Sedang") : t("Belum")}
                     </Badge>
                   </div>
                 </Link>
@@ -331,21 +338,21 @@ export default function SiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-[#e1e5ed] bg-white p-5">
-          <p className="text-sm font-bold text-[#182033]">Tugas Terbaru</p>
+        <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-foreground">{t("Tugas Terbaru")}</p>
           <div className="mt-3 space-y-3">
             {data.tugasTerbaru.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Belum ada tugas.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada tugas.")}</p>
             ) : (
               data.tugasTerbaru.map((item) => (
-                <Link key={item.id} href="/siswa/tugas" className="block border border-[#edf0f5] p-3 transition-colors hover:bg-[#6B85F6]/10">
+                <Link key={item.id} href="/siswa/tugas" className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
-                      <p className="text-xs text-[#64748B]">{item.mapel?.nama ?? "Umum"}</p>
+                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
+                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
                     </div>
                     <Badge tone={item.statusSubmission === "SUDAH" ? "green" : "red"}>
-                      {item.statusSubmission === "SUDAH" ? "Sudah" : "Belum"}
+                      {item.statusSubmission === "SUDAH" ? t("Sudah") : t("Belum")}
                     </Badge>
                   </div>
                 </Link>
@@ -356,36 +363,36 @@ export default function SiswaDashboardPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="border border-[#e1e5ed] bg-white p-5">
-          <p className="text-sm font-bold text-[#182033]">Tugas yang Belum Dikumpulkan</p>
+        <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-foreground">{t("Tugas yang Belum Dikumpulkan")}</p>
           <div className="mt-3 space-y-3">
             {data.tugasBelumDikumpulkan.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Semua tugas sudah dikumpulkan.</p>
+              <p className="text-sm text-muted-foreground">{t("Semua tugas sudah dikumpulkan.")}</p>
             ) : (
               data.tugasBelumDikumpulkan.map((item) => (
-                <Link key={item.id} href="/siswa/tugas" className="block border border-[#edf0f5] p-3 transition-colors hover:bg-[#6B85F6]/10">
-                  <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
-                  <p className="text-xs text-[#64748B]">{item.mapel?.nama ?? "Umum"}</p>
+                <Link key={item.id} href="/siswa/tugas" className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
+                  <p className="text-sm font-semibold text-foreground">{item.judul}</p>
+                  <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
                 </Link>
               ))
             )}
           </div>
         </div>
 
-        <div className="border border-[#e1e5ed] bg-white p-5">
-          <p className="text-sm font-bold text-[#182033]">Asesmen yang Sedang Dikerjakan</p>
+        <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-foreground">{t("Asesmen yang Sedang Dikerjakan")}</p>
           <div className="mt-3 space-y-3">
             {data.asesmenSedangDikerjakan.length === 0 ? (
-              <p className="text-sm text-[#94A3B8]">Tidak ada asesmen yang sedang dikerjakan.</p>
+              <p className="text-sm text-muted-foreground">{t("Tidak ada asesmen yang sedang dikerjakan.")}</p>
             ) : (
               data.asesmenSedangDikerjakan.map((item) => (
-                <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block border border-[#edf0f5] p-3 transition-colors hover:bg-[#6B85F6]/10">
+                <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-[#182033]">{item.judul}</p>
-                      <p className="text-xs text-[#64748B]">{item.mapel?.nama ?? "Umum"}</p>
+                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
+                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
                     </div>
-                    <Badge tone="amber">Sedang</Badge>
+                    <Badge tone="amber">{t("Sedang")}</Badge>
                   </div>
                 </Link>
               ))

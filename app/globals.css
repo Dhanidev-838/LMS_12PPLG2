@@ -1,15 +1,25 @@
 @import "tailwindcss";
 
-:root {
+:root, [data-admin-theme="light"] {
   --background: #ffffff;
   --surface: #ffffff;
-  --surface-muted: rgba(0, 0, 0, 0.03);
-  --foreground: #000000;
-  --muted-foreground: rgba(0, 0, 0, 0.6);
-  --border: rgba(0, 0, 0, 0.12);
+  --surface-muted: #f4f4f8;
+  --foreground: #242435;
+  --muted-foreground: #636377;
+  --border: #dddde8;
   --accent: #6b85f6;
-  --accent-foreground: #000000;
-  --accent-subtle: rgba(107, 133, 246, 0.12);
+  --accent-foreground: #161b32;
+  --accent-hover: #8096ff;
+  --accent-subtle: #eef1ff;
+  --accent-text: #435ac2;
+  --success: #22704b;
+  --success-subtle: #eaf5ee;
+  --warning: #88540c;
+  --warning-subtle: #fff3dc;
+  --overlay: rgba(19, 19, 32, 0.55);
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-dialog: 16px;
   --danger: #b42318;
   --danger-subtle: rgba(180, 35, 24, 0.08);
 }
@@ -24,6 +34,13 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-subtle: var(--accent-subtle);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-overlay: var(--overlay);
   --color-danger: var(--danger);
   --color-danger-subtle: var(--danger-subtle);
   --font-sans: var(--font-geist-sans);
@@ -31,14 +48,19 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --surface: #121212;
-    --surface-muted: rgba(255, 255, 255, 0.04);
-    --foreground: #ffffff;
-    --muted-foreground: rgba(255, 255, 255, 0.64);
-    --border: rgba(255, 255, 255, 0.12);
-    --accent-subtle: rgba(107, 133, 246, 0.18);
+  :root:not([data-admin-theme]) {
+    --background: #191923;
+    --surface: #22222f;
+    --surface-muted: #2d2d3e;
+    --foreground: #f1f0f7;
+    --muted-foreground: #b8b6ca;
+    --border: #3b3b50;
+    --accent-subtle: #303650;
+    --accent-text: #a7b5ff;
+    --success: #9bddb6;
+    --success-subtle: #253c34;
+    --warning: #f1cd87;
+    --warning-subtle: #403626;
     --danger: #f87171;
     --danger-subtle: rgba(248, 113, 113, 0.12);
   }
@@ -46,30 +68,24 @@
 
 [data-admin-theme="light"] {
   color-scheme: light;
-  --background: #ffffff;
-  --surface: #ffffff;
-  --surface-muted: rgba(0, 0, 0, 0.03);
-  --foreground: #000000;
-  --muted-foreground: rgba(0, 0, 0, 0.6);
-  --border: rgba(0, 0, 0, 0.12);
-  --accent: #6b85f6;
-  --accent-foreground: #000000;
-  --accent-subtle: rgba(107, 133, 246, 0.12);
-  --danger: #b42318;
-  --danger-subtle: rgba(180, 35, 24, 0.08);
 }
 
 [data-admin-theme="dark"] {
   color-scheme: dark;
-  --background: #0a0a0a;
-  --surface: #121212;
-  --surface-muted: rgba(255, 255, 255, 0.04);
-  --foreground: #ffffff;
-  --muted-foreground: rgba(255, 255, 255, 0.64);
-  --border: rgba(255, 255, 255, 0.12);
+  --background: #191923;
+  --surface: #22222f;
+  --surface-muted: #2d2d3e;
+  --foreground: #f1f0f7;
+  --muted-foreground: #b8b6ca;
+  --border: #3b3b50;
   --accent: #6b85f6;
-  --accent-foreground: #000000;
-  --accent-subtle: rgba(107, 133, 246, 0.18);
+  --accent-foreground: #161b32;
+  --accent-subtle: #303650;
+  --accent-text: #a7b5ff;
+  --success: #9bddb6;
+  --success-subtle: #253c34;
+  --warning: #f1cd87;
+  --warning-subtle: #403626;
   --danger: #f87171;
   --danger-subtle: rgba(248, 113, 113, 0.12);
 }
@@ -78,6 +94,68 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-gutter: stable;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Bridge for token components while role-specific legacy overrides are migrated.
+   The explicit scope keeps legacy !important colors out of these primitives. */
+:root [data-ui="field"][data-ui="field"] {
+  border-radius: var(--radius-control);
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+:root [data-ui="field"][data-ui="field"]::placeholder {
+  color: var(--muted-foreground) !important;
+}
+:root [data-ui="field"][data-ui="field"]:focus {
+  border-color: var(--accent) !important;
+}
+:root [data-ui="field"][data-ui="field"][aria-invalid="true"] {
+  border-color: var(--danger) !important;
+}
+:root [data-ui="button"], :root [data-ui="theme-toggle"] {
+  border-radius: var(--radius-control);
+}
+:root [data-ui="dialog"] {
+  border-radius: var(--radius-dialog);
+}
+/* Repeated attributes intentionally outrank the old per-role hover selectors. */
+:root [data-ui][data-ui][data-ui][data-ui][data-ui][data-variant="primary"]:hover:not(:disabled) {
+  background-color: var(--accent-hover) !important;
+  color: var(--accent-foreground) !important;
+}
+:root [data-ui][data-ui][data-ui][data-ui][data-ui][data-variant="outline"]:hover:not(:disabled),
+:root [data-ui][data-ui][data-ui][data-ui][data-ui][data-variant="ghost"]:hover:not(:disabled),
+:root [data-ui="theme-toggle"][data-ui][data-ui][data-ui][data-ui][data-ui]:hover {
+  background-color: var(--surface-muted) !important;
+  color: var(--foreground) !important;
+}
+:root [data-ui][data-ui][data-ui][data-ui][data-ui][data-variant="danger"]:hover:not(:disabled) {
+  background-color: var(--danger-subtle) !important;
+  color: var(--danger) !important;
 }
 
 [data-admin-theme="dark"] .guru-performance-page [class~="bg-[#f7f8fd]"] {

@@ -13,19 +13,17 @@ export default function ThemeToggle({
 }) {
   const nextTheme = theme === "dark" ? "light" : "dark";
   const label = `Ganti ke tema ${nextTheme === "light" ? "terang" : "gelap"}`;
-  const iconColor = theme === "dark" ? "#fbbf24" : "#4b5563";
+  const iconColor = "currentColor";
 
   return (
     <button
+      data-ui="theme-toggle"
       type="button"
       aria-label={label}
       title={label}
+      data-admin-theme={theme}
       onClick={onToggle}
-      className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6B85F6] ${
-        theme === "dark"
-          ? "border-[#465268] bg-[#171d28] hover:bg-[#2a3343]"
-          : "border-[#dce1eb] bg-white hover:bg-[#f7f8fb]"
-      } ${className}`}
+      className={`inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${className}`}
     >
       {theme === "dark" ? (
         <svg

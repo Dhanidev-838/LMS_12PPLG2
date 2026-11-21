@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
-import { Input, Textarea } from "./ui/Input";
+import { Input, Select, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { MateriData } from "./MateriCard";
+import { useLanguage } from "@/lib/i18n";
 
 interface KelasOption {
   id: string;
@@ -21,11 +22,14 @@ interface ModalMateriProps {
 }
 
 export default function ModalMateri({ open, onClose, onSuccess, mode, initialData }: ModalMateriProps) {
+  const { t } = useLanguage();
   const [judul, setJudul] = useState("");
   const [tipe, setTipe] = useState<"PDF" | "FILE" | "IMAGE" | "LINK">("LINK");
   const [sumber, setSumber] = useState<"LINK" | "FILE">("LINK");
   const [url, setUrl] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
+  const [mapelId, setMapelId] = useState("");
+  const [mapelList, setMapelList] = useState<{ id: string; nama: string }[]>([]);
   const [kelasList, setKelasList] = useState<KelasOption[]>([]);
   const [selectedKelasIds, setSelectedKelasIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,6 +46,15 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       )
       .catch(() => {});
 
+    fetch("/api/mapel")
+      .then(async (res) => {
+        const data: { data?: { id: string; nama: string }[]; error?: string } = await res.json();
+        if (!res.ok) throw new Error(t(data.error ?? "Gagal memuat daftar mapel."));
+        if (!Array.isArray(data.data)) throw new Error(t("Daftar mapel tidak valid."));
+        setMapelList(data.data);
+      })
+      .catch((cause: unknown) => setError(cause instanceof Error ? t(cause.message) : t("Gagal memuat daftar mapel.")));
+
     if (mode === "edit" && initialData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setJudul(initialData.judul);
@@ -49,6 +62,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       setSumber(initialData.tipe === "LINK" ? "LINK" : "FILE");
       setUrl(initialData.url);
       setDeskripsi(initialData.deskripsi ?? "");
+      setMapelId(initialData.mapelId ?? "");
       setSelectedKelasIds((initialData.kelasTujuan ?? []).map((kelasTujuan) => kelasTujuan.kelas.id).filter(Boolean));
     } else {
       setJudul("");
@@ -56,6 +70,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       setSumber("LINK");
       setUrl("");
       setDeskripsi("");
+      setMapelId("");
       setSelectedKelasIds([]);
     }
     setError("");
@@ -83,13 +98,13 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       const res = await fetch("/api/upload?kategori=materi", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "File gagal diunggah.");
+        setError(t(data.error ?? "File gagal diunggah."));
         return;
       }
       setTipe(file.type === "application/pdf" ? "PDF" : file.type.startsWith("image/") ? "IMAGE" : "FILE");
       setUrl(data.url);
     } catch {
-      setError("File gagal diunggah.");
+      setError(t("File gagal diunggah."));
     } finally {
       setUploading(false);
     }
@@ -100,15 +115,15 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
     setError("");
 
     if (selectedKelasIds.length === 0) {
-      setError("Pilih minimal 1 kelas tujuan.");
+      setError(t("Pilih minimal 1 kelas tujuan."));
       return;
     }
     if (sumber === "LINK" && !isValidLink(url.trim())) {
-      setError("Masukkan link yang diawali http:// atau https://.");
+      setError(t("Masukkan link yang diawali http:// atau https://."));
       return;
     }
     if (sumber === "FILE" && !url) {
-      setError("Pilih file materi terlebih dahulu.");
+      setError(t("Pilih file materi terlebih dahulu."));
       return;
     }
 
@@ -121,12 +136,12 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       const res = await fetch(urlEndpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ judul, tipe, url, deskripsi: deskripsi || null, kelasIds: selectedKelasIds }),
+        body: JSON.stringify({ judul, tipe, url, deskripsi: deskripsi || null, mapelId: mapelId || null, kelasIds: selectedKelasIds }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Terjadi kesalahan.");
+        setError(t(data.error ?? "Terjadi kesalahan."));
         setLoading(false);
         return;
       }
@@ -134,20 +149,24 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
       onSuccess();
       onClose();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={mode === "create" ? "Upload Materi" : "Edit Materi"}>
+    <Modal open={open} onClose={onClose} title={mode === "create" ? t("Upload Materi") : t("Edit Materi")}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Judul Materi" value={judul} onChange={(e) => setJudul(e.target.value)} required />
+        <Input label={t("Judul Materi")} value={judul} onChange={(e) => setJudul(e.target.value)} required />
+        <Select label={t("Mata Pelajaran (opsional)")} value={mapelId} onChange={(event) => setMapelId(event.target.value)}>
+          <option value="">{t("Tanpa mapel")}</option>
+          {mapelList.map((mapel) => <option key={mapel.id} value={mapel.id}>{mapel.nama}</option>)}
+        </Select>
 
         <div>
-          <p className="mb-1.5 text-xs font-semibold text-foreground">Sumber Materi</p>
-          <div className="mb-2 grid grid-cols-2 border border-border bg-surface p-1" role="group" aria-label="Pilih sumber materi">
+          <p className="mb-1.5 text-xs font-semibold text-foreground">{t("Sumber Materi")}</p>
+          <div className="mb-2 grid grid-cols-2 border border-border bg-surface p-1" role="group" aria-label={t("Pilih sumber materi")}>
             {(["LINK", "FILE"] as const).map((source) => (
               <button
                 key={source}
@@ -162,18 +181,18 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
                 className="cursor-pointer px-3 py-2 text-sm font-semibold transition-colors"
                 style={sumber === source ? { background: "var(--accent)", color: "var(--accent-foreground)" } : { color: "var(--muted-foreground)" }}
               >
-                {source === "LINK" ? "Link" : "File / Foto"}
+                {source === "LINK" ? t("Link") : t("File / Foto")}
               </button>
             ))}
           </div>
 
           {sumber === "LINK" ? (
-            <Input label="Tautan Materi" placeholder="https://..." value={url} onChange={(e) => setUrl(e.target.value)} required />
+            <Input label={t("Tautan Materi")} placeholder="https://..." value={url} onChange={(e) => setUrl(e.target.value)} required />
           ) : (
             <div className="border border-dashed border-border p-3">
-              {url && <p className="mb-2 truncate text-xs text-muted-foreground">File sudah dipilih. Pilih file lain untuk mengganti.</p>}
+              {url && <p className="mb-2 truncate text-xs text-muted-foreground">{t("File sudah dipilih. Pilih file lain untuk mengganti.")}</p>}
               <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
-                {uploading ? "Mengunggah..." : url ? "Ganti File / Foto" : "+ Upload File / Foto"}
+                {uploading ? t("Mengunggah...") : url ? t("Ganti File / Foto") : `+ ${t("Upload File / Foto")}`}
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,image/jpeg,image/png,image/webp"
@@ -190,16 +209,16 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
           )}
         </div>
 
-        <Textarea label="Deskripsi (opsional)" value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} />
+        <Textarea label={t("Deskripsi (opsional)")} value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} />
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Kelas Tujuan</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Kelas Tujuan")}</label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
@@ -229,7 +248,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <Button type="submit" loading={loading} className="w-full">
-          {mode === "create" ? "Upload Materi" : "Simpan Perubahan"}
+          {mode === "create" ? t("Upload Materi") : t("Simpan Perubahan")}
         </Button>
       </form>
     </Modal>

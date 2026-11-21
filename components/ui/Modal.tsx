@@ -2,6 +2,8 @@
 
 import { ReactNode, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
+import { useAdminTheme } from "@/lib/use-admin-theme";
+import { useLanguage } from "@/lib/i18n";
 
 interface ModalProps {
   open: boolean;
@@ -21,6 +23,8 @@ export default function Modal({
   dismissible = true,
 }: ModalProps) {
   const titleId = useId();
+  const [theme] = useAdminTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!open) return;
@@ -43,15 +47,17 @@ export default function Modal({
 
   const content = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+      data-admin-theme={theme}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-overlay p-4"
       onClick={dismissible ? onClose : undefined}
     >
       <section
+        data-ui="dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
-        className={`max-h-[90vh] w-full ${maxWidth} overflow-y-auto rounded-xl border border-border bg-surface text-foreground shadow-lg`}
+        className={`max-h-[90vh] w-full ${maxWidth} overflow-y-auto rounded-[var(--radius-dialog)] border border-border bg-surface text-foreground shadow-lg`}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
           <h2 id={titleId} className="text-base font-semibold tracking-tight">
@@ -60,8 +66,8 @@ export default function Modal({
           {dismissible && (
             <button
               type="button"
-              aria-label="Tutup dialog"
-              title="Tutup"
+              aria-label={t("Tutup dialog")}
+              title={t("Tutup")}
               onClick={onClose}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-surface-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >

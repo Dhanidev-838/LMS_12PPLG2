@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER, FULL_CRUD_ADMIN } from "@/lib/rbac";
 import { hashPassword } from "@/lib/auth";
+import { isValidIdentityNumber } from "@/lib/identity-number";
 
 // GET /api/akun?role=SISWA|GURU -> daftar akun
 export async function GET(req: NextRequest) {
@@ -97,6 +98,9 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      if (!isValidIdentityNumber("SISWA", nis)) {
+        return NextResponse.json({ error: "NIS harus tepat 10 digit angka." }, { status: 400 });
+      }
 
       const nisExists = await db.user.findUnique({ where: { nis } });
       if (nisExists) {
@@ -155,6 +159,9 @@ export async function POST(req: NextRequest) {
 
       if (!nik) {
         return NextResponse.json({ error: "NIK wajib diisi untuk guru." }, { status: 400 });
+      }
+      if (!isValidIdentityNumber("GURU", nik)) {
+        return NextResponse.json({ error: "NIK harus tepat 16 digit angka." }, { status: 400 });
       }
 
       const nikExists = await db.user.findUnique({ where: { nik } });

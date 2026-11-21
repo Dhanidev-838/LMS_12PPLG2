@@ -70,6 +70,18 @@ model User {
   tugasDibuat      Tugas[]
   tugasSubmission  TugasSubmission[]
   laporanReset     LaporanResetPassword[]
+  loginAktivitas   LoginAktivitas[]
+}
+
+model LoginAktivitas {
+  id        String   @id @default(cuid())
+  userId    String
+  tanggal   DateTime @db.Date
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tanggal])
+  @@index([tanggal])
 }
 
 // =========================
@@ -84,8 +96,8 @@ model Jurusan {
 }
 
 model KelasReferensi {
-  id        String  @id @default(cuid())
-  label     String  @unique
+  id        String   @id @default(cuid())
+  label     String   @unique
   jenjang   String
   tingkat   Int?
   jurusanId String?
@@ -132,6 +144,7 @@ model Mapel {
   kelasGuruMapel KelasGuruMapel[]
   asesmen        Asesmen[]
   tugas          Tugas[]
+  materi         Materi[]
 }
 
 model KelasGuruMapel {
@@ -184,10 +197,14 @@ model Materi {
   tipe      String
   url       String
   deskripsi String?
+  mapelId   String?
   createdAt DateTime @default(now())
 
   guru        User          @relation(fields: [guruId], references: [id])
+  mapel       Mapel?        @relation(fields: [mapelId], references: [id])
   kelasTujuan MateriKelas[]
+
+  @@index([mapelId])
 }
 
 model MateriKelas {
@@ -208,13 +225,16 @@ model MateriKelas {
 // =========================
 
 model Tugas {
-  id        String   @id @default(cuid())
-  guruId    String
-  judul     String
-  isi       String?
-  mapelId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                      String    @id @default(cuid())
+  guruId                  String
+  judul                   String
+  isi                     String?
+  mapelId                 String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  publishedAt             DateTime?
+  deadlineAt              DateTime?
+  deadlineDurationMinutes Int?
 
   guru        User              @relation(fields: [guruId], references: [id])
   mapel       Mapel?            @relation(fields: [mapelId], references: [id])
@@ -224,7 +244,7 @@ model Tugas {
 }
 
 model LampiranTugas {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   tugasId   String
   tipe      String
   url       String
@@ -246,11 +266,11 @@ model TugasKelas {
 }
 
 model TugasSubmission {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   tugasId     String
   // Nama kolom lama; untuk super admin, ini menyimpan userId super admin itu sendiri.
   siswaId     String
-  status      String   @default("BELUM")
+  status      String    @default("BELUM")
   submittedAt DateTime?
 
   tugas Tugas @relation(fields: [tugasId], references: [id])
@@ -262,7 +282,7 @@ model TugasSubmission {
 }
 
 model LampiranTugasSubmission {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   submissionId String
   tipe         String
   url          String
@@ -277,16 +297,19 @@ model LampiranTugasSubmission {
 // =========================
 
 model Asesmen {
-  id          String        @id @default(cuid())
-  guruId      String
-  judul       String
-  tipe        TipeAsesmen
-  mapelId     String?
-  durasiMenit Int?
-  deskripsi   String?
-  status      StatusAsesmen @default(PROSES)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                      String        @id @default(cuid())
+  guruId                  String
+  judul                   String
+  tipe                    TipeAsesmen
+  mapelId                 String?
+  durasiMenit             Int?
+  deskripsi               String?
+  status                  StatusAsesmen @default(PROSES)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  publishedAt             DateTime?
+  deadlineAt              DateTime?
+  deadlineDurationMinutes Int?
 
   guru        User           @relation(fields: [guruId], references: [id])
   mapel       Mapel?         @relation(fields: [mapelId], references: [id])

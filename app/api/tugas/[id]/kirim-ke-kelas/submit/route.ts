@@ -27,6 +27,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       include: { kelasTujuan: { select: { kelasId: true } } },
     });
     if (!tugas) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
+    if (tugas.deadlineAt && tugas.deadlineAt.getTime() < Date.now()) {
+      return NextResponse.json({ error: "Deadline lewat. Pengumpulan baru tidak dapat dilakukan." }, { status: 409 });
+    }
 
     if (session!.role === "SISWA") {
       const kelasIdTujuan = tugas.kelasTujuan.map((tk) => tk.kelasId);
@@ -76,8 +79,14 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
     const { id: tugasId } = await params;
     const submissionId = req.nextUrl.searchParams.get("submissionId");
-    const tugas = await db.tugas.findUnique({ where: { id: tugasId }, select: { guruId: true } });
+    const tugas = await db.tugas.findUnique({
+      where: { id: tugasId },
+      select: { guruId: true, deadlineAt: true },
+    });
     if (!tugas) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
+    if (session!.role !== "GURU" && tugas.deadlineAt && tugas.deadlineAt.getTime() < Date.now()) {
+      return NextResponse.json({ error: "Deadline lewat. Jawaban tidak dapat diubah." }, { status: 409 });
+    }
     if (session!.role === "GURU" && tugas.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan tugas milik anda." }, { status: 403 });
     }

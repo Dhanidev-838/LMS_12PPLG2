@@ -37,9 +37,21 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Tugas ini sudah dikirim ke semua kelas yang dipilih." }, { status: 409 });
     }
 
-    await db.tugasKelas.createMany({
-      data: kelasIdsBaru.map((kelasId: string) => ({ tugasId, kelasId })),
-    });
+    const publishedAt = tugas.publishedAt ?? new Date();
+    const deadlineAt = tugas.deadlineAt ?? (
+      tugas.deadlineDurationMinutes !== null
+        ? new Date(publishedAt.getTime() + tugas.deadlineDurationMinutes * 60_000)
+        : null
+    );
+    await db.$transaction([
+      db.tugasKelas.createMany({
+        data: kelasIdsBaru.map((kelasId: string) => ({ tugasId, kelasId })),
+      }),
+      db.tugas.update({
+        where: { id: tugasId },
+        data: { publishedAt, deadlineAt },
+      }),
+    ]);
 
     return NextResponse.json({ message: "Tugas berhasil dikirim ke kelas." }, { status: 201 });
   } catch (err: any) {

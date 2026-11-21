@@ -14,10 +14,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const { id } = await params;
     const body = await req.json();
-    const { judul, tipe, url, deskripsi, kelasIds } = body;
+    const { judul, tipe, url, deskripsi, kelasIds, mapelId } = body;
 
     if (tipe !== undefined && !["PDF", "FILE", "IMAGE", "LINK"].includes(tipe)) {
       return NextResponse.json({ error: "Tipe materi tidak valid." }, { status: 400 });
+    }
+    if (mapelId && !(await db.mapel.findUnique({ where: { id: mapelId } }))) {
+      return NextResponse.json({ error: "Mapel tidak ditemukan." }, { status: 400 });
     }
 
     const existing = await db.materi.findUnique({ where: { id } });
@@ -34,6 +37,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           tipe: tipe || undefined,
           url: url || undefined,
           deskripsi: deskripsi !== undefined ? deskripsi || null : undefined,
+          mapelId: mapelId !== undefined ? mapelId || null : undefined,
         },
       });
 

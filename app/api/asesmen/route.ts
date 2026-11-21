@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
+import { parseDeadlineFields } from "@/lib/deadline-server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -96,6 +97,17 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { judul, tipe, mapelId, durasiMenit, deskripsi, kelasIds = [] } = body;
+    const deadlineResult = parseDeadlineFields(body);
+    if ("error" in deadlineResult) return NextResponse.json({ error: deadlineResult.error }, { status: 400 });
+    if (!("value" in deadlineResult) || (
+      deadlineResult.value.deadlineAt === null
+      && deadlineResult.value.deadlineDurationMinutes === null
+    )) {
+      return NextResponse.json({ error: "Deadline wajib untuk asesmen baru." }, { status: 400 });
+    }
+    if (deadlineResult.value.deadlineAt && deadlineResult.value.deadlineAt.getTime() <= Date.now()) {
+      return NextResponse.json({ error: "Tanggal deadline harus berada di masa depan." }, { status: 400 });
+    }
 
     if (!judul || !["KUIS", "UJIAN"].includes(tipe) || !Array.isArray(kelasIds)) {
       return NextResponse.json({ error: "Judul, tipe, dan kelas tujuan harus valid." }, { status: 400 });
@@ -117,6 +129,9 @@ export async function POST(req: NextRequest) {
           durasiMenit: durasiMenit || null,
           deskripsi: deskripsi || null,
           status: "PROSES",
+          publishedAt: null,
+          deadlineAt: deadlineResult.value.deadlineAt,
+          deadlineDurationMinutes: deadlineResult.value.deadlineDurationMinutes,
         },
       });
       if (kelasIds.length > 0) {

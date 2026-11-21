@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { showAlert } from "@/lib/dialog";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 const BRAND = "#6B85F6";
 
@@ -50,18 +51,9 @@ interface DetailResponse {
   soal: SoalDetail[];
 }
 
-const STATUS_BADGE: Record<StatusSoal, { label: string; tone: "green" | "red" | "amber" | "gray" }> = {
-  BENAR: { label: "Benar", tone: "green" },
-  SALAH: { label: "Salah", tone: "red" },
-  SEBAGIAN_BENAR: { label: "Sebagian Benar", tone: "amber" },
-  BELUM_DIJAWAB: { label: "Belum Dijawab", tone: "gray" },
-  BELUM_DINILAI: { label: "Belum Dinilai", tone: "amber" },
-  SUDAH_DINILAI: { label: "Sudah Dinilai", tone: "green" },
-};
-
-function formatTanggal(value: string | null) {
+function formatTanggal(value: string | null, locale: string) {
   if (!value) return "-";
-  return new Date(value).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(value).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function statusTone(status: StatusSoal): string {
@@ -74,6 +66,8 @@ function statusTone(status: StatusSoal): string {
 export default function DetailJawabanSiswaPage() {
   const params = useParams();
   const router = useRouter();
+  const { t, locale } = useLanguage();
+  const dateLocale = intlLocaleCodes[locale];
   const asesmenId = params.id as string;
   const submissionId = params.submissionId as string;
 
@@ -98,7 +92,7 @@ export default function DetailJawabanSiswaPage() {
       ]);
       const detailData = await detailRes.json();
       if (!detailRes.ok) {
-        setError(detailData.error ?? "Gagal memuat jawaban siswa.");
+        setError(detailData.error ?? t("Gagal memuat jawaban siswa."));
         return;
       }
       setDetail(detailData.data);
@@ -114,7 +108,7 @@ export default function DetailJawabanSiswaPage() {
         );
       }
     } catch {
-      setError("Terjadi kesalahan saat memuat jawaban siswa.");
+      setError(t("Terjadi kesalahan saat memuat jawaban siswa."));
     } finally {
       setLoading(false);
     }
@@ -145,7 +139,7 @@ export default function DetailJawabanSiswaPage() {
     if (!currentSoal?.jawabanSiswa) return;
     const nilai = Number(nilaiEssayInput);
     if (Number.isNaN(nilai) || nilai < 0 || nilai > 100) {
-      await showAlert("Nilai essay harus angka 0-100.");
+      await showAlert(t("Nilai essay harus angka 0-100."));
       return;
     }
     setSavingEssay(true);
@@ -157,24 +151,24 @@ export default function DetailJawabanSiswaPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        await showAlert(data.error ?? "Gagal menyimpan nilai essay.");
+        await showAlert(data.error ?? t("Gagal menyimpan nilai essay."));
         return;
       }
       await loadDetail();
     } catch {
-      await showAlert("Gagal menyimpan nilai essay.");
+      await showAlert(t("Gagal menyimpan nilai essay."));
     } finally {
       setSavingEssay(false);
     }
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat jawaban siswa...</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">{t("Memuat jawaban siswa...")}</p>;
   if (error || !detail) {
     return (
       <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-sm text-red-500">{error || "Jawaban siswa tidak ditemukan."}</p>
+        <p className="text-sm text-red-500">{error || t("Jawaban siswa tidak ditemukan.")}</p>
         <Button variant="outline" onClick={() => router.push(`/super-admin/asesmen/${asesmenId}/jawaban`)}>
-          Kembali
+          {t("Kembali")}
         </Button>
       </div>
     );
@@ -186,22 +180,22 @@ export default function DetailJawabanSiswaPage() {
     <div className="mx-auto max-w-6xl pb-10">
       <Link
         href={`/super-admin/asesmen/${asesmenId}/jawaban`}
-        className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[#64748B] hover:text-[#6B85F6]"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-accent-text"
       >
-        &larr; Kembali ke Daftar Jawaban
+        &larr; {t("Kembali ke Daftar Jawaban")}
       </Link>
 
-      <div className="flex flex-wrap items-start justify-between gap-5 border border-[#e1e5ed] border-t-4 border-t-[#6B85F6] bg-white p-6">
+      <div className="flex flex-wrap items-start justify-between gap-5 border border-border border-t-4 border-t-[#6B85F6] bg-white p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">
-            {detail.siswa.role === "SUPER_ADMIN" ? "Jawaban Super Admin" : "Jawaban Siswa"}
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {detail.siswa.role === "SUPER_ADMIN" ? t("Jawaban Super Admin") : t("Jawaban Siswa")}
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-[#182033]">{detail.siswa.nama}</h1>
+          <h1 className="mt-1 text-2xl font-bold text-foreground">{detail.siswa.nama}</h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {detail.siswa.role === "SUPER_ADMIN" ? (
-              <Badge tone="brand">Super Admin</Badge>
+              <Badge tone="brand">{t("SUPER ADMIN")}</Badge>
             ) : (
-              <Badge tone="gray">NIS {detail.siswa.nis}</Badge>
+              <Badge tone="gray">{t("NIS")} {detail.siswa.nis}</Badge>
             )}
             <Badge tone="gray">{detail.siswa.kelasJurusan}</Badge>
             <Badge tone="gray">{detail.kelas}</Badge>
@@ -212,46 +206,46 @@ export default function DetailJawabanSiswaPage() {
 
       </div>
 
-      <div className="mt-4 border border-[#e1e5ed] bg-white">
+      <div className="mt-4 border border-border bg-white">
         <div className="grid lg:grid-cols-[1fr_220px]">
           <div className="overflow-x-auto p-4 sm:p-5">
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[#dfe4ef] text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-                  <th className="pb-3">Ringkasan</th>
-                  <th className="pb-3 text-right">Hasil</th>
+                <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="pb-3">{t("Ringkasan")}</th>
+                  <th className="pb-3 text-right">{t("Hasil")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#edf0f5]">
                 <tr>
-                  <td className="py-3 text-[#64748B]">Mulai</td>
-                  <td className="py-3 text-right font-semibold text-[#182033]">{formatTanggal(detail.mulaiPada)}</td>
+                  <td className="py-3 text-muted-foreground">{t("Mulai")}</td>
+                  <td className="py-3 text-right font-semibold text-foreground">{formatTanggal(detail.mulaiPada, dateLocale)}</td>
                 </tr>
                 <tr>
-                  <td className="py-3 text-[#64748B]">Dikumpulkan</td>
-                  <td className="py-3 text-right font-semibold text-[#182033]">{formatTanggal(detail.submittedAt)}</td>
+                  <td className="py-3 text-muted-foreground">{t("Dikumpulkan")}</td>
+                  <td className="py-3 text-right font-semibold text-foreground">{formatTanggal(detail.submittedAt, dateLocale)}</td>
                 </tr>
                 <tr>
-                  <td className="py-3 text-[#64748B]">Pilihan Ganda Dikerjakan</td>
-                  <td className="py-3 text-right font-bold text-[#182033]">{rekap.totalObjektifDijawab}/{rekap.totalObjektif}</td>
+                  <td className="py-3 text-muted-foreground">{t("Pilihan Ganda Dikerjakan")}</td>
+                  <td className="py-3 text-right font-bold text-foreground">{rekap.totalObjektifDijawab}/{rekap.totalObjektif}</td>
                 </tr>
                 <tr>
-                  <td className="py-3 text-[#64748B]">Essay Dikerjakan</td>
-                  <td className="py-3 text-right font-bold text-[#182033]">{rekap.totalEssayDijawab}/{rekap.totalEssay}</td>
+                  <td className="py-3 text-muted-foreground">{t("Essay Dikerjakan")}</td>
+                  <td className="py-3 text-right font-bold text-foreground">{rekap.totalEssayDijawab}/{rekap.totalEssay}</td>
                 </tr>
                 <tr>
-                  <td className="py-3 text-[#64748B]">Jumlah Ragu-ragu</td>
-                  <td className="py-3 text-right font-bold text-[#182033]">{rekap.totalRaguRagu}</td>
+                  <td className="py-3 text-muted-foreground">{t("Jumlah Ragu-ragu")}</td>
+                  <td className="py-3 text-right font-bold text-foreground">{rekap.totalRaguRagu}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div className="order-first flex items-center justify-center border-b border-[#dfe4ef] bg-[#f7f8fd] p-5 text-center lg:order-last lg:border-b-0 lg:border-l">
+          <div className="order-first flex items-center justify-center border-b border-border bg-surface-muted p-5 text-center lg:order-last lg:border-b-0 lg:border-l">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Nilai Objektif</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Nilai Objektif")}</p>
               <p className="mt-1 text-3xl font-bold text-green-600">{rekap.nilaiObjektif}</p>
               <div className="my-4 h-px bg-[#e1e5ed]" />
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Nilai Akhir</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Nilai Akhir")}</p>
               <p className="mt-1 text-3xl font-bold" style={{ color: BRAND }}>
                 {detail.nilaiAkhir ?? "-"}
               </p>
@@ -262,10 +256,10 @@ export default function DetailJawabanSiswaPage() {
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <Button size="sm" variant="outline" disabled={!prevSiswaId} onClick={() => prevSiswaId && router.push(`/super-admin/asesmen/${asesmenId}/jawaban/${prevSiswaId}`)}>
-          &larr; Siswa Sebelumnya
+          &larr; {t("Siswa Sebelumnya")}
         </Button>
         <Button size="sm" variant="outline" disabled={!nextSiswaId} onClick={() => nextSiswaId && router.push(`/super-admin/asesmen/${asesmenId}/jawaban/${nextSiswaId}`)}>
-          Siswa Berikutnya &rarr;
+          {t("Siswa Berikutnya")} &rarr;
         </Button>
       </div>
 
@@ -273,10 +267,10 @@ export default function DetailJawabanSiswaPage() {
       {detail.soal.length > 0 && (
         <div className="mt-3 flex items-center gap-2">
           <button
-            aria-label="Soal sebelumnya"
+            aria-label={t("Soal sebelumnya")}
             onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
             disabled={activeIndex === 0}
-            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             {"<<"}
           </button>
@@ -304,33 +298,44 @@ export default function DetailJawabanSiswaPage() {
           </div>
 
           <button
-            aria-label="Soal berikutnya"
+            aria-label={t("Soal berikutnya")}
             onClick={() => setActiveIndex((i) => Math.min(detail.soal.length - 1, i + 1))}
             disabled={activeIndex >= detail.soal.length - 1}
-            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             {">>"}
           </button>
         </div>
       )}
 
-      <div className="mt-4 min-h-[300px] border border-[#e1e5ed] bg-white p-6 sm:p-8">
+      <div className="mt-4 min-h-[300px] rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
         {detail.soal.length === 0 ? (
-          <p className="text-sm text-[#9CA3AF]">Siswa ini belum menjawab soal apapun.</p>
+          <p className="text-sm text-muted-foreground">{t("Siswa ini belum menjawab soal apapun.")}</p>
         ) : currentSoal ? (
           <div>
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <Badge tone="gray">
-                  {currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay"}
+                  {t(currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay")}
                 </Badge>
-                <Badge tone={STATUS_BADGE[currentSoal.status].tone}>{STATUS_BADGE[currentSoal.status].label}</Badge>
+                <Badge
+                  tone={currentSoal.status === "BENAR" || currentSoal.status === "SUDAH_DINILAI" ? "green" : currentSoal.status === "SALAH" ? "red" : currentSoal.status === "SEBAGIAN_BENAR" || currentSoal.status === "BELUM_DINILAI" ? "amber" : "gray"}
+                >
+                  {t({
+                    BENAR: "Benar",
+                    SALAH: "Salah",
+                    SEBAGIAN_BENAR: "Sebagian Benar",
+                    BELUM_DIJAWAB: "Belum Dijawab",
+                    BELUM_DINILAI: "Belum Dinilai",
+                    SUDAH_DINILAI: "Sudah Dinilai",
+                  }[currentSoal.status])}
+                </Badge>
               </div>
               <button
                 onClick={() => setShowGrid(true)}
-                title="Buka daftar soal"
-                aria-label="Buka daftar soal"
-                className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
+                title={t("Buka daftar soal")}
+                aria-label={t("Buka daftar soal")}
+                className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-[#6B85F6]/10"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                   <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -341,13 +346,13 @@ export default function DetailJawabanSiswaPage() {
               </button>
             </div>
 
-            <p className="mt-5 text-base font-semibold leading-relaxed text-[#182033]">
+            <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
               {activeIndex + 1}. {currentSoal.pertanyaan}
             </p>
 
             {currentSoal.gambar && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentSoal.gambar} alt="Gambar soal" className="mt-3 max-h-64 rounded-xl object-contain" />
+              <img src={currentSoal.gambar} alt={t("Gambar soal")} className="mt-3 max-h-64 rounded-xl object-contain" />
             )}
 
             {currentSoal.tipe !== "ESSAY" ? (
@@ -366,8 +371,8 @@ export default function DetailJawabanSiswaPage() {
                         <span className="text-[#374151]">{o.teks}</span>
                       </div>
                       <div className="flex gap-1.5">
-                        {dipilihSiswa && <Badge tone="brand">Dipilih Siswa</Badge>}
-                        {o.isBenar && <Badge tone="green">Kunci Jawaban</Badge>}
+                        {dipilihSiswa && <Badge tone="brand">{t("Dipilih Siswa")}</Badge>}
+                        {o.isBenar && <Badge tone="green">{t("Kunci Jawaban")}</Badge>}
                       </div>
                     </div>
                   );
@@ -375,25 +380,25 @@ export default function DetailJawabanSiswaPage() {
               </div>
             ) : (
               <div className="mt-4 space-y-4">
-                <div className="rounded-lg border border-[#dfe4ef] bg-[#f7f8fd] p-4 text-sm text-[#374151]">
-                  {currentSoal.jawabanSiswa?.jawabanEssay || <span className="text-[#9CA3AF]">Siswa belum menjawab.</span>}
+                <div className="rounded-lg border border-border bg-surface-muted p-4 text-sm text-[#374151]">
+                  {currentSoal.jawabanSiswa?.jawabanEssay || <span className="text-muted-foreground">{t("Siswa belum menjawab.")}</span>}
                 </div>
 
                 {currentSoal.jawabanSiswa && (
                   <div className="flex flex-wrap items-end gap-2">
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-[#64748B]">Nilai Essay (0-100)</label>
+                      <label className="mb-1 block text-xs font-semibold text-muted-foreground">{t("Nilai Essay (0-100)")}</label>
                       <input
                         type="number"
                         min={0}
                         max={100}
                         value={nilaiEssayInput}
                         onChange={(e) => setNilaiEssayInput(e.target.value)}
-                        className="w-28 rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+                        className="w-28 rounded-lg border border-border px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
                       />
                     </div>
                     <Button size="sm" loading={savingEssay} onClick={handleSimpanEssay}>
-                      Simpan Nilai
+                      {t("Simpan Nilai")}
                     </Button>
                   </div>
                 )}
@@ -404,23 +409,23 @@ export default function DetailJawabanSiswaPage() {
       </div>
 
       {/* Overlay daftar soal — terpusat, seperti di RuangGuru */}
-      <Modal open={showGrid} onClose={() => setShowGrid(false)} title="Daftar Soal" maxWidth="max-w-lg">
+      <Modal open={showGrid} onClose={() => setShowGrid(false)} title={t("Daftar Soal")} maxWidth="max-w-lg">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-lg bg-[#EEF2FF] p-3 text-center">
-            <p className="text-xs font-semibold text-[#16A34A]">Benar</p>
+            <p className="text-xs font-semibold text-[#16A34A]">{t("Benar")}</p>
             <p className="mt-1 text-lg font-bold text-[#16A34A]">{rekap.totalBenar}</p>
           </div>
           <div className="rounded-lg bg-[#FEF2F2] p-3 text-center">
-            <p className="text-xs font-semibold text-[#DC2626]">Salah</p>
+            <p className="text-xs font-semibold text-[#DC2626]">{t("Salah")}</p>
             <p className="mt-1 text-lg font-bold text-[#DC2626]">{rekap.totalSalah}</p>
           </div>
           <div className="rounded-lg bg-[#FEF3C7] p-3 text-center">
-            <p className="text-xs font-semibold text-[#92400E]">Ragu-ragu</p>
+            <p className="text-xs font-semibold text-[#92400E]">{t("Ragu-ragu")}</p>
             <p className="mt-1 text-lg font-bold text-[#92400E]">{rekap.totalRaguRagu}</p>
           </div>
-          <div className="rounded-lg bg-[#f7f8fd] p-3 text-center">
-            <p className="text-xs font-semibold text-[#435064]">Belum Dinilai</p>
-            <p className="mt-1 text-lg font-bold text-[#435064]">{rekap.totalEssayBelumDinilai}</p>
+          <div className="rounded-lg bg-surface-muted p-3 text-center">
+            <p className="text-xs font-semibold text-muted-foreground">{t("Belum Dinilai")}</p>
+            <p className="mt-1 text-lg font-bold text-muted-foreground">{rekap.totalEssayBelumDinilai}</p>
           </div>
         </div>
 

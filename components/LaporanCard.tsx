@@ -4,6 +4,7 @@ import { useState } from "react";
 import Badge from "./ui/Badge";
 import Button from "./ui/Button";
 import { showAlert, showConfirm } from "@/lib/dialog";
+import { useLanguage } from "@/lib/i18n";
 
 export interface LaporanData {
   id: string;
@@ -28,11 +29,12 @@ interface LaporanCardProps {
 }
 
 export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
+  const { t } = useLanguage();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [otpTampil, setOtpTampil] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const identitas = data.user.role === "SISWA" ? `NIS: ${data.user.nis}` : `NIK: ${data.user.nik}`;
+  const identitas = data.user.role === "SISWA" ? `${t("NIS")}: ${data.user.nis}` : `${t("NIK")}: ${data.user.nik}`;
 
   async function handleTerima() {
     setLoadingAction("terima");
@@ -43,10 +45,10 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
         setOtpTampil(json.otp);
         onUpdated();
       } else {
-        await showAlert(json.error ?? "Gagal mengirim OTP.");
+        await showAlert(t(json.error ?? "Gagal mengirim OTP."));
       }
     } catch {
-      await showAlert("Terjadi kesalahan.");
+      await showAlert(t("Terjadi kesalahan."));
     } finally {
       setLoadingAction(null);
     }
@@ -60,36 +62,36 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
       if (res.ok) {
         setOtpTampil(json.otp);
       } else {
-        await showAlert(json.error ?? "Gagal mengirim OTP.");
+        await showAlert(t(json.error ?? "Gagal mengirim OTP."));
       }
     } catch {
-      await showAlert("Terjadi kesalahan.");
+      await showAlert(t("Terjadi kesalahan."));
     } finally {
       setLoadingAction(null);
     }
   }
 
   async function handleTolak() {
-    if (!(await showConfirm("Tolak dan hapus laporan ini?"))) return;
+    if (!(await showConfirm(t("Tolak dan hapus laporan ini?")))) return;
     setLoadingAction("tolak");
     try {
       const res = await fetch(`/api/lupa-password/${data.id}/tolak`, { method: "POST" });
       if (res.ok) onUpdated();
     } catch {
-      await showAlert("Terjadi kesalahan.");
+      await showAlert(t("Terjadi kesalahan."));
     } finally {
       setLoadingAction(null);
     }
   }
 
   async function handleSelesai() {
-    if (!(await showConfirm("Tandai laporan ini selesai? Card akan dihapus dari daftar."))) return;
+    if (!(await showConfirm(t("Tandai laporan ini selesai? Card akan dihapus dari daftar.")))) return;
     setLoadingAction("selesai");
     try {
       const res = await fetch(`/api/lupa-password/${data.id}/selesai`, { method: "POST" });
       if (res.ok) onUpdated();
     } catch {
-      await showAlert("Terjadi kesalahan.");
+      await showAlert(t("Terjadi kesalahan."));
     } finally {
       setLoadingAction(null);
     }
@@ -115,15 +117,15 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-muted-foreground">Permintaan Laporan ubah password dari :</p>
+          <p className="text-xs font-semibold text-muted-foreground">{t("Permintaan Laporan ubah password dari :")}</p>
           <div className="flex items-center gap-2">
             <p className="font-bold text-foreground">{data.user.nama}</p>
-            <Badge tone="gray">{data.user.role === "SISWA" ? "Siswa" : "Guru"}</Badge>
+            <Badge tone="gray">{t(data.user.role === "SISWA" ? "Siswa" : "Guru")}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            email: {data.email} · {identitas}
+            {t("email")}: {data.email} · {identitas}
           </p>
-          <p className="mt-1 text-xs italic text-muted-foreground">Alasan: {data.alasan}</p>
+          <p className="mt-1 text-xs italic text-muted-foreground">{t("Alasan")}: {data.alasan}</p>
         </div>
       </div>
 
@@ -131,10 +133,10 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
       {data.status === "PENDING" && (
         <div className="mt-4 flex flex-wrap gap-2">
           <Button size="sm" loading={loadingAction === "terima"} onClick={handleTerima}>
-            Terima &amp; Kirim OTP
+            {t("Terima & Kirim OTP")}
           </Button>
           <Button size="sm" variant="outline" loading={loadingAction === "tolak"} onClick={handleTolak}>
-            Tolak dan Hapus Laporan
+            {t("Tolak dan Hapus Laporan")}
           </Button>
         </div>
       )}
@@ -144,7 +146,7 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
         <div className="mt-4 space-y-3">
           {otpTampil && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Kode OTP 4 digit untuk ubah password :</p>
+              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{t("Kode OTP 4 digit untuk ubah password :")}</p>
               <div className="flex items-center gap-2">
                 <div className="flex gap-2">
                   {otpTampil.split("").map((digit, i) => (
@@ -160,7 +162,7 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
                   onClick={handleCopyOtp}
                   className="cursor-pointer text-xs font-semibold text-foreground underline-offset-4 hover:underline"
                 >
-                  {copied ? "Tersalin!" : "Salin Kode OTP"}
+                  {copied ? t("Tersalin!") : t("Salin Kode OTP")}
                 </button>
               </div>
             </div>
@@ -168,10 +170,10 @@ export default function LaporanCard({ data, onUpdated }: LaporanCardProps) {
 
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" loading={loadingAction === "kirim-ulang"} onClick={handleKirimUlangOtp}>
-              Kirim Ulang OTP
+              {t("Kirim Ulang OTP")}
             </Button>
             <Button size="sm" loading={loadingAction === "selesai"} onClick={handleSelesai}>
-              Selesai
+              {t("Selesai")}
             </Button>
           </div>
         </div>

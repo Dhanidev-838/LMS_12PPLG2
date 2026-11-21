@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
 import { Input, Select, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
+import DeadlineField from "./DeadlineField";
+import { selectionFromDeadline, selectionToDeadlinePayload, type DeadlineSelection } from "@/lib/deadline";
+import { useLanguage } from "@/lib/i18n";
 
 interface MapelOption {
   id: string;
@@ -17,6 +20,8 @@ interface EditAsesmenData {
   mapelId?: string | null;
   durasiMenit: number | null;
   deskripsi?: string | null;
+  deadlineAt?: string | null;
+  deadlineDurationMinutes?: number | null;
 }
 
 export default function ModalEditAsesmen({
@@ -30,10 +35,12 @@ export default function ModalEditAsesmen({
   onSuccess: () => void;
   initialData: EditAsesmenData | null;
 }) {
+  const { t } = useLanguage();
   const [judul, setJudul] = useState("");
   const [mapelId, setMapelId] = useState("");
   const [durasiMenit, setDurasiMenit] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
+  const [deadline, setDeadline] = useState<DeadlineSelection>({ mode: "none" });
   const [mapelList, setMapelList] = useState<MapelOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,11 +52,16 @@ export default function ModalEditAsesmen({
     setMapelId(initialData.mapelId ?? "");
     setDurasiMenit(initialData.durasiMenit?.toString() ?? "");
     setDeskripsi(initialData.deskripsi ?? "");
+    setDeadline(selectionFromDeadline(initialData.deadlineAt, initialData.deadlineDurationMinutes));
     setError("");
-    fetch("/api/mapel")
-      .then((res) => res.json())
-      .then((data) => setMapelList(data.data ?? []))
-      .catch(() => {});
+    fetch("/api/mapel", { cache: "no-store" })
+      .then(async (res) => {
+        const data: { data?: MapelOption[]; error?: string } = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Gagal memuat daftar mapel.");
+        if (!Array.isArray(data.data)) throw new Error("Daftar mapel tidak valid.");
+        setMapelList(data.data);
+      })
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Gagal memuat daftar mapel."));
   }, [open, initialData]);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -58,7 +70,12 @@ export default function ModalEditAsesmen({
     const durasi = durasiMenit ? Number(durasiMenit) : null;
     const minimumDurasi = initialData.tipe === "KUIS" ? 10 : 20;
     if (durasi !== null && durasi < minimumDurasi) {
-      setError(`${initialData.tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi ${minimumDurasi} menit.`);
+      setError(t("Durasi minimal {minimum} menit.").replace("{minimum}", String(minimumDurasi)));
+      return;
+    }
+    const deadlineResult = selectionToDeadlinePayload(deadline);
+    if (!deadlineResult.payload) {
+      setError(t(deadlineResult.error ?? "Deadline tidak valid."));
       return;
     }
     setLoading(true);
@@ -72,40 +89,47 @@ export default function ModalEditAsesmen({
           mapelId: mapelId || null,
           durasiMenit: durasiMenit ? Number(durasiMenit) : null,
           deskripsi: deskripsi || null,
+          ...deadlineResult.payload,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Asesmen gagal diperbarui.");
+        setError(t(data.error ?? "Asesmen gagal diperbarui."));
         return;
       }
       onSuccess();
       onClose();
     } catch {
-      setError("Asesmen gagal diperbarui.");
+      setError(t("Asesmen gagal diperbarui."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Asesmen" maxWidth="max-w-lg">
+    <Modal open={open} onClose={onClose} title={t("Edit Asesmen")} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Judul Asesmen" value={judul} onChange={(event) => setJudul(event.target.value)} required />
-        <Select label="Mapel" placeholder="Pilih mapel" value={mapelId} onChange={(event) => setMapelId(event.target.value)}>
+        <Input label={t("Judul Asesmen")} value={judul} onChange={(event) => setJudul(event.target.value)} required />
+        <Select label={t("Mapel")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(event) => setMapelId(event.target.value)}>
           {mapelList.map((mapel) => <option key={mapel.id} value={mapel.id}>{mapel.nama}</option>)}
         </Select>
-        <Input label="Durasi (menit)" type="number" min={initialData?.tipe === "KUIS" ? 10 : 20} value={durasiMenit} onChange={(event) => setDurasiMenit(event.target.value)} />
+        <Input label={t("Durasi (menit)")} type="number" min={initialData?.tipe === "KUIS" ? 10 : 20} value={durasiMenit} onChange={(event) => setDurasiMenit(event.target.value)} />
         {durasiMenit && Number(durasiMenit) < (initialData?.tipe === "KUIS" ? 10 : 20) && (
           <p className="-mt-2 text-xs font-medium text-danger">
-            {initialData?.tipe === "KUIS" ? "Kuis" : "Ujian Online"} minimal berdurasi {initialData?.tipe === "KUIS" ? 10 : 20} menit.
+            {t("Durasi minimal {minimum} menit.").replace("{minimum}", String(initialData?.tipe === "KUIS" ? 10 : 20))}
           </p>
         )}
-        <Textarea label="Deskripsi (opsional)" value={deskripsi} onChange={(event) => setDeskripsi(event.target.value)} />
+        <Textarea label={t("Deskripsi (opsional)")} value={deskripsi} onChange={(event) => setDeskripsi(event.target.value)} />
+        <DeadlineField
+          value={deadline}
+          onChange={setDeadline}
+          required={Boolean(initialData?.deadlineAt || initialData?.deadlineDurationMinutes)}
+          startsWhen="Deadline dihitung sejak asesmen diterbitkan."
+        />
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Batal</Button>
-          <Button type="submit" loading={loading} className="flex-1">Simpan Perubahan</Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t("Batal")}</Button>
+          <Button type="submit" loading={loading} className="flex-1">{t("Simpan Perubahan")}</Button>
         </div>
       </form>
     </Modal>

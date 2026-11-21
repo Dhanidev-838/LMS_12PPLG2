@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 interface JoinClassFormProps {
   onSuccess?: () => void;
@@ -21,6 +22,7 @@ function extractToken(value: string) {
 }
 
 export default function JoinClassForm({ onSuccess }: JoinClassFormProps) {
+  const { t } = useLanguage();
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +35,7 @@ export default function JoinClassForm({ onSuccess }: JoinClassFormProps) {
 
     const token = extractToken(value);
     if (!token) {
-      setError("Masukkan kode kelas atau link undangan.");
+      setError(t("Masukkan kode kelas atau link undangan."));
       return;
     }
 
@@ -46,15 +48,15 @@ export default function JoinClassForm({ onSuccess }: JoinClassFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error ?? "Gagal bergabung ke kelas.");
+        setError(t(data.error ?? "Gagal bergabung ke kelas."));
         return;
       }
 
       setValue("");
-      setSuccess(data.message ?? "Berhasil bergabung ke kelas.");
+      setSuccess(t(data.message ?? "Berhasil bergabung ke kelas."));
       onSuccess?.();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
@@ -67,8 +69,8 @@ export default function JoinClassForm({ onSuccess }: JoinClassFormProps) {
           type="text"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Masukkan kode kelas atau link undangan"
-          aria-label="Kode kelas atau tautan undangan"
+          placeholder={t("Masukkan kode kelas atau link undangan")}
+          aria-label={t("Kode kelas atau tautan undangan")}
           className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
           disabled={loading}
         />
@@ -77,7 +79,7 @@ export default function JoinClassForm({ onSuccess }: JoinClassFormProps) {
           disabled={loading || !value.trim()}
           className="min-h-10 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Memproses..." : "Gabung Kelas"}
+          {loading ? t("Memproses...") : t("Gabung Kelas")}
         </button>
       </form>
       {error && <p className="mt-2 text-xs font-medium text-danger">{error}</p>}

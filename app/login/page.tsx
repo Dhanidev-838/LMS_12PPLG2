@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/shared/theme-toggle";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useLanguage } from "@/lib/i18n";
 
 const BRAND = "#6B85F6";
 const SAVED_ACCOUNTS_KEY = "classify-saved-accounts";
@@ -18,8 +20,8 @@ const PORTAL_CONFIG: Record<
   { label: string; title: string; identifierLabel: string; identifierPlaceholder: string }
 > = {
   ADMIN: { label: "Admin", title: "Login Sebagai Admin", identifierLabel: "Email", identifierPlaceholder: "Email" },
-  PETUGAS: { label: "Petugas", title: "Login Sebagai Petugas", identifierLabel: "NIK", identifierPlaceholder: "Nik" },
-  SISWA: { label: "Siswa", title: "Login Sebagai Siswa", identifierLabel: "NIS", identifierPlaceholder: "Nis" },
+  PETUGAS: { label: "Petugas", title: "Login Sebagai Petugas", identifierLabel: "NIK", identifierPlaceholder: "NIK" },
+  SISWA: { label: "Siswa", title: "Login Sebagai Siswa", identifierLabel: "NIS", identifierPlaceholder: "NIS" },
 };
 
 function readSavedAccounts(): SavedAccount[] {
@@ -59,6 +61,7 @@ function persistSavedAccount(portal: Portal, identifier: string) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [view, setView] = useState<View>("LOGIN");
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -140,7 +143,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Login gagal, coba lagi.");
+        setError(t(data.error ?? "Login gagal, coba lagi."));
         setLoading(false);
         return;
       }
@@ -150,7 +153,7 @@ export default function LoginPage() {
       router.push(data.redirectTo ?? "/");
       router.refresh();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
       setLoading(false);
     }
   }
@@ -167,9 +170,9 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier, email: lupaEmail, tanggalLahir, alasan }),
       });
       const data = await res.json();
-      setInfo(data.message ?? "Laporan berhasil dikirim ke admin.");
+      setInfo(t(data.message ?? "Laporan berhasil dikirim ke admin."));
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
@@ -194,7 +197,7 @@ export default function LoginPage() {
 
     const otp = otpDigits.join("");
     if (otp.length !== 4) {
-      setError("Masukkan 4 digit kode OTP.");
+      setError(t("Masukkan 4 digit kode OTP."));
       return;
     }
 
@@ -207,13 +210,13 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Kode OTP tidak valid.");
+        setError(t(data.error ?? "Kode OTP tidak valid."));
         setLoading(false);
         return;
       }
       setView("PASSWORD_BARU");
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
@@ -225,7 +228,7 @@ export default function LoginPage() {
     setError("");
 
     if (passwordBaru.length < 6) {
-      setError("Password minimal 6 karakter.");
+      setError(t("Password minimal 6 karakter."));
       return;
     }
 
@@ -238,13 +241,13 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Gagal mengubah password.");
+        setError(t(data.error ?? "Gagal mengubah password."));
         setLoading(false);
         return;
       }
       setView("SUKSES");
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
@@ -258,32 +261,33 @@ export default function LoginPage() {
   return (
     <div data-admin-theme={mounted ? theme : "light"} className="public-shell flex min-h-screen flex-col bg-[#f8f9fc] text-[#182033]" style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}>
       <header className="border-b border-[#e8ebf2] bg-white">
-        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2.5"><Image src="/Logo1.png" alt="Logo Classify" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-.04em]">Classify</span></Link>
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex min-h-[68px] max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2.5"><Image src="/Logo1.png" alt="Classify" width={32} height={32} className="rounded-[9px] object-contain" /><span className="text-[17px] font-bold tracking-[-.04em]">Classify</span></Link>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <LanguageSelector compact className="w-28 sm:w-36" />
             <ThemeToggle theme={theme} onToggle={() => setTheme((v) => (v === "light" ? "dark" : "light"))} />
-            <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-[#dce1eb] px-3.5 py-2 text-sm font-semibold text-[#4b576b] transition-colors hover:bg-[#f7f8fb]"><span aria-hidden="true">←</span> Kembali</Link>
+            <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-[#dce1eb] px-3.5 py-2 text-sm font-semibold text-[#4b576b] transition-colors hover:bg-[#f7f8fb]"><span aria-hidden="true">←</span> {t("Kembali")}</Link>
           </div>
         </div>
       </header>
 
       <section className="mx-auto grid w-full max-w-7xl flex-1 items-stretch px-4 py-6 sm:px-6 lg:grid-cols-[.92fr_1.08fr] lg:px-8 lg:py-10">
         <aside className="hidden min-h-[620px] flex-col justify-between overflow-hidden border border-[#dfe4ef] bg-[#6B85F6] p-10 text-white lg:flex">
-          <div><p className="text-xs font-bold uppercase tracking-[.16em] text-white/70">Classify access</p><h1 className="mt-5 max-w-md text-4xl font-bold tracking-[-.055em]">Masuk dan lanjutkan pembelajaran.</h1><p className="mt-5 max-w-md text-sm leading-7 text-white/80">Satu akses untuk mengelola aktivitas belajar, materi, tugas, asesmen, hingga perkembangan akademik.</p></div>
-          <div className="border-t border-white/20 pt-6"><p className="text-sm font-semibold">Lebih terarah, dalam satu sistem.</p><div className="mt-4 grid grid-cols-3 gap-3 text-xs text-white/75"><span>Materi</span><span>Tugas</span><span>Penilaian</span></div></div>
+          <div><p className="text-xs font-bold uppercase tracking-[.16em] text-white/70">{t("Akses Classify")}</p><h1 className="mt-5 max-w-md text-4xl font-bold tracking-[-.055em]">{t("Masuk dan lanjutkan pembelajaran.")}</h1><p className="mt-5 max-w-md text-sm leading-7 text-white/80">{t("Satu akses untuk mengelola aktivitas belajar, materi, tugas, asesmen, hingga perkembangan akademik.")}</p></div>
+          <div className="border-t border-white/20 pt-6"><p className="text-sm font-semibold">{t("Lebih terarah, dalam satu sistem.")}</p><div className="mt-4 grid grid-cols-3 gap-3 text-xs text-white/75"><span>{t("Materi")}</span><span>{t("Tugas")}</span><span>{t("Penilaian")}</span></div></div>
         </aside>
 
         <div className="flex min-h-[620px] items-center justify-center border border-t-0 border-[#dfe4ef] bg-white px-4 py-10 sm:px-8 lg:border-l-0 lg:border-t">
           <div className="w-full max-w-md">
           <div className="flex items-center gap-3 border-b border-[#edf0f5] pb-6">
-            <Image src="/Logo1.png" alt="Logo Classify" width={38} height={38} className="rounded-[11px] object-contain" />
-            <div><p className="font-bold tracking-[-.03em]">Classify</p><p className="mt-0.5 text-xs text-[#7a8495]">Learning Management System</p></div>
+            <Image src="/Logo1.png" alt="Classify" width={38} height={38} className="rounded-[11px] object-contain" />
+            <div><p className="font-bold tracking-[-.03em]">Classify</p><p className="mt-0.5 text-xs text-[#7a8495]">{t("Sistem Manajemen Pembelajaran")}</p></div>
           </div>
 
           {/* ============ VIEW: LOGIN ============ */}
           {view === "LOGIN" && (
             <>
-              <p className="mt-6 text-xs font-semibold text-[#6B7280]">Portal Administrasi</p>
+              <p className="mt-6 text-xs font-semibold text-[#6B7280]">{t("Portal Administrasi")}</p>
               <div className="mt-2 grid grid-cols-3 gap-2">
                 {(Object.keys(PORTAL_CONFIG) as Portal[]).map((key) => (
                   <button
@@ -296,20 +300,20 @@ export default function LoginPage() {
                         : "border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
                     }`}
                   >
-                    {PORTAL_CONFIG[key].label}
+                    {t(PORTAL_CONFIG[key].label)}
                   </button>
                 ))}
               </div>
 
-              <p className="mt-6 text-xs text-[#9CA3AF]">Login Sebagai {config.label}</p>
-              <p className="text-sm font-bold text-[#111827]">{config.title}</p>
+              <p className="mt-6 text-xs text-[#9CA3AF]">{t("Login Sebagai")} {t(config.label)}</p>
+              <p className="text-sm font-bold text-[#111827]">{t(config.title)}</p>
 
               <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3">
                 <div className="relative">
                   <input
                     type={portal === "ADMIN" ? "email" : "text"}
                     required
-                    placeholder={config.identifierPlaceholder}
+                    placeholder={t(config.identifierPlaceholder)}
                     value={loginIdentifier}
                     onFocus={() => setShowSavedAccounts(savedAccounts.length > 0)}
                     onBlur={() => setTimeout(() => setShowSavedAccounts(false), 120)}
@@ -357,7 +361,7 @@ export default function LoginPage() {
                             <path d="M4 18.5c1.3-2.4 4-3.8 8-3.8s6.7 1.4 8 3.8" strokeLinecap="round" />
                           </svg>
                         </span>
-                        <span className="account-text">Manage addresses...</span>
+                        <span className="account-text">{t("Manage addresses...")}</span>
                       </button>
                     </div>
                   )}
@@ -367,7 +371,7 @@ export default function LoginPage() {
                   <input
                     type={showLoginPassword ? "text" : "password"}
                     required
-                    placeholder="Password"
+                    placeholder={t("Password")}
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 pr-12 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
@@ -375,8 +379,8 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword((visible) => !visible)}
-                    aria-label={showLoginPassword ? "Sembunyikan password" : "Tampilkan password"}
-                    title={showLoginPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    aria-label={showLoginPassword ? t("Sembunyikan password") : t("Tampilkan password")}
+                    title={showLoginPassword ? t("Sembunyikan password") : t("Tampilkan password")}
                     className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center text-[#748096] hover:text-[#435064]"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
@@ -403,12 +407,12 @@ export default function LoginPage() {
                   className="w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
                   style={{ background: BRAND }}
                 >
-                  {loading ? "Memproses..." : "Masuk"}
+                  {loading ? t("Memproses...") : t("Masuk")}
                 </button>
 
                 {portal !== "ADMIN" && (
                   <p className="text-center text-xs text-[#9CA3AF]">
-                    Lupa Password?{" "}
+                    {t("Lupa Password?")}{" "}
                     <button
                       type="button"
                       onClick={() => {
@@ -418,7 +422,7 @@ export default function LoginPage() {
                       className="cursor-pointer font-semibold hover:underline"
                       style={{ color: BRAND }}
                     >
-                      Ubah Password
+                      {t("Ubah Password")}
                     </button>
                   </p>
                 )}
@@ -429,10 +433,8 @@ export default function LoginPage() {
           {/* ============ VIEW: LAPOR (step 1) ============ */}
           {view === "LAPOR" && (
             <>
-              <p className="mt-6 text-xs font-semibold text-[#6B7280]">Buat Laporan Password</p>
-              <p className="text-sm font-bold text-[#111827]">
-                Gunakan NIS/NIK, email, tanggal lahir, dan alasan untuk ubah password
-              </p>
+              <p className="mt-6 text-xs font-semibold text-[#6B7280]">{t("Buat Laporan Password")}</p>
+              <p className="text-sm font-bold text-[#111827]">{t("Gunakan NIS/NIK, email, tanggal lahir, dan alasan untuk ubah password")}</p>
 
               {info ? (
                 <div className="mt-4 rounded-lg bg-[#F0FDF4] p-4 text-center">
@@ -443,14 +445,14 @@ export default function LoginPage() {
                     className="mt-3 cursor-pointer text-xs font-semibold hover:underline"
                     style={{ color: BRAND }}
                   >
-                    Kembali ke Login
+                    {t("Kembali ke Login")}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleLaporSubmit} className="mt-4 space-y-3">
                   <input
                     required
-                    placeholder="NIS / NIK"
+                    placeholder={t("NIS / NIK")}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
@@ -458,7 +460,7 @@ export default function LoginPage() {
                   <input
                     type="email"
                     required
-                    placeholder="Email"
+                    placeholder={t("Email")}
                     value={lupaEmail}
                     onChange={(e) => setLupaEmail(e.target.value)}
                     className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
@@ -472,7 +474,7 @@ export default function LoginPage() {
                   />
                   <textarea
                     required
-                    placeholder="Alasan lupa password"
+                    placeholder={t("Alasan lupa password")}
                     value={alasan}
                     onChange={(e) => setAlasan(e.target.value)}
                     rows={3}
@@ -487,12 +489,12 @@ export default function LoginPage() {
                     className="w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
                     style={{ background: BRAND }}
                   >
-                    {loading ? "Mengirim..." : "Buat Laporan"}
+                    {loading ? t("Mengirim...") : t("Buat Laporan")}
                   </button>
 
                   <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                     <button type="button" onClick={kembaliKeLogin} className="cursor-pointer hover:underline">
-                      Kembali ke login
+                      {t("Kembali ke login")}
                     </button>
                     <button
                       type="button"
@@ -500,7 +502,7 @@ export default function LoginPage() {
                       className="cursor-pointer font-semibold hover:underline"
                       style={{ color: BRAND }}
                     >
-                      Sudah punya kode OTP?
+                      {t("Sudah punya kode OTP?")}
                     </button>
                   </div>
                 </form>
@@ -511,15 +513,13 @@ export default function LoginPage() {
           {/* ============ VIEW: OTP (step 2) ============ */}
           {view === "OTP" && (
             <>
-              <p className="mt-6 text-xs font-semibold text-[#6B7280]">Ubah Password</p>
-              <p className="text-sm font-bold text-[#111827]">
-                Ketik NIS/NIK lalu masukkan kode OTP 4 digit yang dikirim admin melalui email
-              </p>
+              <p className="mt-6 text-xs font-semibold text-[#6B7280]">{t("Ubah Password")}</p>
+              <p className="text-sm font-bold text-[#111827]">{t("Ketik NIS/NIK lalu masukkan kode OTP 4 digit yang dikirim admin melalui email")}</p>
 
               <form onSubmit={handleVerifyOtp} className="mt-4 space-y-3">
                 <input
                   required
-                  placeholder="NIS / NIK"
+                  placeholder={t("NIS / NIK")}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
@@ -548,12 +548,12 @@ export default function LoginPage() {
                   className="w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
                   style={{ background: BRAND }}
                 >
-                  {loading ? "Memverifikasi..." : "Lanjut"}
+                  {loading ? t("Memverifikasi...") : t("Lanjut")}
                 </button>
 
                 <p className="text-center text-xs text-[#9CA3AF]">
                   <button type="button" onClick={kembaliKeLogin} className="cursor-pointer hover:underline">
-                    Kembali ke login
+                    {t("Kembali ke login")}
                   </button>
                   {" · "}
                   <button
@@ -562,7 +562,7 @@ export default function LoginPage() {
                     className="cursor-pointer font-semibold hover:underline"
                     style={{ color: BRAND }}
                   >
-                    Belum lapor?
+                    {t("Belum lapor?")}
                   </button>
                 </p>
               </form>
@@ -572,14 +572,14 @@ export default function LoginPage() {
           {/* ============ VIEW: PASSWORD BARU (step 3) ============ */}
           {view === "PASSWORD_BARU" && (
             <>
-              <p className="mt-6 text-xs font-semibold text-[#6B7280]">Portal Administrasi</p>
-              <p className="text-sm font-bold text-[#111827]">Buat Password Baru</p>
+              <p className="mt-6 text-xs font-semibold text-[#6B7280]">{t("Portal Administrasi")}</p>
+              <p className="text-sm font-bold text-[#111827]">{t("Buat Password Baru")}</p>
 
               <form onSubmit={handleResetPassword} className="mt-4 space-y-3">
                 <input
                   type="password"
                   required
-                  placeholder="Password Baru"
+                  placeholder={t("Password Baru")}
                   value={passwordBaru}
                   onChange={(e) => setPasswordBaru(e.target.value)}
                   className="w-full rounded-lg border border-[#dfe4ef] px-4 py-2.5 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
@@ -593,12 +593,12 @@ export default function LoginPage() {
                   className="w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
                   style={{ background: BRAND }}
                 >
-                  {loading ? "Menyimpan..." : "Buat Password"}
+                  {loading ? t("Menyimpan...") : t("Buat Password")}
                 </button>
 
                 <p className="text-center text-xs text-[#9CA3AF]">
                   <button type="button" onClick={kembaliKeLogin} className="cursor-pointer hover:underline">
-                    Kembali ke login
+                    {t("Kembali ke login")}
                   </button>
                 </p>
               </form>
@@ -616,15 +616,15 @@ export default function LoginPage() {
                   <path d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="mt-3 text-sm font-bold text-[#111827]">Password Berhasil Diubah</p>
-              <p className="mt-1 text-xs text-[#6B7280]">Silakan login dengan password baru anda.</p>
+              <p className="mt-3 text-sm font-bold text-[#111827]">{t("Password Berhasil Diubah")}</p>
+              <p className="mt-1 text-xs text-[#6B7280]">{t("Silakan login dengan password baru anda.")}</p>
               <button
                 type="button"
                 onClick={kembaliKeLogin}
                 className="mt-4 w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
                 style={{ background: BRAND }}
               >
-                Kembali ke Login
+                {t("Kembali ke Login")}
               </button>
             </div>
           )}
@@ -632,7 +632,7 @@ export default function LoginPage() {
         </div>
       </section>
 
-      <footer className="border-t border-[#e5e8ef] bg-white px-4 py-5 text-center text-xs text-[#8791a1] sm:px-6">© 2026 Classify. Belajar lebih mudah, mengajar lebih terarah.</footer>
+      <footer className="border-t border-[#e5e8ef] bg-white px-4 py-5 text-center text-xs text-[#8791a1] sm:px-6">© 2026 Classify. {t("Belajar lebih mudah, mengajar lebih terarah.")}</footer>
 
       <style jsx global>{`
         [data-admin-theme="dark"] { color-scheme: dark; }

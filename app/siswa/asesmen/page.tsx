@@ -4,8 +4,10 @@
 import { useEffect, useState } from "react";
 import AsesmenCard, { AsesmenData } from "@/components/Asesmencard";
 import { showConfirm } from "@/lib/dialog";
+import { useLanguage } from "@/lib/i18n";
 
 export default function SiswaAsesmenPage() {
+  const { t } = useLanguage();
   const [asesmenList, setAsesmenList] = useState<(AsesmenData & { statusSubmission?: "BELUM" | "SEDANG" | "SUDAH" })[]>([]);
   const [loading, setLoading] = useState(true);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
@@ -38,7 +40,7 @@ export default function SiswaAsesmenPage() {
   }, []);
 
   async function removeHistory(asesmen: AsesmenData) {
-    const confirmed = await showConfirm(`Hapus kartu "${asesmen.judul}" dari tampilan history? Jawaban, nilai, dan submission tetap aman.`);
+    const confirmed = await showConfirm(t('Hapus kartu "{judul}" dari riwayat? Jawaban, nilai, dan submission tetap aman.').replace("{judul}", asesmen.judul));
     if (!confirmed) return;
 
     fetch("/api/me")
@@ -55,7 +57,7 @@ export default function SiswaAsesmenPage() {
       .catch(() => {});
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">{t("Memuat...")}</p>;
 
   const visibleAsesmenList = asesmenList.filter((asesmen) => !dismissedIds.includes(asesmen.id));
   const sekarang = new Date();
@@ -72,21 +74,21 @@ export default function SiswaAsesmenPage() {
   const historyAsesmen = visibleAsesmenList.filter((asesmen) => tanggalAsesmen(asesmen) < awalPeriodeSebelumnya);
 
   const kelompok = [
-    { key: "hari-ini", judul: "Asesmen Hari Ini", data: asesmenHariIni },
-    { key: "tiga-bulan", judul: "3 Bulan Terakhir", data: asesmenTigaBulan },
-    { key: "history", judul: "History Asesmen", data: historyAsesmen },
+    { key: "hari-ini", judul: t("Asesmen Hari Ini"), data: asesmenHariIni },
+    { key: "tiga-bulan", judul: t("3 Bulan Terakhir"), data: asesmenTigaBulan },
+    { key: "history", judul: t("Riwayat Asesmen"), data: historyAsesmen },
   ];
 
   function renderAsesmenCards(data: typeof asesmenList) {
     const kelompokTipe = [
-      { judul: "Kuis", data: data.filter((asesmen) => asesmen.tipe === "KUIS") },
-      { judul: "Ujian Online", data: data.filter((asesmen) => asesmen.tipe === "UJIAN") },
+      { judul: t("Kuis"), data: data.filter((asesmen) => asesmen.tipe === "KUIS") },
+      { judul: t("Ujian Online"), data: data.filter((asesmen) => asesmen.tipe === "UJIAN") },
     ];
     return (
       <div className="space-y-5">
         {kelompokTipe.map((group) => group.data.length > 0 && (
           <div key={group.judul}>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#64748B]">{group.judul}</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">{group.judul}</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {group.data.map((asesmen) => (
                 <AsesmenCard key={asesmen.id} data={asesmen} basePath="/siswa/asesmen" submissionStatus={asesmen.statusSubmission} onRemove={removeHistory} />
@@ -101,17 +103,17 @@ export default function SiswaAsesmenPage() {
   return (
     <div>
       {visibleAsesmenList.length === 0 ? (
-        <p className="text-sm text-[#9CA3AF]">Belum ada asesmen yang ditampilkan. Data asesmen yang sudah kamu hapus dari tampilan tetap tersimpan.</p>
+        <p className="text-sm text-muted-foreground">{t("Belum ada asesmen yang ditampilkan. Data asesmen yang sudah kamu hapus dari tampilan tetap tersimpan.")}</p>
       ) : (
         <div className="space-y-5">
           {kelompok.map((group) => group.data.length > 0 && (
-            <section key={group.key} className="border border-[#e1e5ed] bg-white p-4 sm:p-5">
+            <section key={group.key} className="rounded-[var(--radius-card)] border border-border bg-surface p-4 sm:p-5">
               <button
                 type="button"
                 onClick={() => setVisibleGroups((current) => ({ ...current, [group.key]: !current[group.key] }))}
                 className="flex w-full cursor-pointer items-center justify-between text-left"
               >
-                <span className="text-sm font-bold text-[#182033]">{group.judul}</span>
+                <span className="text-sm font-bold text-foreground">{group.judul}</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" className={`h-4 w-4 transition-transform ${visibleGroups[group.key] ? "rotate-180" : ""}`}>
                   <path d="m6 9 6 6 6-6" />
                 </svg>

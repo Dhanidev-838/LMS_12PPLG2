@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { comparePassword, createSession, destroySession } from "@/lib/auth";
 import { getDashboardPath, type Role } from "@/lib/rbac";
+import { activityDate } from "@/lib/activity-date";
 
 // ============================
 // POST /api/auth -> LOGIN
@@ -76,6 +77,19 @@ export async function POST(req: NextRequest) {
       nama: user.nama,
       passwordSementara: user.passwordSementara,
     });
+
+    if (user.role === "SISWA" || user.role === "GURU") {
+      const tanggal = activityDate(new Date());
+      try {
+        await db.loginAktivitas.upsert({
+          where: { userId_tanggal: { userId: user.id, tanggal } },
+          create: { userId: user.id, tanggal },
+          update: {},
+        });
+      } catch (error) {
+        console.error("Gagal mencatat aktivitas login:", error);
+      }
+    }
 
     // kalau password masih sementara (default NIS/NIK), langsung arahkan ke halaman
     // ganti password -- gak perlu nunggu proxy.ts nge-redirect ulang di request berikutnya

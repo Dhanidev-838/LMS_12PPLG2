@@ -38,9 +38,24 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Asesmen ini sudah dikirim ke semua kelas yang dipilih." }, { status: 409 });
     }
 
-    await db.asesmenKelas.createMany({
-      data: kelasIdsBaru.map((kelasId: string) => ({ asesmenId, kelasId })),
-    });
+    const publishData = asesmen.status === "SELESAI" && !asesmen.publishedAt
+      ? {
+          publishedAt: new Date(),
+          deadlineAt: asesmen.deadlineAt ?? (
+            asesmen.deadlineDurationMinutes !== null
+              ? new Date(Date.now() + asesmen.deadlineDurationMinutes * 60_000)
+              : null
+          ),
+        }
+      : null;
+    await db.$transaction([
+      db.asesmenKelas.createMany({
+        data: kelasIdsBaru.map((kelasId: string) => ({ asesmenId, kelasId })),
+      }),
+      ...(publishData
+        ? [db.asesmen.update({ where: { id: asesmenId }, data: publishData })]
+        : []),
+    ]);
 
     return NextResponse.json({ message: "Asesmen berhasil dikirim ke kelas." }, { status: 201 });
   } catch (err: any) {

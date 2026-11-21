@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 export interface MobileDashboardSummaryItem {
   label: string;
@@ -16,12 +17,13 @@ interface MobileDashboardSummaryProps {
 }
 
 export default function MobileDashboardSummary({ items, theme }: MobileDashboardSummaryProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(true);
 
   return (
     <section data-admin-theme={theme} className="overflow-hidden rounded-xl border border-border bg-surface text-foreground sm:hidden">
       <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="flex min-h-11 w-full items-center justify-between px-4 py-3 text-left">
-        <span className="text-sm font-bold text-foreground">Ringkasan</span>
+        <span className="text-sm font-bold text-foreground">{t("Ringkasan")}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={`h-4 w-4 text-foreground transition-transform duration-150 ${open ? "rotate-180" : ""}`} aria-hidden="true">
           <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

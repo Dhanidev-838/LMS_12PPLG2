@@ -8,8 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import ModalBuatSoal from "@/components/ModalBuatSoal";
 import { showAlert, showConfirm } from "@/lib/dialog";
-
-const BRAND = "#6B85F6";
+import { useLanguage } from "@/lib/i18n";
 
 interface OpsiJawaban {
   id: string;
@@ -39,6 +38,7 @@ export default function GuruAsesmenDetailPage() {
   const router = useRouter();
   const params = useParams();
   const asesmenId = params.id as string;
+  const { t } = useLanguage();
 
   const [asesmen, setAsesmen] = useState<AsesmenDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function GuruAsesmenDetailPage() {
       const res = await fetch(`/api/asesmen/${asesmenId}`);
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Gagal memuat asesmen.");
+        setError(t(data.error ?? "Gagal memuat asesmen."));
         setLoading(false);
         return;
       }
@@ -78,7 +78,7 @@ export default function GuruAsesmenDetailPage() {
       setPageCount(Math.max(data.data.soal.length, Number.isFinite(savedPageCount) ? savedPageCount : 0));
       setDurasiInput(data.data.durasiMenit?.toString() ?? "");
     } catch {
-      setError("Terjadi kesalahan.");
+      setError(t("Terjadi kesalahan."));
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export default function GuruAsesmenDetailPage() {
     setEditingSoal(null);
   }
   async function handleHapusHalaman(index: number) {
-    if (!(await showConfirm(`Hapus halaman ${index + 1}?`))) return;
+    if (!(await showConfirm(`${t("Hapus halaman")} ${index + 1}?`))) return;
 
     const nextPageCount = Math.max(0, halamanCount - 1);
     setPageCount(nextPageCount);
@@ -117,7 +117,7 @@ export default function GuruAsesmenDetailPage() {
     window.localStorage.setItem(`asesmen-pages-${asesmenId}`, String(nextPageCount));
   }
   async function handleDeleteSoal(soalId: string) {
-    if (!(await showConfirm("Hapus soal ini?"))) return;
+    if (!(await showConfirm(t("Hapus soal ini?")))) return;
     await fetch(`/api/asesmen/${asesmenId}/soal/${soalId}`, { method: "DELETE" });
     loadAsesmen();
   }
@@ -153,10 +153,10 @@ export default function GuruAsesmenDetailPage() {
   async function handleSelesai() {
     if (!asesmen) return;
     if (asesmen.soal.length === 0) {
-      await showAlert("Tambahkan minimal 1 soal sebelum menyelesaikan asesmen.");
+      await showAlert(t("Tambahkan minimal 1 soal sebelum menyelesaikan asesmen."));
       return;
     }
-    if (!(await showConfirm("Selesaikan asesmen? Asesmen akan langsung tampil ke siswa di kelas tujuan."))) return;
+    if (!(await showConfirm(t("Selesaikan asesmen? Asesmen akan langsung tampil ke siswa di kelas tujuan.")))) return;
     setFinalizing(true);
     try {
       await fetch(`/api/asesmen/${asesmenId}`, {
@@ -170,13 +170,13 @@ export default function GuruAsesmenDetailPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">{t("Memuat...")}</p>;
   if (error || !asesmen) {
     return (
       <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-sm text-[#9CA3AF]">{error || "Asesmen tidak ditemukan."}</p>
+        <p className="text-sm text-muted-foreground">{t(error || "Asesmen tidak ditemukan.")}</p>
         <Button variant="outline" onClick={() => router.push("/guru/asesmen")}>
-          Kembali
+          {t("Kembali")}
         </Button>
       </div>
     );
@@ -185,38 +185,38 @@ export default function GuruAsesmenDetailPage() {
   const isEditable = asesmen.status === "PROSES";
 
   function pillClass(active: boolean, soal: Soal | null) {
-    if (active) return "bg-[#6B85F6] text-white";
-    if (soal) return "bg-[#F3F4F6] text-[#374151]";
-    return "bg-[#FFF7ED] text-[#C2410C]";
+    if (active) return "bg-accent text-accent-foreground";
+    if (soal) return "bg-surface-muted text-foreground";
+    return "bg-warning-subtle text-warning";
   }
 
   return (
     <div className="mx-auto max-w-6xl pb-10">
-      <Link href="/guru/asesmen" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[#64748B] hover:text-[#6B85F6]">
-        ← Kembali ke Asesmen
+      <Link href="/guru/asesmen" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-accent-text">
+        ← {t("Kembali ke Asesmen")}
       </Link>
 
-      <div className="flex flex-wrap items-start justify-between gap-5 border border-[#e1e5ed] border-t-4 border-t-[#6B85F6] bg-white p-6">
+      <div className="flex flex-wrap items-start justify-between gap-5 border border-border border-t-4 border-t-[#6B85F6] bg-white p-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#182033]">{asesmen.judul}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{asesmen.judul}</h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <Badge tone="brand">{asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online"}</Badge>
+            <Badge tone="brand">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
             {asesmen.mapel && <Badge tone="gray">{asesmen.mapel.nama}</Badge>}
-            <Badge tone={asesmen.status === "SELESAI" ? "green" : "amber"}>{asesmen.status === "SELESAI" ? "Selesai" : "Proses"}</Badge>
+            <Badge tone={asesmen.status === "SELESAI" ? "green" : "amber"}>{t(asesmen.status === "SELESAI" ? "Selesai" : "Proses")}</Badge>
           </div>
         </div>
 
         <div className="text-right">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Durasi pengerjaan</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Durasi pengerjaan")}</p>
           {editingDurasi ? (
             <div className="mt-1 flex items-center gap-1">
-              <input type="number" min={1} value={durasiInput} onChange={(e) => setDurasiInput(e.target.value)} className="w-16 rounded-lg border border-[#dfe4ef] px-2 py-1 text-sm text-[#182033] outline-none focus:border-[#6B85F6]" />
-              <Button size="sm" onClick={handleSaveDurasi}>Simpan</Button>
+              <input type="number" min={1} value={durasiInput} onChange={(e) => setDurasiInput(e.target.value)} className="w-16 rounded-lg border border-border px-2 py-1 text-sm text-foreground outline-none focus:border-accent" />
+              <Button size="sm" onClick={handleSaveDurasi}>{t("Simpan")}</Button>
             </div>
           ) : (
-            <button onClick={() => isEditable && setEditingDurasi(true)} disabled={!isEditable} className="mt-1 text-sm font-bold text-[#182033] disabled:cursor-default">
-              {asesmen.durasiMenit ? `${asesmen.durasiMenit} menit` : "Belum diatur"}
-              {isEditable && <span className="ml-1 text-[11px] font-normal text-[#6B85F6]">Atur Durasi</span>}
+            <button onClick={() => isEditable && setEditingDurasi(true)} disabled={!isEditable} className="mt-1 text-sm font-bold text-foreground disabled:cursor-default">
+              {asesmen.durasiMenit ? `${asesmen.durasiMenit} ${t("menit")}` : t("Belum diatur")}
+              {isEditable && <span className="ml-1 text-[11px] font-normal text-accent-text">{t("Atur Durasi")}</span>}
             </button>
           )}
         </div>
@@ -226,14 +226,14 @@ export default function GuruAsesmenDetailPage() {
       <div className="mt-5 flex flex-wrap items-center gap-2">
         {isEditable && (
           <Button size="sm" onClick={openBuatSoal}>
-            {currentSoal ? "Edit Soal" : "+ Buat Soal"}
+            {currentSoal ? t("Edit Soal") : `+ ${t("Buat Soal")}`}
           </Button>
         )}
         <Link
           href={`/guru/asesmen/${asesmenId}/jawaban`}
-          className="inline-flex items-center justify-center rounded-lg border border-[#dfe4ef] bg-white px-3 py-1.5 text-xs font-semibold text-[#435064] transition-colors hover:border-[#6B85F6] hover:text-[#6B85F6]"
+          className="inline-flex items-center justify-center rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-accent hover:text-accent-text"
         >
-          Jawaban
+          {t("Jawaban")}
         </Link>
         <input
           value={search}
@@ -241,8 +241,8 @@ export default function GuruAsesmenDetailPage() {
             setSearch(e.target.value);
             setActiveIndex(0);
           }}
-          placeholder="Cari soal..."
-          className="min-w-[180px] flex-1 rounded-lg border border-[#dfe4ef] bg-white px-4 py-2 text-sm text-[#182033] outline-none placeholder:text-[#94A3B8] focus:border-[#6B85F6] focus:ring-2 focus:ring-[#6B85F6]/10"
+          placeholder={t("Cari soal...")}
+          className="min-w-[180px] flex-1 rounded-lg border border-border bg-white px-4 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-accent focus:ring-2 focus:ring-[#6B85F6]/10"
         />
       </div>
 
@@ -250,10 +250,10 @@ export default function GuruAsesmenDetailPage() {
       {halamanCount > 0 && (
         <div className="mt-3 flex items-center gap-2">
           <button
-            aria-label="Halaman sebelumnya"
+            aria-label={t("Halaman sebelumnya")}
             onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
             disabled={activeIndex === 0}
-            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             {"<<"}
           </button>
@@ -273,10 +273,10 @@ export default function GuruAsesmenDetailPage() {
           </div>
 
           <button
-            aria-label="Halaman berikutnya"
+            aria-label={t("Halaman berikutnya")}
             onClick={() => setActiveIndex((i) => Math.min(halamanCount - 1, i + 1))}
             disabled={activeIndex >= halamanCount - 1}
-            className="flex-shrink-0 cursor-pointer rounded-lg border border-[#dfe4ef] bg-white px-3 py-2 text-xs font-semibold text-[#435064] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-shrink-0 cursor-pointer rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             {">>"}
           </button>
@@ -286,21 +286,21 @@ export default function GuruAsesmenDetailPage() {
               onClick={handleTambahHalaman}
               className="flex-shrink-0 cursor-pointer rounded-lg bg-[#6B85F6] px-3 py-2 text-xs font-semibold text-white hover:brightness-95"
             >
-              + Tambah Halaman
+              + {t("Tambah Halaman")}
             </button>
           )}
         </div>
       )}
 
       {/* Card soal — tombol library di pojok kanan atas, buka overlay terpusat */}
-      <div className="mt-4 min-h-[300px] border border-[#e1e5ed] bg-white p-6 sm:p-8">
+      <div className="mt-4 min-h-[300px] rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
         {halamanCount > 0 && (
           <div className="mb-4 flex justify-end">
             <button
               onClick={() => setShowLibrary(true)}
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#dfe4ef] text-[#435064] hover:bg-[#6B85F6]/10"
-              title="Buka Library Soal"
-              aria-label="Buka Library Soal"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-[#6B85F6]/10"
+              title={t("Buka Library Soal")}
+              aria-label={t("Buka Library Soal")}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -313,58 +313,58 @@ export default function GuruAsesmenDetailPage() {
         )}
 
         {halamanCount === 0 ? (
-          <p className="text-sm text-[#9CA3AF]">Belum ada soal. Klik &quot;+ Buat Soal&quot; untuk mulai.</p>
+          <p className="text-sm text-muted-foreground">{t('Belum ada soal. Klik "+ Buat Soal" untuk mulai.')}</p>
         ) : currentSoal ? (
           <div>
             <div className="flex items-start justify-between gap-2">
               <Badge tone="gray">
-                {currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay"}
+                {t(currentSoal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : currentSoal.tipe === "CHECKBOX" ? "Checkbox" : "Essay")}
               </Badge>
               {isEditable && (
                 <div className="flex gap-2">
-                  <button onClick={() => openEditSoal(currentSoal)} className="cursor-pointer text-xs font-medium text-[#6B85F6] hover:underline">
-                    Edit
+                  <button onClick={() => openEditSoal(currentSoal)} className="cursor-pointer text-xs font-medium text-accent-text hover:underline">
+                    {t("Edit")}
                   </button>
                   <button onClick={() => handleDeleteSoal(currentSoal.id)} className="cursor-pointer text-xs font-medium text-red-500 hover:underline">
-                    Hapus
+                    {t("Hapus")}
                   </button>
                 </div>
               )}
             </div>
 
-            <p className="mt-5 text-base font-semibold leading-relaxed text-[#182033]">
+            <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
               {activeIndex + 1}. {currentSoal.pertanyaan}
             </p>
 
             {currentSoal.gambar && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentSoal.gambar} alt="Gambar soal" className="mt-3 max-h-64 rounded-xl object-contain" />
+              <img src={currentSoal.gambar} alt={t("Gambar soal")} className="mt-3 max-h-64 rounded-xl object-contain" />
             )}
 
             {currentSoal.tipe !== "ESSAY" ? (
               <div className="mt-4 space-y-2">
                 {currentSoal.opsi.map((o) => (
-                  <label key={o.id} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${o.isBenar ? "border-[#6B85F6] bg-[#6B85F6]/5" : "border-[#dfe4ef] hover:border-[#94A3B8]"}`}>
+                  <label key={o.id} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${o.isBenar ? "border-accent bg-[#6B85F6]/5" : "border-border hover:border-[#94A3B8]"}`}>
                     <input type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} checked={o.isBenar} disabled={!isEditable} onChange={() => handleToggleKunci(o.id)} />
                     <span className="text-[#374151]">{o.teks}</span>
                   </label>
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-xs text-[#9CA3AF]">Soal Essay — dinilai manual setelah siswa mengumpulkan.</p>
+              <p className="mt-3 text-xs text-muted-foreground">{t("Soal Essay — dinilai manual setelah siswa mengumpulkan.")}</p>
             )}
           </div>
         ) : (
-          <div className="flex min-h-[220px] flex-col items-center justify-center border border-dashed border-[#dfe4ef] bg-[#f7f8fd] text-center">
-            <p className="text-sm font-semibold text-[#435064]">Halaman {activeIndex + 1} masih kosong</p>
-            <p className="mt-1 text-xs text-[#94A3B8]">Buat soal untuk mengisi halaman ini.</p>
+          <div className="flex min-h-[220px] flex-col items-center justify-center border border-dashed border-border bg-surface-muted text-center">
+            <p className="text-sm font-semibold text-muted-foreground">{t("Halaman {current} masih kosong").replace("{current}", String(activeIndex + 1))}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("Buat soal untuk mengisi halaman ini.")}</p>
             {isEditable && (
               <div className="mt-3 flex flex-wrap justify-center gap-2">
                 <Button size="sm" onClick={openBuatSoal}>
-                  + Buat Soal
+                  + {t("Buat Soal")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleHapusHalaman(activeIndex)}>
-                  Hapus Halaman
+                  {t("Hapus Halaman")}
                 </Button>
               </div>
             )}
@@ -373,26 +373,26 @@ export default function GuruAsesmenDetailPage() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[#9CA3AF]">Kunci jawaban langsung tersimpan saat kamu klik opsi di atas.</p>
+        <p className="text-xs text-muted-foreground">{t("Kunci jawaban langsung tersimpan saat kamu klik opsi di atas.")}</p>
         {isEditable ? (
           <Button loading={finalizing} onClick={handleSelesai}>
-            Selesaikan Asesmen
+            {t("Selesaikan Asesmen")}
           </Button>
         ) : (
-          <Badge tone="green">Sudah dipublikasikan ke kelas</Badge>
+          <Badge tone="green">{t("Sudah dipublikasikan ke kelas")}</Badge>
         )}
       </div>
 
       {/* Overlay Library Soal — terpusat, seperti di RuangGuru */}
-      <Modal open={showLibrary} onClose={() => setShowLibrary(false)} title={`Soal yang terisi: ${filledCount}/${halamanCount}`} maxWidth="max-w-lg">
+      <Modal open={showLibrary} onClose={() => setShowLibrary(false)} title={t("Soal yang terisi: {answered}/{total}").replace("{answered}", String(filledCount)).replace("{total}", String(halamanCount))} maxWidth="max-w-lg">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-[#EEF2FF] p-3 text-center">
-            <p className="text-xs font-semibold text-[#4338CA]">Terisi</p>
-            <p className="mt-1 text-lg font-bold text-[#4338CA]">{filledCount}/{halamanCount}</p>
+          <div className="rounded-lg border border-border bg-accent-subtle p-3 text-center">
+            <p className="text-xs font-semibold text-accent-text">{t("Terisi")}</p>
+            <p className="mt-1 text-lg font-bold text-accent-text">{filledCount}/{halamanCount}</p>
           </div>
-          <div className="rounded-lg bg-[#FFF7ED] p-3 text-center">
-            <p className="text-xs font-semibold text-[#C2410C]">Kosong</p>
-            <p className="mt-1 text-lg font-bold text-[#C2410C]">{halamanCount - filledCount}</p>
+          <div className="rounded-lg border border-border bg-warning-subtle p-3 text-center">
+            <p className="text-xs font-semibold text-warning">{t("Kosong")}</p>
+            <p className="mt-1 text-lg font-bold text-warning">{halamanCount - filledCount}</p>
           </div>
         </div>
 
@@ -412,8 +412,8 @@ export default function GuruAsesmenDetailPage() {
                 <button
                   type="button"
                   onClick={() => handleHapusHalaman(i)}
-                  aria-label={`Hapus halaman ${i + 1}`}
-                  title={`Hapus halaman ${i + 1}`}
+                  aria-label={`${t("Hapus halaman")} ${i + 1}`}
+                  title={`${t("Hapus halaman")} ${i + 1}`}
                   className="absolute -right-1 -top-1 hidden h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white group-hover:flex"
                 >
                   ×
@@ -425,7 +425,7 @@ export default function GuruAsesmenDetailPage() {
 
         {isEditable && (
           <Button className="mt-5 w-full" onClick={handleTambahHalaman}>
-            + Tambah Halaman
+            + {t("Tambah Halaman")}
           </Button>
         )}
       </Modal>

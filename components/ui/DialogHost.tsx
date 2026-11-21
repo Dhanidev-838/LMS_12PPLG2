@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Button from "./Button";
 import Modal from "./Modal";
+import { useLanguage } from "@/lib/i18n";
 
 type DialogDetail = {
   type: "confirm" | "alert";
@@ -11,6 +12,7 @@ type DialogDetail = {
 };
 
 export default function DialogHost() {
+  const { t } = useLanguage();
   const [dialog, setDialog] = useState<DialogDetail | null>(null);
 
   useEffect(() => {
@@ -32,19 +34,19 @@ export default function DialogHost() {
     <Modal
       open={Boolean(dialog)}
       onClose={() => close(false)}
-      title={dialog?.type === "confirm" ? "Konfirmasi" : "Informasi"}
+      title={t(dialog?.type === "confirm" ? "Konfirmasi" : "Informasi")}
       dismissible={dialog?.type === "confirm"}
     >
       <div className="space-y-5">
-        <p className="whitespace-pre-line text-sm leading-6 text-foreground">{dialog?.message}</p>
+        <p className="whitespace-pre-line text-sm leading-6 text-foreground">{dialog?.message ? t(dialog.message) : null}</p>
         <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
           {dialog?.type === "confirm" && (
             <Button variant="outline" onClick={() => close(false)}>
-              Batal
+              {t("Batal")}
             </Button>
           )}
           <Button variant={dialog?.type === "confirm" ? "danger" : "primary"} onClick={() => close(true)}>
-            {dialog?.type === "confirm" ? "Lanjutkan" : "Mengerti"}
+            {t(dialog?.type === "confirm" ? "Lanjutkan" : "Mengerti")}
           </Button>
         </div>
       </div>

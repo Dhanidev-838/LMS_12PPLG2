@@ -89,7 +89,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         where: { kelasId: id },
         include: {
           materi: {
-            include: { guru: { select: { id: true, nama: true } } },
+            include: { guru: { select: { id: true, nama: true } }, mapel: { select: { id: true, nama: true } } },
           },
         },
       }),

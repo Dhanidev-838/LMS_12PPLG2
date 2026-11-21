@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
+import { parseDeadlineFields } from "@/lib/deadline-server";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -77,10 +78,44 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const body = await req.json();
     const { judul, isi, mapelId, lampiran, kelasIds } = body;
 
-    const existing = await db.tugas.findUnique({ where: { id } });
+    const existing = await db.tugas.findUnique({
+      where: { id },
+      include: { kelasTujuan: { select: { kelasId: true } } },
+    });
     if (!existing) return NextResponse.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
     if (session!.role !== "SUPER_ADMIN" && existing.guruId !== session!.userId) {
       return NextResponse.json({ error: "Bukan tugas milik anda." }, { status: 403 });
+    }
+    const deadlineResult = parseDeadlineFields(body);
+    if ("error" in deadlineResult) return NextResponse.json({ error: deadlineResult.error }, { status: 400 });
+    const targetHasKelas = Array.isArray(kelasIds) ? kelasIds.length > 0 : existing.kelasTujuan.length > 0;
+    let deadlineUpdate: {
+      publishedAt?: Date | null;
+      deadlineAt?: Date | null;
+      deadlineDurationMinutes?: number | null;
+    } = {};
+    if ("value" in deadlineResult) {
+      const { deadlineAt, deadlineDurationMinutes } = deadlineResult.value;
+      deadlineUpdate.deadlineDurationMinutes = deadlineDurationMinutes;
+      if (deadlineDurationMinutes !== null) {
+        deadlineUpdate.publishedAt = targetHasKelas ? new Date() : null;
+        deadlineUpdate.deadlineAt = targetHasKelas
+          ? new Date(deadlineUpdate.publishedAt!.getTime() + deadlineDurationMinutes * 60_000)
+          : null;
+      } else {
+        deadlineUpdate.deadlineAt = deadlineAt;
+        deadlineUpdate.publishedAt = deadlineAt && targetHasKelas
+          ? existing.publishedAt ?? new Date()
+          : targetHasKelas ? existing.publishedAt : null;
+      }
+    } else if (targetHasKelas && !existing.publishedAt) {
+      const publishedAt = new Date();
+      deadlineUpdate.publishedAt = publishedAt;
+      if (!existing.deadlineAt && existing.deadlineDurationMinutes !== null) {
+        deadlineUpdate.deadlineAt = new Date(publishedAt.getTime() + existing.deadlineDurationMinutes * 60_000);
+      }
+    } else if (Array.isArray(kelasIds) && kelasIds.length === 0 && existing.publishedAt) {
+      deadlineUpdate.publishedAt = null;
     }
 
     const updated = await db.$transaction(async (tx) => {
@@ -90,6 +125,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           judul: judul || undefined,
           isi: isi !== undefined ? isi || null : undefined,
           mapelId: mapelId !== undefined ? mapelId || null : undefined,
+          ...deadlineUpdate,
         },
       });
 

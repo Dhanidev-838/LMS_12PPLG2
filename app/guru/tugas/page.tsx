@@ -6,11 +6,13 @@ import Button from "@/components/ui/Button";
 import TugasCard, { TugasData } from "@/components/TugasCard";
 import ModalTugas from "@/components/ModalTugas";
 import ModalKirimTugas from "@/components/ModalKirimTugas";
+import RolePageHero from "@/components/shared/RolePageHero";
 import { showConfirm } from "@/lib/dialog";
+import { useLanguage } from "@/lib/i18n";
 
-const BRAND = "#6B85F6";
 
 export default function GuruTugasPage() {
+  const { t } = useLanguage();
   const [tugasList, setTugasList] = useState<TugasData[]>([]);
   const [loading, setLoading] = useState(true);
   const [me, setMe] = useState<{ id: string } | null>(null);
@@ -24,7 +26,7 @@ export default function GuruTugasPage() {
     fetch("/api/me").then((r) => r.json()).then((d) => setMe(d.data)).catch(() => {});
     fetch("/api/kelas")
       .then((r) => r.json())
-      .then((d) => setKelasOptions((d.data ?? []).map((k: any) => ({ id: k.id, label: k.judul }))))
+      .then((d) => setKelasOptions((d.data ?? []).map((k: { id: string; judul: string }) => ({ id: k.id, label: k.judul }))))
       .catch(() => {});
   }, []);
 
@@ -59,7 +61,7 @@ export default function GuruTugasPage() {
     loadTugas();
   }
   async function handleDelete(id: string) {
-    if (!(await showConfirm("Hapus tugas ini?"))) return;
+    if (!(await showConfirm(t("Hapus tugas ini?")))) return;
     await fetch(`/api/tugas/${id}`, { method: "DELETE" });
     loadTugas();
   }
@@ -70,35 +72,36 @@ export default function GuruTugasPage() {
 
   return (
     <div>
-      <div className="border border-[#dfe4ef] p-5 text-white" style={{ background: BRAND }}>
-        <p className="text-sm font-bold">Selamat Datang di Tab Tugas</p>
-        <p className="mt-1 text-sm text-white/85">Buat Tugas kemudian kirim ke suatu kelas untuk memulai tugas.</p>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <Button onClick={openBuat}>+ Buat Tugas</Button>
+      <RolePageHero
+        eyebrow={t("Ruang Pembelajaran")}
+        title={t("Tugas kelas")}
+        description={t("Buat tugas, kirim ke kelas, lalu pantau pengumpulan siswa.")}
+        summary={{ label: t("Tugas dibuat"), value: loading ? "—" : tugasList.length, description: t("Tugas yang tersedia di ruang kerja") }}
+      >
+        <Button onClick={openBuat}>+ {t("Buat Tugas")}</Button>
         <select
-          className="rounded-lg border border-[#dfe4ef] px-3 py-2 text-sm text-[#182033] outline-none focus:border-[#6B85F6]"
+          aria-label={t("Filter kelas")}
+          className="min-h-10 rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           value={filterKelasId}
           onChange={(e) => setFilterKelasId(e.target.value)}
         >
-          <option value="">Semua Kelas</option>
+          <option value="">{t("Semua Kelas")}</option>
           {kelasOptions.map((k) => (
             <option key={k.id} value={k.id}>
               {k.label}
             </option>
           ))}
         </select>
-      </div>
+      </RolePageHero>
 
       {loading ? (
-        <p className="mt-4 text-sm text-[#9CA3AF]">Memuat...</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t("Memuat...")}</p>
       ) : (
         <>
           <div className="mt-6">
-            <p className="mb-3 text-sm font-bold text-[#182033]">Tugas Hari Ini</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Tugas Hari Ini")}</p>
             {hariIni.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Belum ada tugas dibuat hari ini.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada tugas dibuat hari ini.")}</p>
             ) : (
               <div className="space-y-3">
                 {hariIni.map((t) => (
@@ -109,9 +112,9 @@ export default function GuruTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#182033]">History</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Riwayat Tugas")}</p>
             {history.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Belum ada riwayat tugas.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada riwayat tugas.")}</p>
             ) : (
               <div className="space-y-3">
                 {history.map((t) => (

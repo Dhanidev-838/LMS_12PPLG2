@@ -1,0 +1,48 @@
+.root {
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+.root main table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.root main th {
+  padding: 12px;
+  background: var(--surface-muted);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.root main td {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.root main td:first-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.root main button,
+.root main a {
+  overflow-wrap: anywhere;
+}
+
+.root button:focus-visible,
+.root a:focus-visible,
+.root input:focus-visible,
+.root select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.root input, .root select, .root textarea {
+  accent-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

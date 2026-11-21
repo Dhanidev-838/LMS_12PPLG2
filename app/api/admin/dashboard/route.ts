@@ -2,17 +2,18 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
+import { activityDate } from "@/lib/activity-date";
 
 export async function GET() {
   try {
     const session = await getSession();
     requireRole(session, ADMIN_TIER);
 
-    const activityStart = new Date();
-    activityStart.setHours(0, 0, 0, 0);
-    activityStart.setDate(activityStart.getDate() - 13);
+    const activityStart = activityDate(new Date());
+    activityStart.setUTCDate(activityStart.getUTCDate() - 13);
+    const activityWindowStart = new Date(activityStart.getTime() - 7 * 60 * 60 * 1000);
 
-    const [kelas, siswa, guru, asesmen, tugas, materi, mapel, laporanPending, akunTerbaru, asesmenPerTipe, nilaiAggregate, tugasDibuat, tugasDikumpulkan, recentUsers, recentAssessments, recentTasks, recentSubmissions, recentTaskSubmissions, academicRows, learningAssessments, learningTasks] = await Promise.all([
+    const [kelas, siswa, guru, asesmen, tugas, materi, mapel, laporanPending, akunTerbaru, asesmenPerTipe, nilaiAggregate, tugasDibuat, tugasDikumpulkan, recentAssessments, recentTasks, recentSubmissions, recentTaskSubmissions, academicRows, learningAssessments, learningTasks, recentLogins] = await Promise.all([
       db.kelas.count(),
       db.user.count({ where: { role: "SISWA" } }),
       db.user.count({ where: { role: "GURU" } }),
@@ -31,11 +32,10 @@ export async function GET() {
       db.submission.aggregate({ where: { status: "SUDAH", nilaiAkhir: { not: null } }, _avg: { nilaiAkhir: true }, _count: { _all: true } }),
       db.tugas.count(),
       db.tugasSubmission.count({ where: { status: "SUDAH" } }),
-      db.user.findMany({ where: { role: { in: ["SISWA", "GURU"] }, updatedAt: { gte: activityStart } }, select: { id: true, role: true, updatedAt: true } }),
-      db.asesmen.findMany({ where: { createdAt: { gte: activityStart } }, select: { guruId: true, createdAt: true } }),
-      db.tugas.findMany({ where: { createdAt: { gte: activityStart } }, select: { guruId: true, createdAt: true } }),
-      db.submission.findMany({ where: { mulaiPada: { gte: activityStart } }, select: { siswaId: true, mulaiPada: true } }),
-      db.tugasSubmission.findMany({ where: { submittedAt: { gte: activityStart, not: null }, status: "SUDAH" }, select: { siswaId: true, submittedAt: true } }),
+      db.asesmen.findMany({ where: { createdAt: { gte: activityWindowStart } }, select: { guruId: true, createdAt: true } }),
+      db.tugas.findMany({ where: { createdAt: { gte: activityWindowStart } }, select: { guruId: true, createdAt: true } }),
+      db.submission.findMany({ where: { mulaiPada: { gte: activityWindowStart } }, select: { siswaId: true, mulaiPada: true } }),
+      db.tugasSubmission.findMany({ where: { submittedAt: { gte: activityWindowStart, not: null }, status: "SUDAH" }, select: { siswaId: true, submittedAt: true } }),
       db.asesmen.findMany({
         where: { status: "SELESAI" },
         select: {
@@ -62,6 +62,7 @@ export async function GET() {
           submission: { select: { siswaId: true, status: true } },
         },
       }),
+      db.loginAktivitas.findMany({ where: { tanggal: { gte: activityStart } }, select: { userId: true, tanggal: true, user: { select: { role: true } } } }),
     ]);
 
     const kuis = asesmenPerTipe.find((item) => item.tipe === "KUIS")?._count._all ?? 0;
@@ -69,12 +70,12 @@ export async function GET() {
     const dailyActivity = new Map<string, { tanggal: string; asesmen: number; tugas: number; submission: number; userIds: Set<string> }>();
     for (let index = 0; index < 14; index += 1) {
       const date = new Date(activityStart);
-      date.setDate(activityStart.getDate() + index);
+      date.setUTCDate(activityStart.getUTCDate() + index);
       const key = date.toISOString().slice(0, 10);
       dailyActivity.set(key, { tanggal: key, asesmen: 0, tugas: 0, submission: 0, userIds: new Set<string>() });
     }
     const addActivity = (dateValue: Date, type: "asesmen" | "tugas" | "submission", userId: string) => {
-      const day = dailyActivity.get(dateValue.toISOString().slice(0, 10));
+      const day = dailyActivity.get(activityDate(dateValue).toISOString().slice(0, 10));
       if (!day) return;
       day[type] += 1;
       day.userIds.add(userId);
@@ -83,10 +84,11 @@ export async function GET() {
     recentTasks.forEach((item) => addActivity(item.createdAt, "tugas", item.guruId));
     recentSubmissions.forEach((item) => addActivity(item.mulaiPada, "submission", item.siswaId));
     recentTaskSubmissions.forEach((item) => { if (item.submittedAt) addActivity(item.submittedAt, "submission", item.siswaId); });
+    recentLogins.forEach((item) => dailyActivity.get(item.tanggal.toISOString().slice(0, 10))?.userIds.add(item.userId));
     const aktivitasHarian = [...dailyActivity.values()].map((item) => ({ tanggal: item.tanggal, asesmen: item.asesmen, tugas: item.tugas, submission: item.submission, userAktif: item.userIds.size }));
-    const activeUserIds = new Set([...recentUsers.map((item) => item.id), ...recentAssessments.map((item) => item.guruId), ...recentTasks.map((item) => item.guruId), ...recentSubmissions.map((item) => item.siswaId), ...recentTaskSubmissions.map((item) => item.siswaId)]);
-    const activeStudents = new Set([...recentSubmissions.map((item) => item.siswaId), ...recentTaskSubmissions.map((item) => item.siswaId)]).size;
-    const activeTeachers = new Set([...recentAssessments.map((item) => item.guruId), ...recentTasks.map((item) => item.guruId)]).size;
+    const activeUserIds = new Set([...recentAssessments.map((item) => item.guruId), ...recentTasks.map((item) => item.guruId), ...recentSubmissions.map((item) => item.siswaId), ...recentTaskSubmissions.map((item) => item.siswaId), ...recentLogins.map((item) => item.userId)]);
+    const activeStudents = new Set([...recentSubmissions.map((item) => item.siswaId), ...recentTaskSubmissions.map((item) => item.siswaId), ...recentLogins.filter((item) => item.user.role === "SISWA").map((item) => item.userId)]).size;
+    const activeTeachers = new Set([...recentAssessments.map((item) => item.guruId), ...recentTasks.map((item) => item.guruId), ...recentLogins.filter((item) => item.user.role === "GURU").map((item) => item.userId)]).size;
     const countLearningProgress = (rows: typeof learningAssessments) => {
       const expected = new Set<string>();
       const completed = new Set<string>();

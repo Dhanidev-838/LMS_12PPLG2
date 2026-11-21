@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
 
 interface KelasOption {
   id: string;
@@ -18,6 +19,7 @@ interface ModalKirimTugasProps {
 }
 
 export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: ModalKirimTugasProps) {
+  const { t } = useLanguage();
   const [kelasList, setKelasList] = useState<KelasOption[]>([]);
   const [selectedKelasIds, setSelectedKelasIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: M
     event.preventDefault();
     if (!tugasId) return;
     if (selectedKelasIds.length === 0) {
-      setError("Pilih minimal 1 kelas tujuan.");
+      setError(t("Pilih minimal 1 kelas tujuan."));
       return;
     }
 
@@ -60,29 +62,29 @@ export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: M
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Tugas gagal dikirim.");
+        setError(t(data.error ?? "Tugas gagal dikirim."));
         return;
       }
       onSuccess();
       onClose();
     } catch {
-      setError("Tugas gagal dikirim.");
+      setError(t("Tugas gagal dikirim."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Kirim Tugas ke Kelas" maxWidth="max-w-lg">
+    <Modal open={open} onClose={onClose} title={t("Kirim Tugas ke Kelas")} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Pilih kelas tujuan</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Pilih kelas tujuan")}</label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(event) => event.target.value && toggleKelas(event.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList
               .filter((kelas) => !selectedKelasIds.includes(kelas.id))
               .map((kelas) => (
@@ -108,13 +110,13 @@ export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: M
           )}
         </div>
 
-        {error && <p className="text-xs font-medium text-danger">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Batal
+            {t("Batal")}
           </Button>
           <Button type="submit" loading={loading} className="flex-1">
-            Kirim Tugas
+            {t("Kirim Tugas")}
           </Button>
         </div>
       </form>

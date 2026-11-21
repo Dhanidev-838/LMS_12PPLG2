@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Input, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
+import { useLanguage } from "@/lib/i18n";
 
 type TipeSoal = "PILIHAN_GANDA" | "CHECKBOX" | "ESSAY";
 
@@ -27,6 +28,7 @@ interface SoalBuilderProps {
 }
 
 export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelEdit }: SoalBuilderProps) {
+  const { t } = useLanguage();
   const [tipe, setTipe] = useState<TipeSoal>("PILIHAN_GANDA");
   const [pertanyaan, setPertanyaan] = useState("");
   const [gambar, setGambar] = useState("");
@@ -99,18 +101,18 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
     setError("");
 
     if (!pertanyaan.trim()) {
-      setError("Pertanyaan wajib diisi.");
+      setError(t("Pertanyaan wajib diisi."));
       return;
     }
     if (tipe !== "ESSAY") {
       const isiKosong = opsiList.some((o) => !o.teks.trim());
       const adaJawabanBenar = opsiList.some((o) => o.isBenar);
       if (isiKosong) {
-        setError("Semua opsi jawaban wajib diisi.");
+        setError(t("Semua opsi jawaban wajib diisi."));
         return;
       }
       if (!adaJawabanBenar) {
-        setError("Tandai minimal 1 jawaban yang benar.");
+        setError(t("Tandai minimal 1 jawaban yang benar."));
         return;
       }
     }
@@ -135,7 +137,7 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Terjadi kesalahan.");
+        setError(t(data.error ?? "Terjadi kesalahan."));
         setLoading(false);
         return;
       }
@@ -144,7 +146,7 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
       onCancelEdit?.();
       onSaved();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
@@ -152,29 +154,29 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-sm">
-      <p className="text-sm font-bold text-foreground">{isEditing ? "Edit Soal" : "Tambah Soal"}</p>
+      <p className="text-sm font-bold text-foreground">{t(isEditing ? "Edit Soal" : "Tambah Soal")}</p>
 
       <div className="grid grid-cols-3 gap-2">
-        {(["PILIHAN_GANDA", "CHECKBOX", "ESSAY"] as TipeSoal[]).map((t) => (
+        {(["PILIHAN_GANDA", "CHECKBOX", "ESSAY"] as TipeSoal[]).map((tipeSoal) => (
           <button
-            key={t}
+            key={tipeSoal}
             type="button"
-            onClick={() => setTipe(t)}
+            onClick={() => setTipe(tipeSoal)}
             className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors"
             style={
-              tipe === t
+              tipe === tipeSoal
                 ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
                 : { borderColor: "var(--border)", color: "var(--foreground)" }
             }
           >
-            {t === "PILIHAN_GANDA" ? "Pilihan Ganda" : t === "CHECKBOX" ? "Checkbox" : "Essay"}
+            {tipeSoal === "PILIHAN_GANDA" ? t("Pilihan Ganda") : tipeSoal === "CHECKBOX" ? t("Checkbox") : t("Essay")}
           </button>
         ))}
       </div>
 
-      <Textarea label="Pertanyaan" value={pertanyaan} onChange={(e) => setPertanyaan(e.target.value)} required />
+      <Textarea label={t("Pertanyaan")} value={pertanyaan} onChange={(e) => setPertanyaan(e.target.value)} required />
       <Input
-        label="URL Gambar (opsional)"
+        label={t("URL Gambar (opsional)")}
         placeholder="https://..."
         value={gambar}
         onChange={(e) => setGambar(e.target.value)}
@@ -183,7 +185,7 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
       {tipe !== "ESSAY" && (
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-foreground">
-            Opsi Jawaban ({tipe === "PILIHAN_GANDA" ? "pilih 1 jawaban benar" : "bisa pilih lebih dari 1"})
+            {t("Opsi Jawaban")} ({t(tipe === "PILIHAN_GANDA" ? "pilih 1 jawaban benar" : "bisa pilih lebih dari 1")})
           </label>
           <div className="space-y-2">
             {opsiList.map((opsi, i) => (
@@ -208,7 +210,7 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
                 <input
                   value={opsi.teks}
                   onChange={(e) => handleOpsiTeksChange(i, e.target.value)}
-                  placeholder={`Opsi ${i + 1}`}
+                  placeholder={`${t("Opsi")} ${i + 1}`}
                   className="flex-1 rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-accent"
                 />
                 {opsiList.length > 2 && (
@@ -230,21 +232,21 @@ export default function SoalBuilder({ asesmenId, onSaved, editingSoal, onCancelE
             onClick={handleAddOpsi}
             className="mt-2 cursor-pointer text-xs font-semibold text-foreground hover:underline"
           >
-            + Tambah Opsi
+            + {t("Tambah Opsi")}
           </button>
         </div>
       )}
 
-      {error && <p className="text-xs font-medium text-danger">{error}</p>}
+      {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
 
       <div className="flex gap-2">
         {isEditing && (
           <Button type="button" variant="outline" onClick={onCancelEdit} className="flex-1">
-            Batal
+            {t("Batal")}
           </Button>
         )}
         <Button type="submit" loading={loading} className="flex-1">
-          {isEditing ? "Simpan Perubahan" : "Tambah Soal"}
+          {t(isEditing ? "Simpan Perubahan" : "Tambah Soal")}
         </Button>
       </div>
     </form>

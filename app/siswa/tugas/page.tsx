@@ -3,8 +3,11 @@
 
 import { useEffect, useState } from "react";
 import TugasCard, { TugasData } from "@/components/TugasCard";
+import RolePageHero from "@/components/shared/RolePageHero";
+import { useLanguage } from "@/lib/i18n";
 
 export default function SiswaTugasPage() {
+  const { t } = useLanguage();
   const [tugasList, setTugasList] = useState<TugasData[]>([]);
   const [loading, setLoading] = useState(true);
   const [me, setMe] = useState<{ id: string } | null>(null);
@@ -26,7 +29,7 @@ export default function SiswaTugasPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">{t("Memuat...")}</p>;
 
   const todayStr = new Date().toDateString();
   const hariIni = tugasList.filter((t) => new Date(t.createdAt).toDateString() === todayStr);
@@ -35,14 +38,20 @@ export default function SiswaTugasPage() {
 
   return (
     <div>
+      <RolePageHero
+        eyebrow={t("Tugas kelas")}
+        title={t("Kelola tugas belajarmu")}
+        description={t("Lihat tugas dari guru, kerjakan, lalu pantau yang sudah kamu kumpulkan.")}
+        summary={{ label: t("Belum dikumpulkan"), value: belumDikerjakan.length, description: t("Tugas yang menunggu jawabanmu") }}
+      />
       {tugasList.length === 0 ? (
-        <p className="text-sm text-[#9CA3AF]">Belum ada tugas yang diberikan di kelasmu.</p>
+        <p className="mt-6 rounded-[var(--radius-card)] border border-dashed border-border bg-surface p-5 text-sm text-muted-foreground">{t("Belum ada tugas yang diberikan di kelasmu.")}</p>
       ) : (
         <>
-          <div>
-            <p className="mb-3 text-sm font-bold text-[#182033]">Hari Ini</p>
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Hari Ini")}</p>
             {hariIni.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Tidak ada tugas baru hari ini.</p>
+              <p className="text-sm text-muted-foreground">{t("Tidak ada tugas baru hari ini.")}</p>
             ) : (
               <div className="space-y-3">
                 {hariIni.map((t) => (
@@ -53,9 +62,9 @@ export default function SiswaTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#182033]">Belum Dikerjakan</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Belum Dikerjakan")}</p>
             {belumDikerjakan.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Semua tugas sudah dikerjakan. Mantap!</p>
+              <p className="text-sm text-muted-foreground">{t("Semua tugas sudah dikerjakan. Mantap!")}</p>
             ) : (
               <div className="space-y-3">
                 {belumDikerjakan.map((t) => (
@@ -66,9 +75,9 @@ export default function SiswaTugasPage() {
           </div>
 
           <div className="mt-8">
-            <p className="mb-3 text-sm font-bold text-[#182033]">Sudah Dikerjakan</p>
+            <p className="mb-3 text-sm font-bold text-foreground">{t("Sudah Dikerjakan")}</p>
             {sudahDikerjakan.length === 0 ? (
-              <p className="text-sm text-[#9CA3AF]">Belum ada tugas yang kamu kumpulkan.</p>
+              <p className="text-sm text-muted-foreground">{t("Belum ada tugas yang kamu kumpulkan.")}</p>
             ) : (
               <div className="space-y-3">
                 {sudahDikerjakan.map((t) => (

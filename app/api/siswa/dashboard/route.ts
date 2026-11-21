@@ -215,6 +215,7 @@ export async function GET() {
             where: { kelasTujuan: { some: { kelasId: { in: kelasIds } } } },
             include: {
               guru: { select: { id: true, nama: true } },
+              mapel: { select: { id: true, nama: true } },
               kelasTujuan: {
                 where: { kelasId: { in: kelasIds } },
                 include: { kelas: { select: { id: true, judul: true } } },

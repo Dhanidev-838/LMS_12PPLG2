@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 
 interface Lampiran {
@@ -36,6 +37,7 @@ interface PengumumanCardProps {
 }
 
 export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, onSend }: PengumumanCardProps) {
+  const { t, locale } = useLanguage();
   const isOwner = data.author.id === currentUserId;
   const [showOptions, setShowOptions] = useState(false);
 
@@ -50,11 +52,11 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
   }, [showOptions]);
 
   return (
-    <div className="border border-border bg-surface-muted p-4 text-foreground">
+    <article className="rounded-xl border border-border bg-surface p-4 text-foreground transition-colors hover:border-accent">
       {/* header author */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-xs font-bold text-muted-foreground">
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-accent-subtle text-xs font-bold text-accent-text">
             {data.author.fotoProfil ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={data.author.fotoProfil} alt={data.author.nama} className="h-full w-full object-cover" />
@@ -64,9 +66,10 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">{data.author.nama}</p>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="rounded-md bg-accent-subtle px-2 py-0.5 text-[11px] font-semibold text-accent-text">{t("Pengumuman")}</span>
               <span className="text-[11px] text-muted-foreground">
-                {new Date(data.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                {new Date(data.createdAt).toLocaleDateString(intlLocaleCodes[locale], { day: "numeric", month: "short", year: "numeric" })}
               </span>
             </div>
           </div>
@@ -76,7 +79,7 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
           <div className="relative" data-options-menu>
             <button
               type="button"
-              aria-label="Opsi pengumuman"
+              aria-label={t("Opsi pengumuman")}
               onClick={() => setShowOptions((value) => !value)}
               className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-muted-foreground hover:bg-accent-subtle"
             >
@@ -84,9 +87,9 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
             </button>
             {showOptions && (
               <div className="absolute right-0 top-9 z-20 w-32 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-md">
-                <button type="button" onClick={() => { setShowOptions(false); onSend?.(data); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle">Kirim ke</button>
-                <button type="button" onClick={() => { setShowOptions(false); onEdit?.(data); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle">Edit</button>
-                <button type="button" onClick={() => { setShowOptions(false); onDelete?.(data.id); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle">Hapus</button>
+                <button type="button" onClick={() => { setShowOptions(false); onSend?.(data); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle">{t("Kirim ke")}</button>
+                <button type="button" onClick={() => { setShowOptions(false); onEdit?.(data); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle">{t("Edit")}</button>
+                <button type="button" onClick={() => { setShowOptions(false); onDelete?.(data.id); }} className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle">{t("Hapus")}</button>
               </div>
             )}
           </div>
@@ -94,7 +97,7 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
       </div>
 
       {/* isi */}
-      {data.isi && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{data.isi}</p>}
+      {data.isi && <p className="mt-4 whitespace-pre-wrap border-t border-border pt-4 text-sm leading-6 text-foreground">{data.isi}</p>}
 
       {/* lampiran */}
       {data.lampiran.length > 0 && (
@@ -122,6 +125,6 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
       )}
 
       {/* fitur komentar dihapus total -- pengumuman gak bisa dibalas/dikomentari lagi */}
-    </div>
+    </article>
   );
 }

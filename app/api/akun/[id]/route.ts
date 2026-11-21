@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 import { requireRole, ADMIN_TIER, FULL_CRUD_ADMIN } from "@/lib/rbac";
+import { isValidIdentityNumber } from "@/lib/identity-number";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -70,6 +71,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
     if (existing.role === "SUPER_ADMIN" && session!.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Hanya super admin yang dapat mengelola akun super admin." }, { status: 403 });
+    }
+
+    if (existing.role === "SISWA" && nis !== undefined && !isValidIdentityNumber("SISWA", nis)) {
+      return NextResponse.json({ error: "NIS harus tepat 10 digit angka." }, { status: 400 });
+    }
+    if (existing.role === "GURU" && nik !== undefined && !isValidIdentityNumber("GURU", nik)) {
+      return NextResponse.json({ error: "NIK harus tepat 16 digit angka." }, { status: 400 });
     }
 
     if (email && email.toLowerCase().trim() !== existing.email) {

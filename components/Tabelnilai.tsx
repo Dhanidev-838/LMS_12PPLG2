@@ -6,6 +6,7 @@ import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import Modal from "./ui/Modal";
 import { showAlert } from "@/lib/dialog";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 interface NilaiRow {
   submissionId: string;
@@ -33,6 +34,7 @@ interface TabelNilaiProps {
 
 export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset, readOnly = false, basePath = "/guru/asesmen", allowPdfExport = false, kelasJudul, namaMapel, jenisAsesmen }: TabelNilaiProps) {
   const router = useRouter();
+  const { t, locale } = useLanguage();
   const [downloading, setDownloading] = useState(false);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [resettingSubmissionId, setResettingSubmissionId] = useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch {
-      await showAlert("Gagal mengunduh nilai. Coba lagi.");
+      await showAlert(t("Gagal mengunduh nilai. Coba lagi."));
     } finally {
       setDownloading(false);
     }
@@ -75,12 +77,12 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
       const res = await fetch(`/api/asesmen/${asesmenId}/nilai/${submissionId}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) {
-        await showAlert(data.error ?? "Gagal mereset asesmen siswa.");
+        await showAlert(data.error ?? t("Gagal mereset asesmen siswa."));
         return;
       }
       onReset?.();
     } catch {
-      await showAlert("Gagal mereset asesmen siswa.");
+      await showAlert(t("Gagal mereset asesmen siswa."));
     } finally {
       setResettingSubmissionId(null);
     }
@@ -92,12 +94,12 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
       const res = await fetch(`/api/asesmen/${asesmenId}/nilai/${submissionId}`, { method: "PATCH" });
       const data = await res.json();
       if (!res.ok) {
-        await showAlert(data.error ?? "Gagal mereset nilai.");
+        await showAlert(data.error ?? t("Gagal mereset nilai."));
         return;
       }
       onReset?.();
     } catch {
-      await showAlert("Gagal mereset nilai.");
+      await showAlert(t("Gagal mereset nilai."));
     } finally {
       setResettingSubmissionId(null);
     }
@@ -121,34 +123,34 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
   return (
     <div className="border border-border bg-surface p-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-foreground">Nilai Siswa</p>
+        <p className="text-sm font-bold text-foreground">{t("Nilai Siswa")}</p>
         <div className="flex gap-2">
           {allowPdfExport ? (
             <Button size="sm" onClick={() => setGenerateModalOpen(true)}>
-              Generate Nilai
+              {t("Generate Nilai")}
             </Button>
           ) : (
             <Button size="sm" loading={downloading} onClick={handleDownload}>
-              Generate Excel
+              {t("Generate Excel")}
             </Button>
           )}
         </div>
       </div>
 
       {nilaiList.length === 0 ? (
-        <p className="mt-6 text-center text-xs text-muted-foreground">Belum ada siswa yang mengumpulkan.</p>
+        <p className="mt-6 text-center text-xs text-muted-foreground">{t("Belum ada siswa yang mengumpulkan.")}</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
-                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Nama</th>
-                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">NIS</th>
-                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Kelas/Jurusan</th>
-                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">Soal Terjawab</th>
-                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">Nilai Objektif</th>
-                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">Nilai Akhir</th>
-                <th className="whitespace-nowrap pb-2 text-right font-semibold">{readOnly ? "Detail" : "Aksi"}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">{t("Nama")}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">{t("NIS")}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">{t("Kelas/Jurusan")}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 font-semibold">{t("Soal Terjawab")}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">{t("Nilai Objektif")}</th>
+                <th className="whitespace-nowrap pb-2 pr-4 text-right font-semibold">{t("Nilai Akhir")}</th>
+                <th className="whitespace-nowrap pb-2 text-right font-semibold">{readOnly ? t("Detail") : t("Aksi")}</th>
               </tr>
             </thead>
             <tbody>
@@ -184,7 +186,7 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
                             setResetRequest({ type: "asesmen", submissionId: row.submissionId, nama: row.nama });
                           }}
                         >
-                          Reset Asesmen
+                          {t("Reset Asesmen")}
                         </Button>
                         <Button
                           size="sm"
@@ -195,11 +197,11 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
                             setResetRequest({ type: "nilai", submissionId: row.submissionId, nama: row.nama });
                           }}
                         >
-                          Reset Nilai
+                          {t("Reset Nilai")}
                         </Button>
                       </div>
                     )}
-                    {readOnly && <span className="text-xs font-semibold text-foreground">Lihat jawaban</span>}
+                    {readOnly && <span className="text-xs font-semibold text-foreground">{t("Lihat jawaban")}</span>}
                   </td>
                 </tr>
               ))}
@@ -211,34 +213,34 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
       <Modal
         open={resetRequest !== null}
         onClose={closeResetModal}
-        title={resetRequest?.type === "asesmen" ? "Reset Asesmen Siswa" : "Reset Nilai Siswa"}
+        title={resetRequest?.type === "asesmen" ? t("Reset Asesmen Siswa") : t("Reset Nilai Siswa")}
       >
         {resetRequest?.type === "asesmen" ? (
           <p className="text-sm leading-6 text-foreground">
-            Semua jawaban <strong>{resetRequest.nama}</strong> akan dihapus dan siswa dapat mengerjakan asesmen ini dari awal.
+            {t("Semua jawaban")} <strong>{resetRequest.nama}</strong> {t("akan dihapus dan siswa dapat mengerjakan asesmen ini dari awal.")}
           </p>
         ) : (
           <p className="text-sm leading-6 text-foreground">
-            Nilai akhir <strong>{resetRequest?.nama}</strong> akan dikosongkan. Jawaban siswa tetap tersimpan.
+            {t("Nilai akhir")} <strong>{resetRequest?.nama}</strong> {t("akan dikosongkan. Jawaban siswa tetap tersimpan.")}
           </p>
         )}
         <div className="mt-6 flex justify-end gap-2">
           <Button size="sm" variant="outline" onClick={closeResetModal}>
-            Batal
+            {t("Batal")}
           </Button>
           <Button
             size="sm"
             variant={resetRequest?.type === "asesmen" ? "danger" : "primary"}
             onClick={() => void confirmReset()}
           >
-            {resetRequest?.type === "asesmen" ? "Reset Asesmen" : "Reset Nilai"}
+            {resetRequest?.type === "asesmen" ? t("Reset Asesmen") : t("Reset Nilai")}
           </Button>
         </div>
       </Modal>
 
       {allowPdfExport && (
-        <Modal open={generateModalOpen} onClose={() => setGenerateModalOpen(false)} title="Generate Nilai" maxWidth="max-w-lg">
-          <p className="text-sm text-muted-foreground">Pilih format rekap untuk {kelasJudul || "kelas ini"}.</p>
+        <Modal open={generateModalOpen} onClose={() => setGenerateModalOpen(false)} title={t("Generate Nilai")} maxWidth="max-w-lg">
+          <p className="text-sm text-muted-foreground">{t("Pilih format rekap untuk")} {kelasJudul || t("kelas ini")}.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
@@ -247,8 +249,8 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
               className="border border-border p-4 text-left transition-colors hover:border-accent hover:bg-surface-muted disabled:opacity-60"
             >
               <span className="block text-sm font-bold text-foreground">Excel (.xlsx)</span>
-              <span className="mt-1 block text-xs leading-5 text-muted-foreground">Unduh data nilai dalam format spreadsheet.</span>
-              {downloading && <span className="mt-2 block text-xs font-semibold text-foreground">Menyiapkan file...</span>}
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">{t("Unduh data nilai dalam format spreadsheet.")}</span>
+              {downloading && <span className="mt-2 block text-xs font-semibold text-foreground">{t("Menyiapkan file...")}</span>}
             </button>
             <button
               type="button"
@@ -257,37 +259,37 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
               className="border border-border p-4 text-left transition-colors hover:border-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span className="block text-sm font-bold text-foreground">PDF</span>
-              <span className="mt-1 block text-xs leading-5 text-muted-foreground">Cetak atau simpan rekap beserta ruang tanda tangan.</span>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">{t("Cetak atau simpan rekap beserta ruang tanda tangan.")}</span>
             </button>
           </div>
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">Pada dialog cetak browser, pilih “Save as PDF” untuk menyimpan sebagai PDF.</p>
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("Pada dialog cetak browser, pilih Save as PDF untuk menyimpan sebagai PDF.")}</p>
         </Modal>
       )}
 
       {allowPdfExport && (
         <section className="nilai-print-document" aria-hidden="true">
           <header>
-            <p className="nilai-print-eyebrow">CLASSIFY · REKAP HASIL ASESMEN</p>
-            <h1>Rekap Nilai</h1>
+            <p className="nilai-print-eyebrow">CLASSIFY · {t("Rekap Hasil Asesmen").toLocaleUpperCase(intlLocaleCodes[locale])}</p>
+            <h1>{t("Rekap Nilai")}</h1>
             <h2>{judulAsesmen}</h2>
             <div className="nilai-print-meta">
-              <span>Kelas: {kelasJudul || "-"}</span>
-              <span>Mata Pelajaran: {namaMapel || "-"}</span>
-              <span>Jenis: {jenisAsesmen || "Asesmen"}</span>
-              <span>Tanggal cetak: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
+              <span>{t("Kelas")}: {kelasJudul || "-"}</span>
+              <span>{t("Mata Pelajaran")}: {namaMapel || "-"}</span>
+              <span>{t("Jenis")}: {jenisAsesmen || t("Asesmen")}</span>
+              <span>{t("Tanggal cetak")}: {new Date().toLocaleDateString(intlLocaleCodes[locale], { day: "numeric", month: "long", year: "numeric" })}</span>
             </div>
           </header>
 
           <table>
             <thead>
               <tr>
-                <th>No.</th>
-                <th>Nama Siswa</th>
-                <th>NIS</th>
-                <th>Kelas/Jurusan</th>
-                <th>Soal Terjawab</th>
-                <th>Nilai Objektif</th>
-                <th>Nilai Akhir</th>
+                <th>{t("No")}</th>
+                <th>{t("Nama Siswa")}</th>
+                <th>{t("NIS")}</th>
+                <th>{t("Kelas/Jurusan")}</th>
+                <th>{t("Soal Terjawab")}</th>
+                <th>{t("Nilai Objektif")}</th>
+                <th>{t("Nilai Akhir")}</th>
               </tr>
             </thead>
             <tbody>
@@ -305,18 +307,18 @@ export default function TabelNilai({ asesmenId, judulAsesmen, nilaiList, onReset
             </tbody>
           </table>
 
-          <p className="nilai-print-count">Jumlah siswa: {nilaiList.length}</p>
+          <p className="nilai-print-count">{t("Jumlah siswa")}: {nilaiList.length}</p>
 
           <div className="nilai-print-signatures">
             <div>
-              <p>Mengetahui,</p>
-              <p>Kepala Sekolah</p>
+              <p>{t("Mengetahui")},</p>
+              <p>{t("Kepala Sekolah")}</p>
               <div className="nilai-print-signature-space" />
               <p className="nilai-print-signature-line">(........................................)</p>
             </div>
             <div>
-              <p>Disetujui,</p>
-              <p>Wakil Kepala Sekolah Bidang Kurikulum</p>
+              <p>{t("Disetujui")},</p>
+              <p>{t("Wakil Kepala Sekolah Bidang Kurikulum")}</p>
               <div className="nilai-print-signature-space" />
               <p className="nilai-print-signature-line">(........................................)</p>
             </div>

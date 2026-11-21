@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { requireRole, ADMIN_TIER } from "@/lib/rbac";
+import { parseDeadlineFields } from "@/lib/deadline-server";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -63,6 +64,9 @@ export async function GET(req: NextRequest, { params }: Params) {
       });
 
       if (!submission) {
+        if (asesmen.deadlineAt && asesmen.deadlineAt.getTime() < Date.now()) {
+          return NextResponse.json({ error: "Deadline lewat. Asesmen baru tidak dapat dimulai." }, { status: 410 });
+        }
         const pilihanIds = asesmen.soal.filter((s) => s.tipe !== "ESSAY").map((s) => s.id);
         const essayIds = asesmen.soal.filter((s) => s.tipe === "ESSAY").map((s) => s.id);
         const soalIdsAcak = [...shuffle(pilihanIds), ...shuffle(essayIds)];
@@ -122,6 +126,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { id } = await params;
     const body = await req.json();
     const { judul, deskripsi, durasiMenit, mapelId, status } = body;
+    const deadlineResult = parseDeadlineFields(body);
+    if ("error" in deadlineResult) return NextResponse.json({ error: deadlineResult.error }, { status: 400 });
 
     const existing = await db.asesmen.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Asesmen tidak ditemukan." }, { status: 404 });
@@ -140,6 +146,46 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
+    const deadlineUpdate: {
+      publishedAt?: Date | null;
+      deadlineAt?: Date | null;
+      deadlineDurationMinutes?: number | null;
+    } = {};
+    if ("value" in deadlineResult) {
+      const { deadlineAt, deadlineDurationMinutes } = deadlineResult.value;
+      if (deadlineAt === null && deadlineDurationMinutes === null && (
+        existing.deadlineAt !== null || existing.deadlineDurationMinutes !== null
+      )) {
+        return NextResponse.json({ error: "Deadline asesmen tidak dapat dihapus." }, { status: 400 });
+      }
+
+      deadlineUpdate.deadlineAt = deadlineAt;
+      deadlineUpdate.deadlineDurationMinutes = deadlineDurationMinutes;
+      if (deadlineDurationMinutes !== null && existing.status === "SELESAI") {
+        const publishedAt = new Date();
+        deadlineUpdate.publishedAt = publishedAt;
+        deadlineUpdate.deadlineAt = new Date(publishedAt.getTime() + deadlineDurationMinutes * 60_000);
+      }
+    }
+
+    const isPublishing = status === "SELESAI" && (existing.status !== "SELESAI" || !existing.publishedAt);
+    if (isPublishing) {
+      const durationMinutes = deadlineUpdate.deadlineDurationMinutes !== undefined
+        ? deadlineUpdate.deadlineDurationMinutes
+        : existing.deadlineDurationMinutes;
+      const deadlineAt = deadlineUpdate.deadlineAt !== undefined
+        ? deadlineUpdate.deadlineAt
+        : existing.deadlineAt;
+      const publishedAt = existing.publishedAt ?? new Date();
+      deadlineUpdate.publishedAt = publishedAt;
+      if (durationMinutes !== null) {
+        deadlineUpdate.deadlineDurationMinutes = durationMinutes;
+        deadlineUpdate.deadlineAt = new Date(Date.now() + durationMinutes * 60_000);
+      } else if (deadlineAt && deadlineAt.getTime() <= Date.now()) {
+        return NextResponse.json({ error: "Tanggal deadline harus berada di masa depan saat asesmen diterbitkan." }, { status: 400 });
+      }
+    }
+
     const updated = await db.asesmen.update({
       where: { id },
       data: {
@@ -148,6 +194,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         durasiMenit: durasiMenit !== undefined ? durasiMenit || null : undefined, // KUIS & UJIAN dua-duanya bisa punya durasi
         mapelId: mapelId !== undefined ? mapelId || null : undefined,
         status: status || undefined,
+        ...deadlineUpdate,
       },
     });
 

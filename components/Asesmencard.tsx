@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Badge from "./ui/Badge";
-import { formatTanggalIndonesia } from "@/lib/format";
+import DeadlineLabel from "./DeadlineLabel";
+import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 export interface AsesmenData {
   id: string;
@@ -12,8 +13,12 @@ export interface AsesmenData {
   status: "PROSES" | "SELESAI";
   durasiMenit: number | null;
   createdAt?: string;
+  publishedAt?: string | null;
+  deadlineAt?: string | null;
+  deadlineDurationMinutes?: number | null;
   mapel?: { id?: string; nama: string } | null;
   mapelId?: string | null;
+  guru?: { id: string; nama: string };
   deskripsi?: string | null;
   kelasTujuan?: { kelas: { id: string; judul: string } }[];
   _count?: { soal: number; submission: number };
@@ -37,8 +42,21 @@ const tipeLabel: Record<AsesmenData["tipe"], string> = {
 
 export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissionStatus, onEdit, onSend, onDelete, onRemove }: AsesmenCardProps) {
   const router = useRouter();
+  const { locale, t } = useLanguage();
   const [showOptions, setShowOptions] = useState(false);
-  const label = tipeLabel[data.tipe];
+  const [now, setNow] = useState<number | null>(null);
+  const label = t(tipeLabel[data.tipe]);
+  const isExpired = now !== null && Boolean(data.deadlineAt && new Date(data.deadlineAt).getTime() <= now);
+  const canStart = !isExpired || submissionStatus === "SEDANG" || submissionStatus === "SUDAH" || !submissionStatus;
+
+  useEffect(() => {
+    const initialTick = window.setTimeout(() => setNow(Date.now()), 0);
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => {
+      window.clearTimeout(initialTick);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (!showOptions) return;
@@ -52,8 +70,13 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
 
   return (
     <div
-      onClick={() => router.push(`${basePath}/${data.id}`)}
-      className="group cursor-pointer overflow-hidden rounded-xl border border-border bg-surface text-foreground transition-colors duration-150 hover:border-accent hover:bg-surface-muted"
+      onClick={() => {
+        const expiredNow = Boolean(data.deadlineAt && new Date(data.deadlineAt).getTime() <= Date.now());
+        if (expiredNow && submissionStatus === "BELUM") return;
+        router.push(`${basePath}/${data.id}`);
+      }}
+      aria-disabled={!canStart}
+      className={`group overflow-hidden rounded-xl border border-border bg-surface text-foreground transition-colors duration-150 ${canStart ? "cursor-pointer hover:border-accent hover:bg-surface-muted" : "cursor-not-allowed opacity-75"}`}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
@@ -66,14 +89,14 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
           <div className="flex items-center gap-2">
             {basePath.startsWith("/siswa") ? null : (
               <Badge tone={data.status === "SELESAI" ? "green" : "gray"}>
-                {data.status === "SELESAI" ? "Selesai" : "Proses"}
+                {t(data.status === "SELESAI" ? "Selesai" : "Proses")}
               </Badge>
             )}
             {(onEdit || onSend || onDelete) && (
               <div className="relative" data-options-menu>
                 <button
                   type="button"
-                  aria-label="Opsi asesmen"
+                  aria-label={t("Opsi asesmen")}
                   onClick={(event) => {
                     event.stopPropagation();
                     setShowOptions((value) => !value);
@@ -96,7 +119,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                         }}
                         className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-subtle"
                       >
-                        Edit
+                        {t("Edit")}
                       </button>
                     )}
                     {onSend && data.status === "SELESAI" && (
@@ -108,7 +131,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                         }}
                         className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-subtle"
                       >
-                        Kirim ke
+                        {t("Kirim ke")}
                       </button>
                     )}
                     {onDelete && (
@@ -120,7 +143,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
                         }}
                         className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-danger hover:bg-danger-subtle"
                       >
-                        Hapus
+                        {t("Hapus")}
                       </button>
                     )}
                   </div>
@@ -130,13 +153,13 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
             {submissionStatus && (
               <>
                 <Badge tone={submissionStatus === "SUDAH" ? "green" : "gray"}>
-                  {submissionStatus === "SUDAH" ? "Sudah dikerjakan" : submissionStatus === "SEDANG" ? "Sedang dikerjakan" : "Belum dikerjakan"}
+                  {t(submissionStatus === "SUDAH" ? "Sudah dikerjakan" : submissionStatus === "SEDANG" ? "Sedang dikerjakan" : "Belum dikerjakan")}
                 </Badge>
                 {onRemove && submissionStatus !== "BELUM" && (
                   <button
                     type="button"
-                    aria-label="Reset history asesmen"
-                    title="Reset history asesmen"
+                    aria-label={t("Reset riwayat asesmen")}
+                    title={t("Reset riwayat asesmen")}
                     onClick={(event) => {
                       event.stopPropagation();
                       onRemove(data);
@@ -156,7 +179,7 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Badge tone="gray">{label}</Badge>
           {data.mapel && <Badge tone="brand">{data.mapel.nama}</Badge>}
-          {data.durasiMenit && <span className="text-[11px] text-muted-foreground">{data.durasiMenit} menit</span>}
+          {data.durasiMenit && <span className="text-[11px] text-muted-foreground">{data.durasiMenit} {t("menit")}</span>}
         </div>
 
         {data.kelasTujuan && data.kelasTujuan.length > 0 && (
@@ -166,16 +189,24 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
         )}
 
         {data.createdAt && (
-          <p className="mt-2 truncate text-[11px] text-muted-foreground" title={formatTanggalIndonesia(data.createdAt)}>
-            Dibuat: {formatTanggalIndonesia(data.createdAt)}
+          <p className="mt-2 truncate text-[11px] text-muted-foreground" title={new Date(data.createdAt).toLocaleString(intlLocaleCodes[locale])}>
+            {t("Dibuat:")} {new Date(data.createdAt).toLocaleString(intlLocaleCodes[locale])}
           </p>
         )}
+        <DeadlineLabel
+          deadlineAt={data.deadlineAt}
+          publishedAt={data.publishedAt}
+          fallbackStart={data.createdAt}
+          durationMinutes={data.deadlineDurationMinutes}
+          now={now}
+          durationStartsWhen="assessment"
+        />
 
         {data._count && (
           <div className="mt-3 flex items-center gap-3 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
-            <span>{data._count.soal} soal</span>
+            <span>{data._count.soal} {t("soal")}</span>
             <span>•</span>
-            <span>{data._count.submission} pengumpulan</span>
+            <span>{data._count.submission} {t("pengumpulan")}</span>
           </div>
         )}
       </div>

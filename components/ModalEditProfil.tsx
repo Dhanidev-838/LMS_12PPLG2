@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
 import { Input, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
+import { useLanguage } from "@/lib/i18n";
 
 interface ModalEditProfilProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface ModalEditProfilProps {
 }
 
 export default function ModalEditProfil({ open, onClose, onSuccess, userId, initialNama, initialFoto, initialDeskripsi }: ModalEditProfilProps) {
+  const { t } = useLanguage();
   const [nama, setNama] = useState("");
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
@@ -38,7 +40,7 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
     setError("");
 
     if (!nama.trim()) {
-      setError("Nama wajib diisi.");
+      setError(t("Nama wajib diisi."));
       return;
     }
 
@@ -53,7 +55,7 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
         const json = await res.json();
         setUploading(false);
         if (!res.ok) {
-          setError(json.error ?? "Gagal upload foto.");
+          setError(t(json.error ?? "Gagal upload foto."));
           setLoading(false);
           return;
         }
@@ -67,7 +69,7 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Terjadi kesalahan.");
+        setError(t(data.error ?? "Terjadi kesalahan."));
         setLoading(false);
         return;
       }
@@ -75,28 +77,28 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
       onSuccess();
       onClose();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Profil" maxWidth="max-w-md">
+    <Modal open={open} onClose={onClose} title={t("Edit Profil")} maxWidth="max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Foto Profil</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Foto Profil")}</label>
           <div className="flex items-center gap-3">
             <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-lg font-bold text-muted-foreground">
               {fotoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={fotoPreview} alt="Preview" className="h-full w-full object-cover" />
+                <img src={fotoPreview} alt={t("Preview")} className="h-full w-full object-cover" />
               ) : (
                 nama.charAt(0) || "?"
               )}
             </div>
             <label className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-muted">
-              {uploading ? "Mengunggah..." : "Ganti Foto"}
+              {uploading ? t("Mengunggah...") : t("Ganti Foto")}
               <input
                 type="file"
                 accept="image/*"
@@ -114,27 +116,27 @@ export default function ModalEditProfil({ open, onClose, onSuccess, userId, init
         </div>
 
         <Input
-          label="Nama"
+          label={t("Nama")}
           value={nama}
           onChange={(e) => setNama(e.target.value)}
           required
         />
         <Textarea
-          label="Deskripsi"
+          label={t("Deskripsi")}
           value={deskripsi}
           onChange={(e) => setDeskripsi(e.target.value)}
           rows={4}
-          placeholder="Ceritakan sedikit tentang dirimu..."
+          placeholder={t("Ceritakan sedikit tentang dirimu...")}
         />
 
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Batal
+            {t("Batal")}
           </Button>
           <Button type="submit" loading={loading || uploading} className="flex-1">
-            Simpan
+            {t("Simpan")}
           </Button>
         </div>
       </form>

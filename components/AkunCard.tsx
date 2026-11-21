@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
 
 export interface AkunData {
   id: string;
@@ -27,6 +28,7 @@ interface AkunCardProps {
 
 export default function AkunCard({ data, isEditable = false, onEdit, onDelete }: AkunCardProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -41,10 +43,10 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
 
   const subInfo =
     data.role === "SISWA"
-      ? data.kelasReferensi?.label ?? "Belum ada kelas"
+      ? data.kelasReferensi?.label ?? t("Belum ada kelas")
       : data.kelasGuruMapel && data.kelasGuruMapel.length > 0
       ? `${data.kelasGuruMapel[0].mapel.nama} • ${data.kelasGuruMapel.length} kelas`
-      : "Belum ada kelas";
+      : t("Belum ada kelas");
 
   return (
     <div
@@ -63,11 +65,11 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate text-sm font-bold text-foreground">{data.nama}</p>
-          <Badge tone={data.role === "GURU" ? "brand" : "gray"}>{data.role === "SISWA" ? "Siswa" : "Guru"}</Badge>
+          <Badge tone={data.role === "GURU" ? "brand" : "gray"}>{t(data.role === "SISWA" ? "Siswa" : "Guru")}</Badge>
         </div>
         <p className="truncate text-xs text-muted-foreground">{data.email}</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {data.role === "SISWA" ? "NIS" : "NIK"}: {data.role === "SISWA" ? data.nis : data.nik}
+          {t(data.role === "SISWA" ? "NIS" : "NIK")}: {data.role === "SISWA" ? data.nis : data.nik}
         </p>
         <p className="mt-1 truncate text-[11px] font-medium text-foreground">{subInfo}</p>
         {data.deskripsi && <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground">&quot;{data.deskripsi}&quot;</p>}
@@ -77,7 +79,7 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
         <div className="relative flex-shrink-0" data-options-menu onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            aria-label="Opsi akun"
+            aria-label={t("Opsi akun")}
             onClick={() => setMenuOpen((v) => !v)}
             className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-lg font-bold text-muted-foreground hover:bg-accent-subtle"
           >
@@ -94,7 +96,7 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
                 }}
                 className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-accent-subtle"
               >
-                Edit
+                {t("Edit")}
               </button>
               <button
                 type="button"
@@ -104,7 +106,7 @@ export default function AkunCard({ data, isEditable = false, onEdit, onDelete }:
                 }}
                 className="block w-full cursor-pointer px-3 py-2 text-left text-xs font-medium text-danger hover:bg-danger-subtle"
               >
-                Hapus
+                {t("Hapus")}
               </button>
             </div>
           )}

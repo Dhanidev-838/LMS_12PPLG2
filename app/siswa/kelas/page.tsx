@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import KelasCard, { KelasData } from "@/components/KelasCard";
+import { useLanguage } from "@/lib/i18n";
 
 export default function SiswaKelasPage() {
+  const { t } = useLanguage();
   const [kelasList, setKelasList] = useState<KelasData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,12 +23,12 @@ export default function SiswaKelasPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Gagal memuat daftar kelas.");
+        throw new Error(t(data.error ?? "Gagal memuat daftar kelas."));
       }
 
       setKelasList(data.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memuat daftar kelas.");
+      setError(err instanceof Error ? t(err.message) : t("Gagal memuat daftar kelas."));
     } finally {
       setLoading(false);
     }
@@ -35,12 +37,12 @@ export default function SiswaKelasPage() {
   return (
     <div>
       <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">Kelas Saya</p>
-        <h1 className="mt-1 text-2xl font-bold text-[#182033]">Daftar Kelas</h1>
-        <p className="mt-1 text-sm text-[#64748B]">Kelas yang sudah ditugaskan untukmu oleh admin.</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Kelas Saya")}</p>
+        <h1 className="mt-1 text-2xl font-bold text-foreground">{t("Daftar Kelas")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("Kelas yang sudah ditugaskan untukmu oleh admin.")}</p>
       </div>
 
-      {loading && <p className="mt-4 text-sm text-[#9CA3AF]">Memuat kelas...</p>}
+      {loading && <p className="mt-4 text-sm text-muted-foreground">{t("Memuat kelas...")}</p>}
 
       {!loading && error && (
         <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -49,9 +51,9 @@ export default function SiswaKelasPage() {
       )}
 
       {!loading && !error && kelasList.length === 0 && (
-        <div className="border border-dashed border-[#dfe4ef] bg-white p-6 text-center">
-          <p className="text-lg font-semibold text-[#182033]">Belum ada kelas</p>
-          <p className="mt-2 text-sm text-[#64748B]">Kamu belum tergabung di kelas yang dibuat admin.</p>
+        <div className="border border-dashed border-border bg-surface p-6 text-center">
+          <p className="text-lg font-semibold text-foreground">{t("Belum ada kelas")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("Kamu belum tergabung di kelas yang dibuat admin.")}</p>
         </div>
       )}
 

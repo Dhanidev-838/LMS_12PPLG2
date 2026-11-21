@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n";
+
 export type KelasFeedFilterValue = "SEMUA" | "PENGUMUMAN" | "MATERI" | "TUGAS" | "ASESMEN";
 
 const FILTERS: { value: KelasFeedFilterValue; label: string }[] = [
@@ -16,8 +18,9 @@ interface KelasFeedFilterProps {
 }
 
 export default function KelasFeedFilter({ value, onChange }: KelasFeedFilterProps) {
+  const { t } = useLanguage();
   return (
-    <div className="grid grid-cols-2 gap-1 border border-border bg-surface p-1 sm:grid-cols-5" role="group" aria-label="Filter aktivitas kelas">
+    <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1 sm:grid-cols-5" role="group" aria-label={t("Filter aktivitas kelas")}>
       {FILTERS.map((filter) => (
         <button
           key={filter.value}
@@ -30,7 +33,7 @@ export default function KelasFeedFilter({ value, onChange }: KelasFeedFilterProp
               : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
           }`}
         >
-          {filter.label}
+          {t(filter.label)}
         </button>
       ))}
     </div>

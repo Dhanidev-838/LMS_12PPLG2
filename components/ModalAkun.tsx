@@ -5,6 +5,8 @@ import Modal from "./ui/Modal";
 import { Input, Select, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
+import { isValidIdentityNumber } from "@/lib/identity-number";
 
 type Role = "SISWA" | "GURU";
 
@@ -47,6 +49,7 @@ interface ModalAkunProps {
 }
 
 export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole = "SISWA", initialData }: ModalAkunProps) {
+  const { t } = useLanguage();
   const [role, setRole] = useState<Role>(defaultRole);
   const [email, setEmail] = useState("");
   const [nama, setNama] = useState("");
@@ -83,9 +86,13 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
       .catch(() => {});
 
     fetch("/api/mapel")
-      .then((res) => res.json())
-      .then((data) => setMapelList(data.data ?? []))
-      .catch(() => {});
+      .then(async (res) => {
+        const data: { data?: MapelOption[]; error?: string } = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Gagal memuat daftar mapel.");
+        if (!Array.isArray(data.data)) throw new Error("Daftar mapel tidak valid.");
+        setMapelList(data.data);
+      })
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Gagal memuat daftar mapel."));
 
     if (mode === "edit" && initialData) {
       setRole(initialData.role);
@@ -147,6 +154,10 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
       setError("Nama wajib diisi.");
       return;
     }
+    if (!isValidIdentityNumber(role, nomorInduk)) {
+      setError(role === "SISWA" ? "NIS harus tepat 10 digit angka." : "NIK harus tepat 16 digit angka.");
+      return;
+    }
     if (role === "SISWA" && mode === "create" && !kelasReferensiId) {
       setError("Filter Jurusan (kelas referensi) wajib dipilih.");
       return;
@@ -205,7 +216,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={mode === "create" ? "Registrasi Akun" : `Edit Akun ${role === "SISWA" ? "Siswa" : "Guru"}`}>
+    <Modal open={open} onClose={onClose} title={mode === "create" ? t("Registrasi Akun") : `${t("Edit Akun")} ${t(role === "SISWA" ? "Siswa" : "Guru")}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === "create" && (
           <div className="grid grid-cols-2 gap-2">
@@ -220,50 +231,51 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
                     : "border-border text-foreground hover:bg-accent-subtle"
                 }`}
               >
-                {r === "GURU" ? "Guru" : "Siswa"}
+                {t(r === "GURU" ? "Guru" : "Siswa")}
               </button>
             ))}
           </div>
         )}
 
-        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input label={t("Email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <Input
-          label={role === "SISWA" ? "NIS" : "NIK"}
+          label={t(role === "SISWA" ? "NIS" : "NIK")}
           value={nomorInduk}
           onChange={(e) => setNomorInduk(e.target.value)}
+          inputMode="numeric"
           required
         />
         {mode === "create" && (
           <p className="-mt-2 rounded-lg border border-border bg-surface-muted px-3 py-2 text-xs leading-relaxed text-foreground">
-            Password awal otomatis sama dengan {role === "SISWA" ? "NIS" : "NIK"}. Saat login pertama, akun akan diminta membuat password baru.
+            {t("Password awal otomatis sama dengan {id}. Saat login pertama, akun akan diminta membuat password baru.").replace("{id}", t(role === "SISWA" ? "NIS" : "NIK"))}
           </p>
         )}
-        <Input label="Nama" value={nama} onChange={(e) => setNama(e.target.value)} required />
+        <Input label={t("Nama")} value={nama} onChange={(e) => setNama(e.target.value)} required />
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Tanggal Lahir"
+            label={t("Tanggal Lahir")}
             type="date"
             value={tanggalLahir}
             onChange={(e) => setTanggalLahir(e.target.value)}
             required
           />
-          <Select label="Jenis Kelamin (opsional)" placeholder="Pilih" value={jenisKelamin} onChange={(e) => setJenisKelamin(e.target.value)}>
-            <option value="Laki Laki">Laki Laki</option>
-            <option value="Perempuan">Perempuan</option>
+          <Select label={t("Jenis Kelamin (opsional)")} placeholder={t("Pilih")} value={jenisKelamin} onChange={(e) => setJenisKelamin(e.target.value)}>
+            <option value="Laki Laki">{t("Laki Laki")}</option>
+            <option value="Perempuan">{t("Perempuan")}</option>
           </Select>
         </div>
 
         <Textarea
-          label={`Deskripsi ${role === "SISWA" ? "Siswa" : "Guru"} (opsional)`}
+          label={`${t("Deskripsi")} ${t(role === "SISWA" ? "Siswa" : "Guru")} ${t("(opsional)")}`}
           value={deskripsi}
           onChange={(e) => setDeskripsi(e.target.value)}
         />
 
         {role === "SISWA" && (
           <Select
-            label="Filter Jurusan"
-            placeholder="Pilih kelas/rombel"
+            label={t("Filter Jurusan")}
+            placeholder={t("Pilih kelas/rombel")}
             value={kelasReferensiId}
             onChange={(e) => setKelasReferensiId(e.target.value)}
             required
@@ -277,7 +289,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
         )}
 
         {role === "GURU" && (
-          <Select label="Mapel" placeholder="Pilih mapel" value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
+          <Select label={t("Mapel")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
             {mapelList.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nama}
@@ -289,14 +301,14 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
         {/* Pilih Kelas (opsional) -- fitur Walas dihapus total dari sini */}
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-foreground">
-            Pilih Kelas (opsional, bisa lebih dari 1 — kosongkan kalau cuma mau simpan datanya dulu)
+            {t("Pilih Kelas (opsional, bisa lebih dari 1 — kosongkan kalau cuma mau simpan datanya dulu)")}
           </label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(e) => e.target.value && toggleKelas(e.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
@@ -325,20 +337,20 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-foreground">
-            Foto Profil {role === "SISWA" ? "/ Selfie" : ""} (opsional)
+            {t("Foto Profil")} {role === "SISWA" ? `/ ${t("Selfie")}` : ""} {t("(opsional)")}
           </label>
           <div className="flex gap-2">
             <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:border-accent">
               {fotoProfil ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={fotoProfil} alt="Preview" className="h-full w-full object-cover" />
+                <img src={fotoProfil} alt={t("Preview")} className="h-full w-full object-cover" />
               ) : (
                 <>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
                     <path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" />
                     <circle cx="12" cy="13" r="3.5" />
                   </svg>
-                  <span className="text-[9px] font-medium leading-none">Ambil Foto</span>
+                  <span className="text-[9px] font-medium leading-none">{t("Ambil Foto")}</span>
                 </>
               )}
               <input
@@ -353,11 +365,11 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
 
             <label className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:border-accent">
               {uploadingFoto ? (
-                <span className="text-[10px] font-medium">Upload...</span>
+                <span className="text-[10px] font-medium">{t("Upload...")}</span>
               ) : (
                 <>
                   <span className="text-2xl leading-none">+</span>
-                  <span className="text-[9px] font-medium leading-none">Upload File</span>
+                  <span className="text-[9px] font-medium leading-none">{t("Upload File")}</span>
                 </>
               )}
               <input
@@ -371,10 +383,10 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
           </div>
         </div>
 
-        {error && <p className="text-xs font-medium text-danger">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
 
         <Button type="submit" loading={loading} className="w-full">
-          {mode === "create" ? "Buat Akun" : "Simpan Perubahan"}
+          {mode === "create" ? t("Buat Akun") : t("Simpan Perubahan")}
         </Button>
       </form>
     </Modal>

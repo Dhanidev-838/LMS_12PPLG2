@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./ui/Modal";
 import { Input, Textarea } from "./ui/Input";
 import Button from "./ui/Button";
+import { useLanguage } from "@/lib/i18n";
 
 type TipeSoal = "PILIHAN_GANDA" | "CHECKBOX" | "ESSAY";
 
@@ -38,6 +39,7 @@ function opsiKosong(): OpsiInput[] {
 }
 
 export default function ModalBuatSoal({ open, onClose, onSuccess, asesmenId, mode, initialData }: ModalBuatSoalProps) {
+  const { t } = useLanguage();
   const [tipe, setTipe] = useState<TipeSoal>("PILIHAN_GANDA");
   const [pertanyaan, setPertanyaan] = useState("");
   const [gambarFile, setGambarFile] = useState<File | null>(null);
@@ -101,17 +103,17 @@ export default function ModalBuatSoal({ open, onClose, onSuccess, asesmenId, mod
     setError("");
 
     if (!pertanyaan.trim()) {
-      setError("Pertanyaan wajib diisi.");
+      setError(t("Pertanyaan wajib diisi."));
       return;
     }
     if (tipe !== "ESSAY") {
       const opsiTerisi = opsiList.filter((o) => o.teks.trim());
       if (opsiTerisi.length < 2) {
-        setError("Minimal 2 opsi jawaban wajib diisi.");
+        setError(t("Minimal 2 opsi jawaban wajib diisi."));
         return;
       }
       if (!opsiTerisi.some((o) => o.isBenar)) {
-        setError("Pilih minimal 1 jawaban benar.");
+        setError(t("Pilih minimal 1 jawaban benar."));
         return;
       }
     }
@@ -143,7 +145,7 @@ export default function ModalBuatSoal({ open, onClose, onSuccess, asesmenId, mod
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Terjadi kesalahan.");
+        setError(t(data.error ?? "Terjadi kesalahan."));
         setLoading(false);
         return;
       }
@@ -151,44 +153,44 @@ export default function ModalBuatSoal({ open, onClose, onSuccess, asesmenId, mod
       onSuccess();
       onClose();
     } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(t("Terjadi kesalahan. Coba lagi."));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={mode === "edit" ? "Edit Soal" : "Buat Soal"} maxWidth="max-w-lg">
+    <Modal open={open} onClose={onClose} title={mode === "edit" ? t("Edit Soal") : t("Buat Soal")} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-3 gap-2">
-          {(["PILIHAN_GANDA", "CHECKBOX", "ESSAY"] as TipeSoal[]).map((t) => (
+          {(["PILIHAN_GANDA", "CHECKBOX", "ESSAY"] as TipeSoal[]).map((tipeSoal) => (
             <button
-              key={t}
+              key={tipeSoal}
               type="button"
               disabled={mode === "edit"}
-              onClick={() => setTipe(t)}
+              onClick={() => setTipe(tipeSoal)}
               className="cursor-pointer rounded-lg border py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={
-                tipe === t
+                tipe === tipeSoal
                   ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-foreground)" }
                   : { borderColor: "var(--border)", color: "var(--foreground)" }
               }
             >
-              {t === "PILIHAN_GANDA" ? "Pilihan Ganda" : t === "CHECKBOX" ? "Checkbox" : "Essay"}
+              {t(tipeSoal === "PILIHAN_GANDA" ? "Pilihan Ganda" : tipeSoal === "CHECKBOX" ? "Checkbox" : "Essay")}
             </button>
           ))}
         </div>
 
-        <Textarea label="Pertanyaan" value={pertanyaan} onChange={(e) => setPertanyaan(e.target.value)} rows={3} required />
+        <Textarea label={t("Pertanyaan")} value={pertanyaan} onChange={(e) => setPertanyaan(e.target.value)} rows={3} required />
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Gambar (opsional)</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Gambar (opsional)")}</label>
           {gambarPreview && !gambarFile && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={gambarPreview} alt="Preview" className="mb-2 max-h-40 rounded-lg object-contain" />
+            <img src={gambarPreview} alt={t("Preview")} className="mb-2 max-h-40 rounded-lg object-contain" />
           )}
           <label className="inline-block cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-muted">
-            {uploading ? "Mengunggah..." : gambarFile ? gambarFile.name : "+ Kirim Foto"}
+            {uploading ? t("Mengunggah...") : gambarFile ? gambarFile.name : `+ ${t("Kirim Foto")}`}
             <input
               type="file"
               accept="image/*"
@@ -207,33 +209,33 @@ export default function ModalBuatSoal({ open, onClose, onSuccess, asesmenId, mod
         {tipe !== "ESSAY" && (
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-foreground">
-              Opsi Jawaban {tipe === "PILIHAN_GANDA" ? "(pilih 1 jawaban benar)" : "(bisa pilih lebih dari 1)"}
+              {t("Opsi Jawaban")} {t(tipe === "PILIHAN_GANDA" ? "(pilih 1 jawaban benar)" : "(bisa pilih lebih dari 1)")}
             </label>
             {opsiList.map((o, i) => (
               <div key={i} className="flex items-center gap-2">
                 <input type={tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} name="jawabanBenar" checked={o.isBenar} onChange={() => handlePilihJawabanBenar(i)} />
-                <Input value={o.teks} onChange={(e) => handleUbahTeksOpsi(i, e.target.value)} placeholder={`Opsi ${String.fromCharCode(65 + i)}`} className="flex-1" />
+                <Input value={o.teks} onChange={(e) => handleUbahTeksOpsi(i, e.target.value)} placeholder={`${t("Opsi")} ${String.fromCharCode(65 + i)}`} className="flex-1" />
                 {opsiList.length > 2 && (
                   <button type="button" onClick={() => handleHapusOpsi(i)} className="cursor-pointer text-xs font-medium text-danger hover:underline">
-                    Hapus
+                    {t("Hapus")}
                   </button>
                 )}
               </div>
             ))}
             <Button type="button" variant="outline" size="sm" onClick={handleTambahOpsi}>
-              + Tambah Opsi
+              + {t("Tambah Opsi")}
             </Button>
           </div>
         )}
 
-        {error && <p className="text-xs font-medium text-danger">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Batal
+            {t("Batal")}
           </Button>
           <Button type="submit" loading={loading || uploading} className="flex-1">
-            {mode === "edit" ? "Simpan Soal" : "Tambah Soal"}
+            {mode === "edit" ? t("Simpan Soal") : t("Tambah Soal")}
           </Button>
         </div>
       </form>

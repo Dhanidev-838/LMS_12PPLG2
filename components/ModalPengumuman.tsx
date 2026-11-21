@@ -5,6 +5,7 @@ import Modal from "./ui/Modal";
 import { Textarea, Input } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
+import { useLanguage } from "@/lib/i18n";
 
 interface LampiranInput {
   tipe: "FILE" | "LINK" | "VIDEO";
@@ -22,6 +23,7 @@ interface ModalPengumumanProps {
 }
 
 export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mode = "create", initialData }: ModalPengumumanProps) {
+  const { t } = useLanguage();
   const [jenisKonten, setJenisKonten] = useState<"PENGUMUMAN" | "MATERI">("PENGUMUMAN");
   const [isi, setIsi] = useState("");
   const [lampiranList, setLampiranList] = useState<LampiranInput[]>([]);
@@ -209,14 +211,14 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
         resetForm();
         onClose();
       }}
-      title={mode === "edit" ? "Edit Pengumuman" : "Buat Konten"}
+      title={mode === "edit" ? t("Edit Pengumuman") : t("Buat Konten")}
       maxWidth="max-w-lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === "create" && (
           <div>
-            <p className="mb-1.5 text-xs font-semibold text-foreground">Jenis Konten</p>
-            <div className="grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label="Pilih jenis konten">
+            <p className="mb-1.5 text-xs font-semibold text-foreground">{t("Jenis Konten")}</p>
+            <div className="grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label={t("Pilih jenis konten")}>
               {(["PENGUMUMAN", "MATERI"] as const).map((jenis) => (
                 <button
                   key={jenis}
@@ -231,7 +233,7 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                     ? { background: "var(--accent)", color: "var(--accent-foreground)" }
                     : { background: "transparent", color: "var(--muted-foreground)" }}
                 >
-                  {jenis === "PENGUMUMAN" ? "Pengumuman" : "Materi"}
+                  {t(jenis === "PENGUMUMAN" ? "Pengumuman" : "Materi")}
                 </button>
               ))}
             </div>
@@ -240,11 +242,11 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
 
         {membuatMateri ? (
           <>
-            <Input label="Judul Materi" value={judulMateri} onChange={(e) => setJudulMateri(e.target.value)} required />
-            <Textarea label="Deskripsi (opsional)" value={deskripsiMateri} onChange={(e) => setDeskripsiMateri(e.target.value)} rows={3} />
+            <Input label={t("Judul Materi")} value={judulMateri} onChange={(e) => setJudulMateri(e.target.value)} required />
+            <Textarea label={t("Deskripsi (opsional)")} value={deskripsiMateri} onChange={(e) => setDeskripsiMateri(e.target.value)} rows={3} />
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-foreground">Sumber Materi</p>
-              <div className="mb-2 grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label="Pilih sumber materi">
+              <p className="mb-1.5 text-xs font-semibold text-foreground">{t("Sumber Materi")}</p>
+              <div className="mb-2 grid grid-cols-2 rounded-lg border border-border bg-surface p-1" role="group" aria-label={t("Pilih sumber materi")}>
                 {(["LINK", "FILE"] as const).map((sumber) => (
                   <button
                     key={sumber}
@@ -261,13 +263,13 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                       ? { background: "var(--accent)", color: "var(--accent-foreground)" }
                       : { background: "transparent", color: "var(--muted-foreground)" }}
                   >
-                    {sumber === "LINK" ? "Link" : "File / Foto"}
+                    {sumber === "LINK" ? t("Link") : t("File / Foto")}
                   </button>
                 ))}
               </div>
               {tipeMateri === "LINK" ? (
                 <Input
-                  label="URL Materi"
+                  label={t("URL Materi")}
                   placeholder="https://..."
                   value={urlMateri}
                   onChange={(e) => setUrlMateri(e.target.value)}
@@ -276,7 +278,7 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
               ) : (
                 <div className="rounded-lg border border-dashed border-border p-3">
                   <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
-                    {uploadingLampiran ? "Mengunggah..." : namaFileMateri || "+ Upload File / Foto"}
+                    {uploadingLampiran ? t("Mengunggah...") : namaFileMateri || `+ ${t("Upload File / Foto")}`}
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,image/jpeg,image/png,image/webp"
@@ -296,7 +298,7 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
         ) : (
           <>
             <Textarea
-              placeholder="Tulis pengumuman untuk kelas..."
+              placeholder={t("Tulis pengumuman untuk kelas...")}
               value={isi}
               onChange={(e) => setIsi(e.target.value)}
               rows={4}
@@ -311,7 +313,7 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                       <p className="text-[10px] text-muted-foreground">{l.tipe}</p>
                     </div>
                     <button type="button" onClick={() => handleRemoveLampiran(i)} className="cursor-pointer text-xs font-medium text-danger hover:underline">
-                      Hapus
+                      {t("Hapus")}
                     </button>
                   </div>
                 ))}
@@ -319,10 +321,10 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
             )}
 
             <div className="rounded-lg border border-dashed border-border p-3">
-              <p className="mb-2 text-xs font-semibold text-foreground">Tambah Lampiran (opsional)</p>
+              <p className="mb-2 text-xs font-semibold text-foreground">{t("Tambah Lampiran (opsional)")}</p>
               <div className="flex flex-wrap items-center gap-2">
                 <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">
-                  {uploadingLampiran ? "Mengunggah..." : "+ Upload File"}
+                  {uploadingLampiran ? t("Mengunggah...") : `+ ${t("Upload File")}`}
                   <input
                     type="file"
                     accept=".pdf,image/jpeg,image/png,image/webp"
@@ -336,13 +338,13 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
                   />
                 </label>
                 <Input
-                  placeholder="atau tempel link..."
+                  placeholder={t("atau tempel link...")}
                   value={lampiranUrl}
                   onChange={(e) => setLampiranUrl(e.target.value)}
                   className="min-w-[180px] flex-1"
                 />
                 <Button type="button" variant="outline" size="sm" onClick={handleAddLampiran} disabled={!isValidLink(lampiranUrl.trim())}>
-                  + Link
+                  + {t("Link")}
                 </Button>
               </div>
             </div>
@@ -350,13 +352,13 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
         )}
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-foreground">Kirim ke Kelas</label>
+          <label className="mb-1.5 block text-xs font-semibold text-foreground">{t("Kirim ke Kelas")}</label>
           <select
             className="min-h-10 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             value=""
             onChange={(event) => event.target.value && setSelectedKelasId(event.target.value)}
           >
-            <option value="">+ Tambah kelas</option>
+            <option value="">+ {t("Tambah kelas")}</option>
             {kelasList.map((kelas) => (
               <option key={kelas.id} value={kelas.id}>
                 {kelas.judul}
@@ -366,21 +368,21 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
           {selectedKelasId && (
             <div className="mt-2 flex flex-wrap gap-2">
               <Badge tone="brand" className="flex items-center gap-1">
-                {kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul ?? "Kelas terpilih"}
-                <button type="button" onClick={() => setSelectedKelasId("")} className="cursor-pointer hover:text-danger">x</button>
+                {kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul ?? t("Kelas terpilih")}
+                <button type="button" aria-label={t("Hapus")} onClick={() => setSelectedKelasId("")} className="cursor-pointer hover:text-danger">x</button>
               </Badge>
             </div>
           )}
         </div>
 
-        {error && <p className="text-xs font-medium text-danger">{error}</p>}
+        {error && <p className="text-xs font-medium text-danger">{t(error)}</p>}
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Batal
+            {t("Batal")}
           </Button>
           <Button type="submit" loading={loading} className="flex-1">
-            {mode === "edit" ? "Simpan Perubahan" : membuatMateri ? "Buat Materi" : "Posting Pengumuman"}
+            {mode === "edit" ? t("Simpan Perubahan") : membuatMateri ? t("Buat Materi") : t("Posting Pengumuman")}
           </Button>
         </div>
       </form>

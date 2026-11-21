@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import PengumumanCard, { PengumumanData } from "@/components/PengumumanCard";
@@ -17,6 +18,7 @@ import ModalKirimPengumuman from "@/components/ModalKirimPengumuman";
 import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 import type { AsesmenData } from "@/components/Asesmencard";
 import { showAlert, showConfirm } from "@/lib/dialog";
+import { useLanguage } from "@/lib/i18n";
 
 interface SiswaDiKelas {
   siswaId: string;
@@ -46,6 +48,7 @@ export default function SuperAdminKelasDetailPage() {
   const router = useRouter();
   const params = useParams();
   const kelasId = params.id as string;
+  const { t } = useLanguage();
 
   const [kelas, setKelas] = useState<KelasDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,13 +102,13 @@ export default function SuperAdminKelasDetailPage() {
       const res = await fetch(`/api/kelas/${kelasId}`);
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Gagal memuat kelas.");
+        setError(t(data.error ?? "Gagal memuat kelas."));
         setLoading(false);
         return;
       }
       setKelas(data.data);
     } catch {
-      setError("Terjadi kesalahan.");
+      setError(t("Terjadi kesalahan."));
     } finally {
       setLoading(false);
     }
@@ -130,11 +133,11 @@ export default function SuperAdminKelasDetailPage() {
     router.push(`/super-admin/asesmen/${asesmenId}`);
   }
   async function handleDeleteAsesmen(id: string) {
-    if (!(await showConfirm("Hapus asesmen ini? Data soal dan pengumpulan juga akan dihapus."))) return;
+    if (!(await showConfirm(t("Hapus asesmen ini? Data soal dan pengumpulan juga akan dihapus.")))) return;
     const res = await fetch(`/api/asesmen/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
-      await showAlert(data?.error ?? "Asesmen gagal dihapus.");
+      await showAlert(t(data?.error ?? "Asesmen gagal dihapus."));
       return;
     }
     loadKelas();
@@ -149,7 +152,7 @@ export default function SuperAdminKelasDetailPage() {
     setShowModalTugas(true);
   }
   async function handleDeleteTugas(id: string) {
-    if (!(await showConfirm("Hapus tugas ini?"))) return;
+    if (!(await showConfirm(t("Hapus tugas ini?")))) return;
     await fetch(`/api/tugas/${id}`, { method: "DELETE" });
     loadKelas();
   }
@@ -158,26 +161,26 @@ export default function SuperAdminKelasDetailPage() {
     setEditingPengumuman(data);
   }
   async function handleDeletePengumuman(id: string) {
-    if (!(await showConfirm("Hapus pengumuman ini?"))) return;
+    if (!(await showConfirm(t("Hapus pengumuman ini?")))) return;
     await fetch(`/api/pengumuman/${id}`, { method: "DELETE" });
     loadKelas();
   }
 
-  if (loading) return <p className="text-sm text-[#9CA3AF]">Memuat...</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">{t("Memuat...")}</p>;
 
   if (error || !kelas) {
     return (
       <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-sm text-[#9CA3AF]">{error || "Kelas tidak ditemukan."}</p>
+        <p className="text-sm text-muted-foreground">{t(error || "Kelas tidak ditemukan.")}</p>
         <Button variant="outline" onClick={() => router.push("/super-admin")}>
-          Kembali
+          {t("Kembali")}
         </Button>
       </div>
     );
   }
 
   const siswaGrouped = kelas.siswa.reduce((acc: Record<string, SiswaDiKelas[]>, ks) => {
-    const label = ks.siswa.kelasReferensi?.label ?? "Belum Ada Kelas";
+    const label = ks.siswa.kelasReferensi?.label ?? t("Belum Ada Kelas");
     if (!acc[label]) acc[label] = [];
     acc[label].push(ks);
     return acc;
@@ -191,23 +194,26 @@ export default function SuperAdminKelasDetailPage() {
   }, {});
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <section className="border border-[#dfe4ef] border-l-4 border-l-[#6B85F6] bg-white p-4 sm:p-6">
+    <div className="mx-auto w-full max-w-6xl">
+      <Link href="/super-admin/kelas" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-accent-text">
+        ← {t("Kembali")}
+      </Link>
+      <section className="rounded-[var(--radius-card)] border border-border border-l-4 border-l-accent bg-surface p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#6B85F6]">Detail Kelas</p>
-            <h1 className="mt-1 break-words text-xl font-bold text-[#182033] sm:text-2xl">{kelas.judul}</h1>
-            {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-[#64748B]">{kelas.deskripsi}</p>}
+            <p className="text-xs font-bold uppercase tracking-wide text-accent-text">{t("Detail Kelas")}</p>
+            <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">{kelas.judul}</h1>
+            {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{kelas.deskripsi}</p>}
           </div>
-          <div className="w-full border-t border-[#edf0f5] pt-3 sm:w-auto sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-[#8290a3]">Kode Kelas</p>
-            <p className="mt-1 break-all text-sm font-semibold text-[#182033]">{kelas.inviteToken}</p>
-            <button onClick={handleCopyInvite} className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-2 border border-[#dfe4ef] px-3 text-xs font-semibold text-[#435064] hover:bg-[#f7f8fb] sm:w-auto">
+          <div className="w-full border-t border-border pt-3 sm:w-auto sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t("Kode Kelas")}</p>
+            <p className="mt-1 break-all text-sm font-semibold text-foreground">{kelas.inviteToken}</p>
+            <button onClick={handleCopyInvite} className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-3 text-xs font-semibold text-foreground hover:border-accent hover:bg-accent-subtle sm:w-auto">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                 <rect x="9" y="9" width="12" height="12" rx="2" />
                 <path d="M5 15V5a2 2 0 0 1 2-2h10" />
               </svg>
-              {copied ? "Tersalin!" : "Salin Link Undangan"}
+              {copied ? t("Tersalin!") : t("Salin Link Undangan")}
             </button>
           </div>
         </div>
@@ -219,9 +225,9 @@ export default function SuperAdminKelasDetailPage() {
           const isActive = section === type;
           const count = isStudent ? kelas.siswa.length : new Set(kelas.guruMapel.map((assignment) => assignment.guru.id)).size;
           return (
-            <button key={type} type="button" aria-expanded={isActive} onClick={() => setSection(isActive ? null : type)} className={`flex min-h-[72px] min-w-0 cursor-pointer items-center justify-between gap-2 border px-3 py-3 text-left transition-colors sm:px-4 ${isActive ? "border-[#6B85F6] bg-[#eef1ff]" : "border-[#dfe4ef] bg-white hover:border-[#bdc8f8] hover:bg-[#fafbff]"}`}>
-              <span className="min-w-0"><span className="block truncate text-sm font-bold text-[#182033]">{isStudent ? "Siswa" : "Guru"}</span><span className="mt-0.5 block text-xs text-[#8290a3]">Lihat daftar</span></span>
-              <span className={`flex h-9 min-w-9 flex-shrink-0 items-center justify-center px-2 text-sm font-bold ${isActive ? "bg-[#6B85F6] text-white" : "bg-[#f1f3f8] text-[#536076]"}`}>{count}</span>
+            <button key={type} type="button" aria-expanded={isActive} onClick={() => setSection(isActive ? null : type)} className={`flex min-h-[72px] min-w-0 cursor-pointer items-center justify-between gap-2 rounded-[var(--radius-card)] border px-3 py-3 text-left transition-colors sm:px-4 ${isActive ? "border-accent bg-accent-subtle" : "border-border bg-surface hover:border-accent hover:bg-accent-subtle"}`}>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">{t(isStudent ? "Siswa" : "Guru")}</span><span className="mt-0.5 block text-xs text-muted-foreground">{t("Lihat daftar")}</span></span>
+              <span className={`flex h-9 min-w-9 flex-shrink-0 items-center justify-center rounded-[var(--radius-control)] px-2 text-sm font-bold ${isActive ? "bg-accent text-accent-foreground" : "bg-surface-muted text-foreground"}`}>{count}</span>
             </button>
           );
         })}
@@ -230,31 +236,31 @@ export default function SuperAdminKelasDetailPage() {
       {section === "SISWA" && (
         <div className="mt-4 space-y-3">
           {Object.keys(siswaGrouped).length === 0 ? (
-            <p className="text-sm text-[#9CA3AF]">Belum ada siswa di kelas ini.</p>
+            <p className="text-sm text-muted-foreground">{t("Belum ada siswa di kelas ini.")}</p>
           ) : (
             Object.entries(siswaGrouped).map(([label, list]) => {
               const isOpen = expandedRombel === label;
               return (
-                <div key={label} className="border border-[#e1e5ed] bg-white">
+                <div key={label} className="rounded-[var(--radius-card)] border border-border bg-surface">
                   <button onClick={() => setExpandedRombel(isOpen ? null : label)} className="flex w-full cursor-pointer items-center justify-between px-5 py-3.5 text-left">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#182033]">{label}</p>
-                      <Badge tone="brand">{list.length} Siswa</Badge>
+                      <p className="text-sm font-bold text-foreground">{label}</p>
+                      <Badge tone="brand">{list.length} {t("siswa")}</Badge>
                     </div>
                     <svg viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}>
                       <path d="m6 9 6 6 6-6" />
                     </svg>
                   </button>
                   {isOpen && (
-                    <div className="space-y-2 border-t border-[#edf0f5] p-4">
+                    <div className="space-y-2 border-t border-border p-4">
                       {list.map((ks) => (
                         <button
                           key={ks.siswaId}
                           type="button"
                           onClick={() => router.push(`/profil/${ks.siswa.id}`)}
-                          className="flex w-full cursor-pointer items-center gap-3 border border-[#edf0f5] p-3 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
+                          className="flex w-full cursor-pointer items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 text-left transition-colors hover:border-accent hover:bg-accent-subtle"
                         >
-                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-xs font-bold text-muted-foreground">
                             {ks.siswa.fotoProfil ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={ks.siswa.fotoProfil} alt={ks.siswa.nama} className="h-full w-full object-cover" />
@@ -263,7 +269,7 @@ export default function SuperAdminKelasDetailPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-[#182033]">{ks.siswa.nama}</p>
+                            <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p>
                           </div>
                         </button>
                       ))}
@@ -279,15 +285,15 @@ export default function SuperAdminKelasDetailPage() {
       {section === "GURU" && (
         <div className="mt-4">
           {Object.keys(guruGrouped).length === 0 ? (
-            <p className="text-sm text-[#9CA3AF]">Belum ada guru lain di kelas ini.</p>
+            <p className="text-sm text-muted-foreground">{t("Belum ada guru lain di kelas ini.")}</p>
           ) : (
             Object.entries(guruGrouped).map(([mapel, list]) => (
               <div key={mapel} className="mb-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#9CA3AF]">{mapel}</p>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{mapel}</p>
                 <div className="space-y-2">
                   {list.map((gm) => (
-                    <div key={gm.id} className="flex items-center gap-3 border border-[#e1e5ed] bg-white p-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+                    <div key={gm.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-xs font-bold text-muted-foreground">
                         {gm.guru.fotoProfil ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={gm.guru.fotoProfil} alt={gm.guru.nama} className="h-full w-full object-cover" />
@@ -295,7 +301,7 @@ export default function SuperAdminKelasDetailPage() {
                           gm.guru.nama.charAt(0)
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-[#182033]">{gm.guru.nama}</p>
+                      <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p>
                     </div>
                   ))}
                 </div>
@@ -309,24 +315,24 @@ export default function SuperAdminKelasDetailPage() {
         <>
           <div className="mt-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <Button size="sm" className="w-full sm:w-auto" onClick={() => setShowModalPengumuman(true)}>
-              + Buat Konten
+              + {t("Buat Konten")}
             </Button>
             <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={openBuatQuiz}>
-              + Buat Quiz
+              + {t("Buat Quiz")}
             </Button>
             <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={openBuatUjian}>
-              + Buat Ujian Online
+              + {t("Buat Ujian Online")}
             </Button>
             <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={openBuatTugas}>
-              + Tugas
+              + {t("Tugas")}
             </Button>
           </div>
 
-          <div className="mt-6 space-y-3 border-t border-[#e1e5ed] pt-5">
-        <div><h2 className="text-base font-bold text-[#182033]">Aktivitas Kelas</h2><p className="mt-1 text-xs text-[#8290a3]">Pengumuman, materi, tugas, dan asesmen di kelas ini.</p></div>
+          <div className="mt-6 space-y-3 border-t border-border pt-5">
+        <div><h2 className="text-base font-bold text-foreground">{t("Aktivitas Kelas")}</h2><p className="mt-1 text-xs text-[#8290a3]">{t("Pengumuman, materi, tugas, dan asesmen di kelas ini.")}</p></div>
         <KelasFeedFilter value={feedFilter} onChange={setFeedFilter} />
         {filteredFeed.length === 0 ? (
-          <p className="text-sm text-[#9CA3AF]">{kelas.feed.length === 0 ? "Belum ada aktivitas di kelas ini." : "Tidak ada konten untuk filter ini."}</p>
+          <p className="text-sm text-muted-foreground">{t(kelas.feed.length === 0 ? "Belum ada aktivitas di kelas ini." : "Tidak ada konten untuk filter ini.")}</p>
         ) : (
           filteredFeed.map((item, i) => {
             if (item.tipe === "PENGUMUMAN") {
@@ -362,18 +368,18 @@ export default function SuperAdminKelasDetailPage() {
               <div
                 key={`a-${i}`}
                 onClick={() => router.push(`/super-admin/asesmen/${a.id}`)}
-                className="block w-full cursor-pointer border border-[#e1e5ed] bg-white p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
+                className="block w-full cursor-pointer rounded-[var(--radius-card)] border border-border bg-surface p-4 text-left transition-colors hover:border-[#bdc8f8] hover:bg-[#fafbff]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <Badge tone="brand">{a.tipe === "KUIS" ? "Kuis" : "Ujian Online"}</Badge>
+                    <Badge tone="brand">{t(a.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
                     {a.mapel && <Badge tone="gray">{a.mapel.nama}</Badge>}
                   </div>
                   {me?.id === a.guru?.id && (
                     <div className="relative" data-options-menu>
                       <button
                         type="button"
-                        aria-label="Opsi asesmen"
+                        aria-label={t("Opsi asesmen")}
                         onClick={(event) => {
                           event.stopPropagation();
                           setOpenAsesmenOptionsId((value) => value === a.id ? null : a.id);
@@ -383,28 +389,28 @@ export default function SuperAdminKelasDetailPage() {
                         ⋯
                       </button>
                       {openAsesmenOptionsId === a.id && (
-                        <div onClick={(event) => event.stopPropagation()} className="absolute right-0 top-9 z-20 w-32 overflow-hidden rounded-lg border border-[#dfe4ef] bg-white py-1 text-left shadow-md">
+                        <div onClick={(event) => event.stopPropagation()} className="absolute right-0 top-9 z-20 w-32 overflow-hidden rounded-lg border border-border bg-white py-1 text-left shadow-md">
                           {a.status === "PROSES" && (
-                            <button type="button" onClick={() => { setOpenAsesmenOptionsId(null); setEditingAsesmen(a as AsesmenData); }} className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10">
-                              Edit
+                            <button type="button" onClick={() => { setOpenAsesmenOptionsId(null); setEditingAsesmen(a as AsesmenData); }} className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-[#6B85F6]/10">
+                              {t("Edit")}
                             </button>
                           )}
                           {a.status === "SELESAI" && (
-                            <button type="button" onClick={() => { setOpenAsesmenOptionsId(null); setSendingAsesmen(a); }} className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-[#435064] hover:bg-[#6B85F6]/10">
-                              Kirim ke
+                            <button type="button" onClick={() => { setOpenAsesmenOptionsId(null); setSendingAsesmen(a); }} className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-[#6B85F6]/10">
+                              {t("Kirim ke")}
                             </button>
                           )}
                           <button type="button" onClick={() => { setOpenAsesmenOptionsId(null); void handleDeleteAsesmen(a.id); }} className="block w-full cursor-pointer px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50">
-                            Hapus
+                            {t("Hapus")}
                           </button>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
-                <p className="mt-2 text-sm font-bold text-[#182033]">{a.judul}</p>
-                <p className="mt-1 text-xs text-[#9CA3AF]">
-                  {a._count?.soal ?? 0} soal · oleh {a.guru?.nama}
+                <p className="mt-2 text-sm font-bold text-foreground">{a.judul}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {a._count?.soal ?? 0} {t("soal")} · {t("oleh")} {a.guru?.nama}
                 </p>
               </div>
             );
