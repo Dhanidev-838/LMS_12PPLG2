@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 import { getSession } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -16,6 +17,17 @@ const ALLOWED_TUGAS_TYPES = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "application/zip",
 ];
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "application/pdf": "pdf",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  "application/zip": "zip",
+};
 
 const KATEGORI_CONFIG: Record<string, { folder: string; allowedTypes: string[] }> = {
   profil: { folder: "profil", allowedTypes: ALLOWED_IMAGE_TYPES },
@@ -52,21 +64,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const isVercel = process.env.VERCEL === "1";
     const sizeMb = file.size / (1024 * 1024);
-    if (sizeMb > MAX_SIZE_MB) {
-      return NextResponse.json({ error: `Ukuran file maksimal ${MAX_SIZE_MB}MB.` }, { status: 400 });
+    const maxSizeMb = isVercel ? 4 : MAX_SIZE_MB;
+    if (sizeMb > maxSizeMb) {
+      const error = isVercel
+        ? "Ukuran file maksimal 4 MB di hosting."
+        : `Ukuran file maksimal ${MAX_SIZE_MB}MB.`;
+      return NextResponse.json({ error }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || (file.type === "application/pdf" ? "pdf" : "jpg");
+    const ext = EXTENSION_BY_TYPE[file.type] ?? "bin";
     const filename = `${crypto.randomUUID()}.${ext}`;
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads", config.folder);
-    await mkdir(uploadDir, { recursive: true });
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(uploadDir, filename), buffer);
+    let url: string;
 
-    const url = `/uploads/${config.folder}/${filename}`;
+    if (isVercel) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+        return NextResponse.json(
+          { error: "Penyimpanan file belum dikonfigurasi. Hubungkan Vercel Blob di project ini." },
+          { status: 503 }
+        );
+      }
+
+      const blob = await put(`${config.folder}/${filename}`, buffer, {
+        access: "public",
+        addRandomSuffix: false,
+        contentType: file.type,
+      });
+      url = blob.url;
+    } else {
+      const uploadDir = path.join(process.cwd(), "public", "uploads", config.folder);
+      await mkdir(uploadDir, { recursive: true });
+      await writeFile(path.join(uploadDir, filename), buffer);
+      url = `/uploads/${config.folder}/${filename}`;
+    }
 
     return NextResponse.json({ url }, { status: 201 });
   } catch (err) {
