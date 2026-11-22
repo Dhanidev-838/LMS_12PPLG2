@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { showAlert } from "@/lib/dialog";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 const BRAND = "#6B85F6";
 
@@ -201,7 +202,9 @@ export default function DetailJawabanSiswaPage() {
             <Badge tone="gray">{detail.kelas}</Badge>
             {detail.asesmen.mapel && <Badge tone="brand">{detail.asesmen.mapel}</Badge>}
           </div>
-          <p className="mt-2 text-sm font-semibold text-[#374151]">{detail.asesmen.judul}</p>
+          <p className="mt-2 text-sm font-semibold text-[#374151]">
+            <TranslateContent text={detail.asesmen.judul} textClassName="block" />
+          </p>
         </div>
 
       </div>
@@ -347,7 +350,7 @@ export default function DetailJawabanSiswaPage() {
             </div>
 
             <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
-              {activeIndex + 1}. {currentSoal.pertanyaan}
+              {activeIndex + 1}. <TranslateContent text={currentSoal.pertanyaan} />
             </p>
 
             {currentSoal.gambar && (
@@ -368,7 +371,7 @@ export default function DetailJawabanSiswaPage() {
                     <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm" style={borderStyle}>
                       <div className="flex items-center gap-3">
                         <input type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} checked={dipilihSiswa} readOnly />
-                        <span className="text-[#374151]">{o.teks}</span>
+                        <TranslateContent text={o.teks} textClassName="text-[#374151]" />
                       </div>
                       <div className="flex gap-1.5">
                         {dipilihSiswa && <Badge tone="brand">{t("Dipilih Siswa")}</Badge>}

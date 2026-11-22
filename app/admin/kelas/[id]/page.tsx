@@ -18,6 +18,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import { showConfirm } from "@/lib/dialog";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "MAPEL" | "LAPORAN" | "PERFORMA";
 type GuruNav = "KELAS" | "ASESMEN" | "TUGAS" | "PROFILE";
@@ -346,8 +347,14 @@ export default function AdminKelasDetailPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-wide text-accent-text">{t("Detail Kelas")}</p>
-                  <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">{kelas.judul}</h1>
-                  {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{kelas.deskripsi}</p>}
+                  <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">
+                    <TranslateContent text={kelas.judul} textClassName="block" />
+                  </h1>
+                  {kelas.deskripsi && (
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                      <TranslateContent text={kelas.deskripsi} textClassName="block" />
+                    </p>
+                  )}
                 </div>
                 {canManageClass && (
                   <Button variant="outline" onClick={() => setShowEditKelas(true)} className="w-full flex-shrink-0 sm:w-auto">

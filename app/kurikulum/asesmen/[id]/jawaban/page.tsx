@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import KurikulumShell from "@/components/KurikulumShell";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 interface OpsiJawaban {
   id: string;
@@ -111,7 +112,9 @@ export default function KurikulumAsesmenDetailPage() {
 
         <div className="flex flex-wrap items-start justify-between gap-5 border border-border border-t-4 border-t-[#6B85F6] bg-surface p-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{asesmen.judul}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              <TranslateContent text={asesmen.judul} textClassName="block" />
+            </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge tone="brand">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
               {asesmen.mapel && <Badge tone="gray">{asesmen.mapel.nama}</Badge>}
@@ -123,7 +126,7 @@ export default function KurikulumAsesmenDetailPage() {
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 {asesmen.kelasTujuan.map(({ kelas }) => (
                   <Badge key={kelas.id} tone="gray">
-                    {kelas.judul}
+                    <TranslateContent text={kelas.judul} textClassName="block" />
                   </Badge>
                 ))}
               </div>
@@ -225,7 +228,7 @@ export default function KurikulumAsesmenDetailPage() {
               </div>
 
               <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
-                {activeIndex + 1}. {currentSoal.pertanyaan}
+                {activeIndex + 1}. <TranslateContent text={currentSoal.pertanyaan} />
               </p>
 
               {currentSoal.gambar && (
@@ -244,7 +247,7 @@ export default function KurikulumAsesmenDetailPage() {
                     >
                       <div className="flex items-center gap-3">
                         <input type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} checked={o.isBenar} readOnly disabled />
-                        <span className="text-[#374151]">{o.teks}</span>
+                        <TranslateContent text={o.teks} textClassName="text-[#374151]" />
                       </div>
                       {o.isBenar && <Badge tone="green">{t("Kunci Jawaban")}</Badge>}
                     </div>

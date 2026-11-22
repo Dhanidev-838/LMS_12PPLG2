@@ -19,6 +19,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import type { AsesmenData } from "@/components/Asesmencard";
 import { showAlert, showConfirm } from "@/lib/dialog";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 interface SiswaDiKelas {
   siswaId: string;
@@ -202,8 +203,14 @@ export default function SuperAdminKelasDetailPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-wide text-accent-text">{t("Detail Kelas")}</p>
-            <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">{kelas.judul}</h1>
-            {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{kelas.deskripsi}</p>}
+            <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">
+              <TranslateContent text={kelas.judul} textClassName="block" />
+            </h1>
+            {kelas.deskripsi && (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                <TranslateContent text={kelas.deskripsi} textClassName="block" />
+              </p>
+            )}
           </div>
           <div className="w-full border-t border-border pt-3 sm:w-auto sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t("Kode Kelas")}</p>

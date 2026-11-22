@@ -8,6 +8,7 @@ import Modal from "./ui/Modal";
 import { showConfirm } from "@/lib/dialog";
 import DeadlineLabel from "./DeadlineLabel";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "./TranslateContent";
 
 interface LampiranTugas {
   id: string;
@@ -231,7 +232,11 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
             <p className="text-sm font-bold text-foreground">{data.guru.nama}</p>
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge tone="brand">{t("Tugas")}</Badge>
-              {data.mapel && <Badge tone="gray">{data.mapel.nama}</Badge>}
+              {data.mapel && (
+                <Badge tone="gray">
+                  <TranslateContent text={data.mapel.nama} textClassName="inline" />
+                </Badge>
+              )}
               <span className="text-[11px] text-muted-foreground">
                 {new Date(data.createdAt).toLocaleDateString(intlLocaleCodes[locale], { day: "numeric", month: "short" })}
               </span>
@@ -258,8 +263,18 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
         )}
       </div>
 
-      <p className="mt-4 border-t border-border pt-4 text-sm font-bold text-foreground">{data.judul}</p>
-      {data.isi && <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{data.isi}</p>}
+      <TranslateContent
+        text={data.judul}
+        className="mt-4 block border-t border-border pt-4"
+        textClassName="block text-sm font-bold text-foreground"
+      />
+      {data.isi && (
+        <TranslateContent
+          text={data.isi}
+          className="mt-1 block"
+          textClassName="block whitespace-pre-wrap text-sm text-foreground"
+        />
+      )}
       <DeadlineLabel
         deadlineAt={data.deadlineAt}
         publishedAt={data.publishedAt}

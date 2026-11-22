@@ -8,6 +8,7 @@ import { showConfirm } from "@/lib/dialog";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedChoice } from "@/components/TranslateContent";
 
 interface OpsiSoal {
   id: string;
@@ -287,7 +288,7 @@ export function AsesmenKerjakanPage({
     return (
       <div className="flex flex-col items-center gap-3 border border-[#e1e5ed] bg-white p-10 text-center">
         <Badge tone="green">{t("Sudah Dikumpulkan")}</Badge>
-        <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
+        <TranslateContent text={asesmen.judul} textClassName="block text-lg font-bold text-[#182033]" />
         <p className="text-sm text-[#64748B]">{t("Jawabanmu sudah tersimpan. Nilai akan diumumkan oleh guru.")}</p>
         <Button onClick={() => router.push(`${dashboardPath}/asesmen`)}>{t("Kembali ke Asesmen")}</Button>
       </div>
@@ -299,10 +300,17 @@ export function AsesmenKerjakanPage({
       <div className="flex flex-wrap items-center justify-between gap-3 border border-[#e1e5ed] bg-white p-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-lg font-bold text-[#182033]">{asesmen.judul}</p>
+            <TranslateContent text={asesmen.judul} textClassName="block text-lg font-bold text-[#182033]" />
             <Badge tone="amber">{t("Sedang Mengerjakan")} {t(isKuis ? "Kuis" : "Ujian Online")}</Badge>
           </div>
-          <p className="mt-0.5 text-sm text-[#64748B]">{t("Mapel")} - {asesmen.mapel?.nama ?? "-"}</p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1 text-sm text-[#64748B]">
+            <span>{t("Mapel")} -</span>
+            {asesmen.mapel?.nama ? (
+              <TranslateContent text={asesmen.mapel.nama} textClassName="inline" />
+            ) : (
+              <span>-</span>
+            )}
+          </div>
         </div>
         {asesmen.durasiMenit && (
           <div className={`rounded-xl border px-4 py-2 text-right ${sisaDetik <= 300 ? "border-red-300 bg-red-50" : "border-[#e1e5ed] bg-[#f7f8fd]"}`}>
@@ -407,9 +415,14 @@ export function AsesmenKerjakanPage({
               )}
             </div>
 
-            <p className="mt-3 text-sm font-semibold text-[#182033]">
-              {activeIndex + 1}. {currentSoal.pertanyaan}
-            </p>
+            <div className="mt-3">
+              <span className="text-sm font-semibold text-[#182033]">{activeIndex + 1}. </span>
+              <TranslateContent
+                text={currentSoal.pertanyaan}
+                className="inline"
+                textClassName="whitespace-pre-wrap text-sm font-semibold text-[#182033]"
+              />
+            </div>
 
             {currentSoal.gambar && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -427,21 +440,20 @@ export function AsesmenKerjakanPage({
               />
             ) : (
               <div className="mt-4 space-y-2">
-                {currentSoal.opsi.map((o) => {
-                  const dipilih = jawabanSaatIni?.opsiIds.includes(o.id) ?? false;
+                {currentSoal.opsi.map((option) => {
+                  const selected = jawabanSaatIni?.opsiIds.includes(option.id) ?? false;
                   return (
-                    <label key={o.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-sm ${dipilih ? "border-[#6B85F6] bg-[#6B85F6]/5" : "border-[#dfe4ef]"}`}>
-                      <input
-                        type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"}
-                        checked={dipilih}
-                        onChange={() =>
-                          currentSoal.tipe === "PILIHAN_GANDA"
-                            ? handlePilihOpsiPG(currentSoal.id, o.id)
-                            : handleToggleOpsiCB(currentSoal.id, o.id)
-                        }
-                      />
-                      <span className="text-[#374151]">{o.teks}</span>
-                    </label>
+                    <TranslatedChoice
+                      key={option.id}
+                      text={option.teks}
+                      inputType={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"}
+                      selected={selected}
+                      onChange={() =>
+                        currentSoal.tipe === "PILIHAN_GANDA"
+                          ? handlePilihOpsiPG(currentSoal.id, option.id)
+                          : handleToggleOpsiCB(currentSoal.id, option.id)
+                      }
+                    />
                   );
                 })}
               </div>

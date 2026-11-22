@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "./ui/Badge";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "./TranslateContent";
 
 export interface KelasData {
   id: string;
@@ -50,7 +51,11 @@ export default function KelasCard({
     >
       <div className="flex items-center justify-between px-4 pt-4">
         <div className="flex min-w-0 items-center gap-2">
-          <p className="truncate text-sm font-semibold text-foreground">{label}</p>
+          <TranslateContent
+            text={label}
+            className="min-w-0"
+            textClassName="block truncate text-sm font-semibold text-foreground"
+          />
           <Badge tone="brand">{data._count?.siswa ?? 0} {t("siswa")}</Badge>
         </div>
 
@@ -99,9 +104,15 @@ export default function KelasCard({
 
       {/* deskripsi -- strip walas dihapus total */}
       <div className="px-4 py-3">
-        <p className="line-clamp-2 text-xs italic text-muted-foreground">
-          {data.deskripsi ? `"${data.deskripsi}"` : t("Belum ada deskripsi.")}
-        </p>
+        {data.deskripsi ? (
+          <TranslateContent
+            text={data.deskripsi}
+            className="block"
+            textClassName="block line-clamp-2 text-xs italic text-muted-foreground"
+          />
+        ) : (
+          <p className="text-xs italic text-muted-foreground">{t("Belum ada deskripsi.")}</p>
+        )}
       </div>
 
       <div className="flex items-center gap-1 border-t border-border px-4 py-2.5">

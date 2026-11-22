@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import KurikulumShell from "@/components/KurikulumShell";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 const BRAND = "#6B85F6";
 
@@ -100,7 +101,7 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
       </div>
 
       <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
-        {nomor}. {soal.pertanyaan}
+        {nomor}. <TranslateContent text={soal.pertanyaan} />
       </p>
 
       {soal.gambar && (
@@ -125,7 +126,7 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
               >
                 <div className="flex items-center gap-3">
                   <input type={soal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} checked={dipilihSiswa} readOnly disabled />
-                  <span className="text-[#374151]">{o.teks}</span>
+                  <TranslateContent text={o.teks} textClassName="text-[#374151]" />
                 </div>
                 <div className="flex gap-1.5">
                   {dipilihSiswa && <Badge tone="brand">{t("Dipilih Siswa")}</Badge>}
@@ -257,7 +258,9 @@ export default function KurikulumDetailJawabanSiswaPage() {
               <Badge tone="gray">{detail.kelas}</Badge>
               {detail.asesmen.mapel && <Badge tone="brand">{detail.asesmen.mapel}</Badge>}
             </div>
-            <p className="mt-2 text-sm font-semibold text-[#374151]">{detail.asesmen.judul}</p>
+            <p className="mt-2 text-sm font-semibold text-[#374151]">
+              <TranslateContent text={detail.asesmen.judul} textClassName="block" />
+            </p>
           </div>
         </div>
 

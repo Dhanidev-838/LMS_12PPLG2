@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Badge from "./ui/Badge";
 import DeadlineLabel from "./DeadlineLabel";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "./TranslateContent";
 
 export interface AsesmenData {
   id: string;
@@ -174,18 +175,28 @@ export default function AsesmenCard({ data, basePath = "/guru/asesmen", submissi
           </div>
         </div>
 
-        <p className="mt-3 truncate text-sm font-bold text-foreground">{data.judul}</p>
+        <TranslateContent
+          text={data.judul}
+          className="mt-3 block"
+          textClassName="block truncate text-sm font-bold text-foreground"
+        />
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Badge tone="gray">{label}</Badge>
-          {data.mapel && <Badge tone="brand">{data.mapel.nama}</Badge>}
+          {data.mapel && (
+            <Badge tone="brand">
+              <TranslateContent text={data.mapel.nama} textClassName="inline" />
+            </Badge>
+          )}
           {data.durasiMenit && <span className="text-[11px] text-muted-foreground">{data.durasiMenit} {t("menit")}</span>}
         </div>
 
         {data.kelasTujuan && data.kelasTujuan.length > 0 && (
-          <p className="mt-2 truncate text-[11px] text-muted-foreground">
-            {data.kelasTujuan.map((kt) => kt.kelas.judul).join(", ")}
-          </p>
+          <TranslateContent
+            text={data.kelasTujuan.map((kt) => kt.kelas.judul).join(", ")}
+            className="mt-2 block"
+            textClassName="block truncate text-[11px] text-muted-foreground"
+          />
         )}
 
         {data.createdAt && (

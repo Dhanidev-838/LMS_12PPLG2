@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 interface GuruDashboardData {
   statistik: { totalKelas: number; totalSiswa: number; totalAsesmen: number; totalTugas: number; totalMateri: number; submissionDinilai: number; essayBelumDinilai: number; tugasDikumpulkan: number };
@@ -76,7 +77,7 @@ export default function GuruDashboardPage() {
           </div>
           {data.kelas.length === 0 ? <p className="p-5 text-sm text-muted-foreground">{t("Belum ada kelas yang diampu.")}</p> : (
             <div className="grid gap-3 p-4 sm:grid-cols-2">
-              {data.kelas.map((kelas) => <Link key={kelas.id} href={`/guru/kelas/${kelas.id}`} className="rounded-lg border border-border bg-surface p-4 transition-colors hover:border-accent hover:bg-surface-muted"><p className="line-clamp-2 text-sm font-semibold text-foreground">{kelas.judul}</p><p className="mt-2 text-xs text-muted-foreground">{kelas._count.siswa} {t("siswa")}</p></Link>)}
+              {data.kelas.map((kelas) => <Link key={kelas.id} href={`/guru/kelas/${kelas.id}`} className="rounded-lg border border-border bg-surface p-4 transition-colors hover:border-accent hover:bg-surface-muted"><TranslateContent text={kelas.judul} className="block" textClassName="block line-clamp-2 text-sm font-semibold text-foreground" /><p className="mt-2 text-xs text-muted-foreground">{kelas._count.siswa} {t("siswa")}</p></Link>)}
             </div>
           )}
         </section>
@@ -93,11 +94,11 @@ export default function GuruDashboardPage() {
       <div className="grid gap-3 lg:grid-cols-2">
         <section className={panel}>
           <div className="flex items-center justify-between border-b border-border px-5 py-4"><h2 className="text-sm font-bold text-foreground">{t("Asesmen terbaru")}</h2><Link href="/guru/asesmen" className="text-xs font-semibold text-accent-text hover:underline">{t("Lihat semua")}</Link></div>
-          <div className="divide-y divide-border">{data.asesmenTerbaru.length === 0 ? <p className="p-5 text-sm text-muted-foreground">{t("Belum ada asesmen.")}</p> : data.asesmenTerbaru.map((asesmen) => <Link key={asesmen.id} href={`/guru/asesmen/${asesmen.id}`} className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-surface-muted"><span className="min-w-0"><span className="block truncate text-sm font-semibold text-foreground">{asesmen.judul}</span><span className="text-xs text-muted-foreground">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</span></span><Badge tone={asesmen.status === "SELESAI" ? "green" : "amber"}>{t(asesmen.status === "SELESAI" ? "Selesai" : "Proses")}</Badge></Link>)}</div>
+          <div className="divide-y divide-border">{data.asesmenTerbaru.length === 0 ? <p className="p-5 text-sm text-muted-foreground">{t("Belum ada asesmen.")}</p> : data.asesmenTerbaru.map((asesmen) => <Link key={asesmen.id} href={`/guru/asesmen/${asesmen.id}`} className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-surface-muted"><span className="min-w-0"><TranslateContent text={asesmen.judul} className="block truncate" textClassName="block truncate text-sm font-semibold text-foreground" /><span className="text-xs text-muted-foreground">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</span></span><Badge tone={asesmen.status === "SELESAI" ? "green" : "amber"}>{t(asesmen.status === "SELESAI" ? "Selesai" : "Proses")}</Badge></Link>)}</div>
         </section>
         <section className={panel}>
           <div className="flex items-center justify-between border-b border-border px-5 py-4"><h2 className="text-sm font-bold text-foreground">{t("Tugas terbaru")}</h2><Link href="/guru/tugas" className="text-xs font-semibold text-accent-text hover:underline">{t("Lihat semua")}</Link></div>
-          <div className="divide-y divide-border">{data.tugasTerbaru.length === 0 ? <p className="p-5 text-sm text-muted-foreground">{t("Belum ada tugas.")}</p> : data.tugasTerbaru.map((tugas) => <Link key={tugas.id} href="/guru/tugas" className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-surface-muted"><span className="min-w-0 truncate text-sm font-semibold text-foreground">{tugas.judul}</span><span className="shrink-0 text-xs text-muted-foreground">{tugas._count.submission} {t("terkumpul")}</span></Link>)}</div>
+          <div className="divide-y divide-border">{data.tugasTerbaru.length === 0 ? <p className="p-5 text-sm text-muted-foreground">{t("Belum ada tugas.")}</p> : data.tugasTerbaru.map((tugas) => <Link key={tugas.id} href="/guru/tugas" className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-surface-muted"><TranslateContent text={tugas.judul} className="block min-w-0 truncate" textClassName="block truncate text-sm font-semibold text-foreground" /><span className="shrink-0 text-xs text-muted-foreground">{tugas._count.submission} {t("terkumpul")}</span></Link>)}</div>
         </section>
       </div>
     </div>

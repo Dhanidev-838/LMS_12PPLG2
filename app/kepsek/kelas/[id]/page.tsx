@@ -13,6 +13,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import ThemeToggle from "@/components/shared/theme-toggle";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 const BRAND = "#6B85F6";
 type KepsekTab = "DASHBOARD" | "KELAS" | "AKUN" | "ASESMEN" | "PERFORMA";
@@ -221,8 +222,14 @@ export default function KepsekKelasDetailPage() {
           <div className="mx-auto w-full max-w-5xl">
             <section className="rounded-[var(--radius-card)] border border-border border-l-4 border-l-accent bg-surface p-4 sm:p-6">
               <p className="text-xs font-bold uppercase tracking-wide text-accent-text">{t("Detail Kelas")}</p>
-              <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">{kelas.judul}</h1>
-              {kelas.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{kelas.deskripsi}</p>}
+              <h1 className="mt-1 break-words text-xl font-bold text-foreground sm:text-2xl">
+                <TranslateContent text={kelas.judul} textClassName="block" />
+              </h1>
+              {kelas.deskripsi && (
+                <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                  <TranslateContent text={kelas.deskripsi} textClassName="block" />
+                </p>
+              )}
             </section>
 
             <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">

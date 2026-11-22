@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Badge from "./ui/Badge";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "./TranslateContent";
 
 export interface MateriData {
   id: string;
@@ -47,7 +48,11 @@ export default function MateriCard({ data, isEditable = false, onEdit, onDelete 
             <p className="truncate text-sm font-bold text-foreground">{data.guru?.nama ?? t("Materi Kelas")}</p>
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge tone="brand">{t("Materi")}</Badge>
-              {data.mapel && <Badge tone="gray">{data.mapel.nama}</Badge>}
+              {data.mapel && (
+                <Badge tone="gray">
+                  <TranslateContent text={data.mapel.nama} textClassName="inline" />
+                </Badge>
+              )}
               <Badge tone={data.tipe === "LINK" ? "brand" : "gray"}>{tipeLabel}</Badge>
               <span className="text-[11px] text-muted-foreground">
                 {new Date(data.createdAt).toLocaleDateString(intlLocaleCodes[locale], { day: "numeric", month: "short" })}
@@ -69,8 +74,18 @@ export default function MateriCard({ data, isEditable = false, onEdit, onDelete 
         )}
       </div>
 
-      <p className="mt-4 border-t border-border pt-4 text-sm font-bold text-foreground">{data.judul}</p>
-      {data.deskripsi && <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{data.deskripsi}</p>}
+      <TranslateContent
+        text={data.judul}
+        className="mt-4 block border-t border-border pt-4"
+        textClassName="block text-sm font-bold text-foreground"
+      />
+      {data.deskripsi && (
+        <TranslateContent
+          text={data.deskripsi}
+          className="mt-1 block"
+          textClassName="block whitespace-pre-wrap text-sm text-foreground"
+        />
+      )}
 
       <a href={data.url} target="_blank" rel="noopener noreferrer" className="attachment-item group mt-3 flex min-w-0 items-center gap-3 rounded-lg border border-border bg-surface p-3 transition-colors duration-150 hover:border-accent hover:bg-surface-muted">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent-subtle text-accent-text">

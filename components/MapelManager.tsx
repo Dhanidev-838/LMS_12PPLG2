@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { showConfirm } from "@/lib/dialog";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 type Mapel = {
   id: string;
@@ -166,7 +167,11 @@ export default function MapelManager() {
               return (
                 <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{item.nama}</p>
+                    <TranslateContent
+                      text={item.nama}
+                      className="block"
+                      textClassName="block text-sm font-semibold text-foreground"
+                    />
                     <p className="mt-0.5 text-xs text-muted-foreground">{used > 0 ? t("Sedang digunakan dalam pembelajaran") : t("Belum digunakan")}</p>
                   </div>
                   <div className="flex gap-2">

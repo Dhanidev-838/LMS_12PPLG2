@@ -9,6 +9,7 @@ import Modal from "@/components/ui/Modal";
 import ModalBuatSoal from "@/components/ModalBuatSoal";
 import { showAlert, showConfirm } from "@/lib/dialog";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedChoice } from "@/components/TranslateContent";
 
 interface OpsiJawaban {
   id: string;
@@ -198,7 +199,9 @@ export default function SuperAdminAsesmenDetailPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-5 border border-border border-t-4 border-t-[#6B85F6] bg-white p-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{asesmen.judul}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <TranslateContent text={asesmen.judul} textClassName="block" />
+          </h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <Badge tone="brand">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
             {asesmen.mapel && <Badge tone="gray">{asesmen.mapel.nama}</Badge>}
@@ -341,7 +344,7 @@ export default function SuperAdminAsesmenDetailPage() {
             </div>
 
             <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
-              {activeIndex + 1}. {currentSoal.pertanyaan}
+              {activeIndex + 1}. <TranslateContent text={currentSoal.pertanyaan} />
             </p>
 
             {currentSoal.gambar && (
@@ -352,10 +355,15 @@ export default function SuperAdminAsesmenDetailPage() {
             {currentSoal.tipe !== "ESSAY" ? (
               <div className="mt-4 space-y-2">
                 {currentSoal.opsi.map((o) => (
-                  <label key={o.id} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${o.isBenar ? "border-accent bg-[#6B85F6]/5" : "border-border hover:border-[#94A3B8]"}`}>
-                    <input type={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"} checked={o.isBenar} disabled={!isEditable} onChange={() => handleToggleKunci(o.id)} />
-                    <span className="text-[#374151]">{o.teks}</span>
-                  </label>
+                  <TranslatedChoice
+                    key={o.id}
+                    text={o.teks}
+                    inputType={currentSoal.tipe === "PILIHAN_GANDA" ? "radio" : "checkbox"}
+                    selected={o.isBenar}
+                    disabled={!isEditable}
+                    onChange={() => handleToggleKunci(o.id)}
+                    labelClassName={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${o.isBenar ? "border-accent bg-[#6B85F6]/5" : "border-border hover:border-[#94A3B8]"}`}
+                  />
                 ))}
               </div>
             ) : (

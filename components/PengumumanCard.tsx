@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
+import TranslateContent from "./TranslateContent";
 
 
 interface Lampiran {
@@ -97,7 +98,13 @@ export default function PengumumanCard({ data, currentUserId, onEdit, onDelete, 
       </div>
 
       {/* isi */}
-      {data.isi && <p className="mt-4 whitespace-pre-wrap border-t border-border pt-4 text-sm leading-6 text-foreground">{data.isi}</p>}
+      {data.isi && (
+        <TranslateContent
+          text={data.isi}
+          className="mt-4 block border-t border-border pt-4"
+          textClassName="block whitespace-pre-wrap text-sm leading-6 text-foreground"
+        />
+      )}
 
       {/* lampiran */}
       {data.lampiran.length > 0 && (

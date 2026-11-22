@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import TabelNilai from "@/components/Tabelnilai";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 interface NilaiRow {
   submissionId: string;
@@ -83,7 +84,9 @@ export default function GuruJawabanPage() {
 
       <div className="mt-4 border border-border border-t-4 border-t-[#6B85F6] bg-white p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Jawaban Siswa")}</p>
-        <h1 className="mt-1 text-2xl font-bold text-foreground">{hasil.asesmen.judul}</h1>
+        <h1 className="mt-1 text-2xl font-bold text-foreground">
+          <TranslateContent text={hasil.asesmen.judul} textClassName="block" />
+        </h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="brand">{t(hasil.asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
           {hasil.asesmen.mapel && <Badge tone="gray">{hasil.asesmen.mapel}</Badge>}
@@ -108,7 +111,7 @@ export default function GuruJawabanPage() {
                   onClick={() => setSelectedKelasId(active ? null : kelas.id)}
                   className={`border bg-white p-4 text-left transition-colors ${active ? "border-accent" : "border-border hover:border-[#bdc8f8] hover:bg-[#fafbff]"}`}
                 >
-                  <p className="font-bold text-foreground">{kelas.judul}</p>
+                  <p className="font-bold text-foreground"><TranslateContent text={kelas.judul} textClassName="block" /></p>
                   <p className="mt-1 text-xs text-muted-foreground">{count} {t("siswa mengumpulkan jawaban")}</p>
                 </button>
               );

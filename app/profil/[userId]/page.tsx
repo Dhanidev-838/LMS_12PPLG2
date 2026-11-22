@@ -415,7 +415,7 @@ export default function ProfilPage() {
                       {isSiswa && (
                         <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            {profil.isSelf ? "NIS" : t("Status")}
+                            {profil.isSelf ? t("NIS") : t("Status")}
                           </p>
                           <p className="mt-0.5 text-sm font-bold text-foreground">
                             {profil.isSelf ? profil.nis ?? "-" : t("Aktif")}
@@ -425,7 +425,7 @@ export default function ProfilPage() {
                       {isGuru && (
                         <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            {profil.isSelf ? "NIK" : t("Status")}
+                            {profil.isSelf ? t("NIK") : t("Status")}
                           </p>
                           <p className="mt-0.5 text-sm font-bold text-foreground">
                             {profil.isSelf ? profil.nik ?? "-" : t("Aktif")}
@@ -455,7 +455,9 @@ export default function ProfilPage() {
 
                       <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5 sm:col-span-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Jenis Kelamin")}</p>
-                        <p className="mt-0.5 text-sm font-bold text-foreground">{profil.jenisKelamin ?? "-"}</p>
+                        <p className="mt-0.5 text-sm font-bold text-foreground">
+                          {profil.jenisKelamin ? t(profil.jenisKelamin) : "-"}
+                        </p>
                       </div>
 
                       <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5 sm:col-span-2">
@@ -485,7 +487,7 @@ export default function ProfilPage() {
                     </div>
                     <div className="print-card-fields">
                       <div>
-                        <span>{isSiswa ? "NIS" : "NIK"}</span>
+                        <span>{t(isSiswa ? "NIS" : "NIK")}</span>
                         <strong>{isSiswa ? profil.nis ?? "-" : profil.nik ?? "-"}</strong>
                       </div>
                       <div>
@@ -498,7 +500,7 @@ export default function ProfilPage() {
                       </div>
                       <div>
                         <span>{t("Jenis Kelamin")}</span>
-                        <strong>{profil.jenisKelamin ?? "-"}</strong>
+                        <strong>{profil.jenisKelamin ? t(profil.jenisKelamin) : "-"}</strong>
                       </div>
                     </div>
                     <div className="print-card-description">

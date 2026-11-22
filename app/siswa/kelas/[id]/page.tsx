@@ -10,6 +10,7 @@ import TugasCard from "@/components/TugasCard";
 import MateriCard from "@/components/MateriCard";
 import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent from "@/components/TranslateContent";
 
 interface SiswaDiKelas {
   siswaId: string;
@@ -113,9 +114,15 @@ export default function SiswaKelasDetailPage() {
       <section className="grid overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(15rem,34%)]">
         <div className="min-w-0 p-5 sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[.12em] text-accent-text">{t("Detail Kelas")}</p>
-          <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-foreground sm:text-[1.8rem]">{kelas.judul}</h1>
+          <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-foreground sm:text-[1.8rem]">
+            <TranslateContent text={kelas.judul} textClassName="block" />
+          </h1>
           <p className="mt-2 max-w-2xl whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-            {kelas.deskripsi || t("Pengumuman, materi, tugas, dan asesmen dari kelas ini.")}
+            {kelas.deskripsi ? (
+              <TranslateContent text={kelas.deskripsi} textClassName="block" />
+            ) : (
+              t("Pengumuman, materi, tugas, dan asesmen dari kelas ini.")
+            )}
           </p>
         </div>
         <div className="grid gap-2 border-t border-border bg-surface-muted p-4 sm:grid-cols-2 lg:grid-cols-1 lg:border-l lg:border-t-0">
