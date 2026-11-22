@@ -47,6 +47,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         mapel: mapelUnik,
         nis: bolehLihatIdentitas ? user.nis : null,
         nik: bolehLihatIdentitas ? user.nik : null,
+        bolehLihatIdentitas,
         isSelf,
       },
     });

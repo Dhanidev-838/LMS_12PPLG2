@@ -29,6 +29,7 @@ interface ProfilData {
   mapel: string[];
   nis: string | null;
   nik: string | null;
+  bolehLihatIdentitas: boolean;
   isSelf: boolean;
 }
 
@@ -42,13 +43,14 @@ const roleLabel: Record<Role, string> = {
 };
 
 // ---- sidebar nav per role viewer ----
-type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "LAPORAN" | "PERFORMA";
+type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "MAPEL" | "LAPORAN" | "PERFORMA";
 type GuruSiswaNav = "DASHBOARD" | "KELAS" | "ASESMEN" | "TUGAS" | "MATERI" | "PERFORMA" | "PROFILE";
 
 const ADMIN_TABS: { key: AdminTab; label: string }[] = [
   { key: "DASHBOARD", label: "Dashboard" },
   { key: "KELAS", label: "Buat Kelas" },
   { key: "AKUN", label: "Daftar Akun" },
+  { key: "MAPEL", label: "Mata Pelajaran" },
   { key: "LAPORAN", label: "Laporan" },
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
@@ -105,6 +107,7 @@ function AdminIcon({ tab }: { tab: AdminTab }) {
     DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
     AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7.87a4 4 0 0 1 0 7.75" />,
+    MAPEL: <path d="M4 5h16v14H4zM8 9h8M8 13h5" />,
     LAPORAN: <path d="M6 2h9l5 5v15H6V2Zm9 0v5h5M9 13h6M9 17h4" />,
     PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
@@ -415,20 +418,20 @@ export default function ProfilPage() {
                       {isSiswa && (
                         <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            {profil.isSelf ? t("NIS") : t("Status")}
+                            {profil.bolehLihatIdentitas ? t("NIS") : t("Status")}
                           </p>
                           <p className="mt-0.5 text-sm font-bold text-foreground">
-                            {profil.isSelf ? profil.nis ?? "-" : t("Aktif")}
+                            {profil.bolehLihatIdentitas ? profil.nis ?? "-" : t("Aktif")}
                           </p>
                         </div>
                       )}
                       {isGuru && (
                         <div className="profile-info-card w-full min-w-0 rounded-lg border border-border bg-surface-muted p-3.5">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            {profil.isSelf ? t("NIK") : t("Status")}
+                            {profil.bolehLihatIdentitas ? t("NIK") : t("Status")}
                           </p>
                           <p className="mt-0.5 text-sm font-bold text-foreground">
-                            {profil.isSelf ? profil.nik ?? "-" : t("Aktif")}
+                            {profil.bolehLihatIdentitas ? profil.nik ?? "-" : t("Aktif")}
                           </p>
                         </div>
                       )}
