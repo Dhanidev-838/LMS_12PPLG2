@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { comparePassword } from "@/lib/auth";
 
-// POST /api/verify-otp -> cek identifier + OTP valid (PUBLIC)
+// POST /api/verify-otp -> verifikasi kode OTP reset password.
 // body: { identifier (NIS/NIK), otp }
 export async function POST(req: NextRequest) {
   try {
