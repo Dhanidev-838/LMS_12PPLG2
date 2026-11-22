@@ -266,13 +266,13 @@ export default function TugasCard({ data, currentUserId, role, onSubmissionChang
       <TranslateContent
         text={data.judul}
         className="mt-4 block border-t border-border pt-4"
-        textClassName="block text-sm font-bold text-foreground"
+        textClassName="block break-words text-sm font-bold text-foreground"
       />
       {data.isi && (
         <TranslateContent
           text={data.isi}
           className="mt-1 block"
-          textClassName="block whitespace-pre-wrap text-sm text-foreground"
+          textClassName="block whitespace-pre-wrap break-words text-sm text-foreground"
         />
       )}
       <DeadlineLabel
