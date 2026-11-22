@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import MateriCard, { MateriData } from "@/components/MateriCard";
 import MobileDashboardSummary, { MobileDashboardSummaryItem } from "@/components/MobileDashboardSummary";
 import RolePageHero from "@/components/shared/RolePageHero";
+import TranslateContent from "@/components/TranslateContent";
 import { intlLocaleCodes, useLanguage } from "@/lib/i18n";
 
 type DashboardData = {
@@ -255,8 +256,8 @@ export default function SiswaDashboardPage() {
               data.nilaiTerbaru.map((item) => (
                 <div key={item.id} className="student-list-row flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{item.judul}</p>
-                    <p className="text-xs text-muted-foreground">{item.mapel}</p>
+                    <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold text-foreground" />
+                    <TranslateContent text={item.mapel} className="block" textClassName="text-xs text-muted-foreground" />
                   </div>
                   <Badge tone={item.nilai !== null && item.nilai >= 75 ? "green" : item.nilai !== null ? "amber" : "gray"}>
                     {item.nilai !== null ? `${item.nilai}` : "-"}
@@ -279,7 +280,7 @@ export default function SiswaDashboardPage() {
               data.pengumumanTerbaru.map((item) => (
                 <div key={item.id} className="student-announce-item rounded-[var(--radius-card)] border border-border bg-surface-muted p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#6B85F6]">{item.kelasJudul}</p>
+                    <TranslateContent text={item.kelasJudul} className="block" textClassName="text-xs font-semibold uppercase tracking-wide text-[#6B85F6]" />
                     {item.isToday ? (
                       <Badge tone="brand">{t("Hari ini")}</Badge>
                     ) : (
@@ -288,7 +289,7 @@ export default function SiswaDashboardPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{item.isi}</p>
+                  <TranslateContent text={item.isi} className="mt-2 block" textClassName="whitespace-pre-wrap text-sm text-foreground" />
                   <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>{t("oleh")} {item.authorNama}</span>
                     <span>{item.lampiranCount > 0 ? `${item.lampiranCount} ${t("lampiran")}` : t("tanpa lampiran")}</span>
@@ -325,8 +326,9 @@ export default function SiswaDashboardPage() {
                 <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
-                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
+                      <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold text-foreground" />
+                      {item.mapel?.nama && <TranslateContent text={item.mapel.nama} className="block" textClassName="text-xs text-muted-foreground" />}
+                      {!item.mapel?.nama && <p className="text-xs text-muted-foreground">{t("Umum")}</p>}
                     </div>
                     <Badge tone={item.statusSubmission === "SUDAH" ? "green" : item.statusSubmission === "SEDANG" ? "amber" : "red"}>
                       {item.statusSubmission === "SUDAH" ? t("Selesai") : item.statusSubmission === "SEDANG" ? t("Sedang") : t("Belum")}
@@ -348,8 +350,9 @@ export default function SiswaDashboardPage() {
                 <Link key={item.id} href="/siswa/tugas" className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
-                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
+                      <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold text-foreground" />
+                      {item.mapel?.nama && <TranslateContent text={item.mapel.nama} className="block" textClassName="text-xs text-muted-foreground" />}
+                      {!item.mapel?.nama && <p className="text-xs text-muted-foreground">{t("Umum")}</p>}
                     </div>
                     <Badge tone={item.statusSubmission === "SUDAH" ? "green" : "red"}>
                       {item.statusSubmission === "SUDAH" ? t("Sudah") : t("Belum")}
@@ -371,8 +374,9 @@ export default function SiswaDashboardPage() {
             ) : (
               data.tugasBelumDikumpulkan.map((item) => (
                 <Link key={item.id} href="/siswa/tugas" className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
-                  <p className="text-sm font-semibold text-foreground">{item.judul}</p>
-                  <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
+                  <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold text-foreground" />
+                  {item.mapel?.nama && <TranslateContent text={item.mapel.nama} className="block" textClassName="text-xs text-muted-foreground" />}
+                  {!item.mapel?.nama && <p className="text-xs text-muted-foreground">{t("Umum")}</p>}
                 </Link>
               ))
             )}
@@ -389,8 +393,9 @@ export default function SiswaDashboardPage() {
                 <Link key={item.id} href={`/siswa/asesmen/${item.id}`} className="block rounded-[var(--radius-card)] border border-border p-3 transition-colors hover:bg-[#6B85F6]/10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{item.judul}</p>
-                      <p className="text-xs text-muted-foreground">{item.mapel?.nama ?? t("Umum")}</p>
+                      <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold text-foreground" />
+                      {item.mapel?.nama && <TranslateContent text={item.mapel.nama} className="block" textClassName="text-xs text-muted-foreground" />}
+                      {!item.mapel?.nama && <p className="text-xs text-muted-foreground">{t("Umum")}</p>}
                     </div>
                     <Badge tone="amber">{t("Sedang")}</Badge>
                   </div>

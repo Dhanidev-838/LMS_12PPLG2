@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import MateriCard, { MateriData } from "@/components/MateriCard";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
 
 interface KelasOption {
   id: string;
@@ -77,7 +78,7 @@ export default function SiswaMateriPage() {
           onChange={(event) => setFilterKelasId(event.target.value)}
         >
           <option value="">{t("Semua Kelas")}</option>
-          {kelasOptions.map((kelas) => <option key={kelas.id} value={kelas.id}>{kelas.label}</option>)}
+          {kelasOptions.map((kelas) => <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.label} />)}
         </select>
       </div>
 

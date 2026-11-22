@@ -6,6 +6,8 @@ import { Textarea, Input } from "./ui/Input";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
+import TranslateContent from "@/components/TranslateContent";
 
 interface LampiranInput {
   tipe: "FILE" | "LINK" | "VIDEO";
@@ -360,15 +362,15 @@ export default function ModalPengumuman({ open, onClose, onSuccess, kelasId, mod
           >
             <option value="">+ {t("Tambah kelas")}</option>
             {kelasList.map((kelas) => (
-              <option key={kelas.id} value={kelas.id}>
-                {kelas.judul}
-              </option>
+              <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.judul} />
             ))}
           </select>
           {selectedKelasId && (
             <div className="mt-2 flex flex-wrap gap-2">
               <Badge tone="brand" className="flex items-center gap-1">
-                {kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul ?? t("Kelas terpilih")}
+                {kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul
+                  ? <TranslateContent text={kelasList.find((kelas) => kelas.id === selectedKelasId)?.judul ?? ""} textClassName="inline" />
+                  : t("Kelas terpilih")}
                 <button type="button" aria-label={t("Hapus")} onClick={() => setSelectedKelasId("")} className="cursor-pointer hover:text-danger">x</button>
               </Badge>
             </div>

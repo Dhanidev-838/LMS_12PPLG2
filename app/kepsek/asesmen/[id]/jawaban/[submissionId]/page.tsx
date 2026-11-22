@@ -101,7 +101,7 @@ function SoalView({ soal, nomor, onOpenGrid }: { soal: SoalDetail; nomor: number
       </div>
 
       <p className="mt-5 text-base font-semibold leading-relaxed text-foreground">
-        {nomor}. {soal.pertanyaan}
+        {nomor}. <TranslateContent text={soal.pertanyaan} />
       </p>
 
       {soal.gambar && (

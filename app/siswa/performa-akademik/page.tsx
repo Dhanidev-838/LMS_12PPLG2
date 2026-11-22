@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import RolePageHero from "@/components/shared/RolePageHero";
+import TranslateContent from "@/components/TranslateContent";
 import { useLanguage } from "@/lib/i18n";
 
 type RangeKey = "semua" | "bulan" | "3bulan" | "tahun";
@@ -96,7 +97,7 @@ function LineChart({ items }: { items: AssessmentItem[] }) {
         <div className="mt-2 flex flex-wrap justify-between gap-2">
           {items.map((item) => (
             <span key={item.id} className="max-w-16 truncate text-[10px] text-muted-foreground">
-              {item.judul}
+              <TranslateContent text={item.judul} className="block" textClassName="block truncate" />
             </span>
           ))}
         </div>
@@ -115,7 +116,7 @@ function HorizontalBars({ items }: { items: Array<{ label: string; value: number
       {available.map((item) => (
         <div key={item.label} className="min-w-0">
           <div className="mb-1 flex justify-between gap-3 text-sm">
-            <span className="truncate">{item.label}</span>
+            <TranslateContent text={item.label} className="block min-w-0 truncate" textClassName="block truncate" />
             <strong>{item.value}</strong>
           </div>
           <div className="h-2 rounded-full bg-surface-muted">
@@ -138,9 +139,9 @@ function AssessmentList({ items, empty }: { items: AssessmentItem[]; empty: stri
           className="student-performance-row flex items-center justify-between gap-3 rounded-[var(--radius-control)] bg-surface-muted p-3"
         >
           <div className="min-w-0">
-            <p className="student-performance-title truncate text-sm font-semibold text-foreground">{item.judul}</p>
+            <TranslateContent text={item.judul} className="block" textClassName="student-performance-title truncate text-sm font-semibold text-foreground" />
             <p className="student-performance-subtitle text-xs text-muted-foreground">
-              {item.mapel} · {assessmentTypeLabel(item.tipe, t)}
+              <TranslateContent text={item.mapel} textClassName="inline" /> · {assessmentTypeLabel(item.tipe, t)}
             </p>
           </div>
           <Badge tone={item.nilai >= 75 ? "green" : "amber"}>{item.nilai}</Badge>
@@ -361,8 +362,8 @@ export default function SiswaPerformaAkademikPage() {
             <div className="space-y-3">
               {data.asesmenBelumDikerjakan.map((item) => (
                 <div key={item.id} className="rounded-[var(--radius-control)] bg-warning-subtle p-3">
-                  <p className="text-sm font-semibold">{item.judul}</p>
-                  <p className="text-xs text-warning">{item.mapel} · {assessmentTypeLabel(item.tipe, t)}</p>
+                  <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold" />
+                  <p className="text-xs text-warning"><TranslateContent text={item.mapel} textClassName="inline" /> · {assessmentTypeLabel(item.tipe, t)}</p>
                 </div>
               ))}
             </div>
@@ -376,8 +377,8 @@ export default function SiswaPerformaAkademikPage() {
             <div className="space-y-3">
               {data.tugasBelumDikumpulkan.map((item) => (
                 <div key={item.id} className="rounded-[var(--radius-control)] bg-warning-subtle p-3">
-                  <p className="text-sm font-semibold">{item.judul}</p>
-                  <p className="text-xs text-warning">{item.mapel}</p>
+                  <TranslateContent text={item.judul} className="block" textClassName="text-sm font-semibold" />
+                  <TranslateContent text={item.mapel} className="block" textClassName="text-xs text-warning" />
                 </div>
               ))}
             </div>

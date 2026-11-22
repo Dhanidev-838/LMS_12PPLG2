@@ -380,7 +380,7 @@ export default function SuperAdminKelasDetailPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Badge tone="brand">{t(a.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
-                    {a.mapel && <Badge tone="gray">{a.mapel.nama}</Badge>}
+                    {a.mapel && <Badge tone="gray"><TranslateContent text={a.mapel.nama} textClassName="inline" /></Badge>}
                   </div>
                   {me?.id === a.guru?.id && (
                     <div className="relative" data-options-menu>
@@ -415,7 +415,7 @@ export default function SuperAdminKelasDetailPage() {
                     </div>
                   )}
                 </div>
-                <p className="mt-2 text-sm font-bold text-foreground">{a.judul}</p>
+                <TranslateContent text={a.judul} className="mt-2 block" textClassName="text-sm font-bold text-foreground" />
                 <p className="mt-1 text-xs text-muted-foreground">
                   {a._count?.soal ?? 0} {t("soal")} · {t("oleh")} {a.guru?.nama}
                 </p>

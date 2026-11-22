@@ -15,6 +15,7 @@ import ActiveUsersAreaChart from "@/components/ActiveUsersAreaChart";
 import TwoSlicePieChart from "@/components/TwoSlicePieChart";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
 import { intlLocaleCodes } from "@/lib/i18n";
 
 const BRAND = "#6B85F6";
@@ -508,14 +509,14 @@ export default function KepsekDashboard() {
                   {t("Jurusan")}
                   <select value={jurusanFilter} onChange={(event) => setJurusanFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">{t("Semua Jurusan")}</option>
-                    {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
+                    {jurusanOptions.map((jurusan) => <TranslatedOption key={jurusan} value={jurusan} text={jurusan} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
                   {t("Kelas")}
                   <select value={kelasFilter} onChange={(event) => setKelasFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">{t("Semua Kelas")}</option>
-                    {kelasOptions.map((kelas) => <option key={kelas} value={kelas}>{kelas}</option>)}
+                    {kelasOptions.map((kelas) => <TranslatedOption key={kelas} value={kelas} text={kelas} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
@@ -570,7 +571,7 @@ export default function KepsekDashboard() {
                   {t("Mapel")}
                   <select value={mapelFilter} onChange={(event) => setMapelFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">{t("Semua Mapel")}</option>
-                    {mapelOptions.map((mapel) => <option key={mapel} value={mapel}>{mapel}</option>)}
+                    {mapelOptions.map((mapel) => <TranslatedOption key={mapel} value={mapel} text={mapel} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>

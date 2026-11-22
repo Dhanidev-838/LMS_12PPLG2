@@ -9,6 +9,7 @@ import ModalKirimTugas from "@/components/ModalKirimTugas";
 import RolePageHero from "@/components/shared/RolePageHero";
 import { showConfirm } from "@/lib/dialog";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
 
 
 export default function GuruTugasPage() {
@@ -87,9 +88,7 @@ export default function GuruTugasPage() {
         >
           <option value="">{t("Semua Kelas")}</option>
           {kelasOptions.map((k) => (
-            <option key={k.id} value={k.id}>
-              {k.label}
-            </option>
+            <TranslatedOption key={k.id} value={k.id} text={k.label} />
           ))}
         </select>
       </RolePageHero>

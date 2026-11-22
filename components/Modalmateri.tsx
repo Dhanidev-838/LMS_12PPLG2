@@ -7,6 +7,7 @@ import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { MateriData } from "./MateriCard";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 interface KelasOption {
   id: string;
@@ -161,7 +162,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
         <Input label={t("Judul Materi")} value={judul} onChange={(e) => setJudul(e.target.value)} required />
         <Select label={t("Mata Pelajaran (opsional)")} value={mapelId} onChange={(event) => setMapelId(event.target.value)}>
           <option value="">{t("Tanpa mapel")}</option>
-          {mapelList.map((mapel) => <option key={mapel.id} value={mapel.id}>{mapel.nama}</option>)}
+          {mapelList.map((mapel) => <TranslatedOption key={mapel.id} value={mapel.id} text={mapel.nama} />)}
         </Select>
 
         <div>
@@ -222,9 +223,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
+                <TranslatedOption key={k.id} value={k.id} text={k.label} />
               ))}
           </select>
 
@@ -234,7 +233,7 @@ export default function ModalMateri({ open, onClose, onSuccess, mode, initialDat
                 const k = kelasList.find((kk) => kk.id === id);
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
-                    {k?.label}
+                    {k?.label && <TranslateContent text={k.label} textClassName="inline" />}
                     <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>

@@ -117,11 +117,11 @@ export default function KepsekAsesmenDetailPage() {
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge tone="brand">{t(asesmen.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
-              {asesmen.mapel && <Badge tone="gray">{asesmen.mapel.nama}</Badge>}
+              {asesmen.mapel && <Badge tone="gray"><TranslateContent text={asesmen.mapel.nama} textClassName="inline" /></Badge>}
               <Badge tone={asesmen.status === "SELESAI" ? "green" : "amber"}>{t(asesmen.status === "SELESAI" ? "Selesai" : "Proses")}</Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">{t("Dibuat oleh")} {asesmen.guru.nama}</p>
-            {asesmen.deskripsi && <p className="mt-1 text-sm text-muted-foreground">{asesmen.deskripsi}</p>}
+            {asesmen.deskripsi && <TranslateContent text={asesmen.deskripsi} className="mt-1 block" textClassName="text-sm text-muted-foreground" />}
             {asesmen.kelasTujuan.length > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 {asesmen.kelasTujuan.map(({ kelas }) => (

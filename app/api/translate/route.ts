@@ -8,6 +8,8 @@ const TARGET_LANGUAGES: Record<string, string> = {
   ja: "JA",
 };
 const MAX_TEXT_LENGTH = 10_000;
+const MAX_TOTAL_TEXT_LENGTH = 20_000;
+const MAX_TEXTS_PER_REQUEST = 50;
 
 interface DeepLResponse {
   translations?: { text?: string }[];
@@ -20,17 +22,32 @@ export async function POST(req: NextRequest) {
     }
 
     const body: unknown = await req.json();
-    if (!body || typeof body !== "object" || !("text" in body) || !("locale" in body)) {
+    if (!body || typeof body !== "object" || !("locale" in body) || (!("text" in body) && !("texts" in body))) {
       return NextResponse.json({ error: "Konten tidak valid untuk diterjemahkan." }, { status: 400 });
     }
 
-    const { text, locale } = body;
-    if (typeof text !== "string" || !text.trim() || typeof locale !== "string" || !TARGET_LANGUAGES[locale]) {
+    const locale = body.locale;
+    const isLegacyRequest = "text" in body && !("texts" in body);
+    const texts = "texts" in body ? body.texts : "text" in body ? [body.text] : null;
+    if (
+      !Array.isArray(texts) ||
+      texts.length === 0 ||
+      texts.length > MAX_TEXTS_PER_REQUEST ||
+      !texts.every((text) => typeof text === "string" && text.trim()) ||
+      typeof locale !== "string" ||
+      !TARGET_LANGUAGES[locale]
+    ) {
       return NextResponse.json({ error: "Konten tidak valid untuk diterjemahkan." }, { status: 400 });
     }
-    if (text.length > MAX_TEXT_LENGTH) {
+    if (texts.some((text) => text.length > MAX_TEXT_LENGTH)) {
       return NextResponse.json(
         { error: "Konten terlalu panjang untuk diterjemahkan (maksimal 10.000 karakter)." },
+        { status: 413 }
+      );
+    }
+    if (texts.reduce((total, text) => total + text.length, 0) > MAX_TOTAL_TEXT_LENGTH) {
+      return NextResponse.json(
+        { error: "Jumlah konten terlalu banyak untuk diterjemahkan sekaligus." },
         { status: 413 }
       );
     }
@@ -53,7 +70,7 @@ export async function POST(req: NextRequest) {
           Authorization: `DeepL-Auth-Key ${authKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: [text], target_lang: TARGET_LANGUAGES[locale] }),
+        body: JSON.stringify({ text: texts, target_lang: TARGET_LANGUAGES[locale] }),
       });
 
       if (response.ok || (response.status !== 429 && response.status < 500) || attempt === 2) break;
@@ -76,12 +93,14 @@ export async function POST(req: NextRequest) {
     }
 
     const result = (await response.json()) as DeepLResponse;
-    const translation = result.translations?.[0]?.text;
-    if (typeof translation !== "string") {
+    const translations = result.translations?.map((item) => item.text);
+    if (!translations || translations.length !== texts.length || translations.some((text) => typeof text !== "string")) {
       return NextResponse.json({ error: "Terjemahan gagal. Coba lagi." }, { status: 502 });
     }
 
-    return NextResponse.json({ translation });
+    return isLegacyRequest
+      ? NextResponse.json({ translation: translations[0] })
+      : NextResponse.json({ translations });
   } catch (cause) {
     console.error("Translation handler failed:", cause);
     return NextResponse.json({ error: "Terjemahan gagal. Coba lagi." }, { status: 500 });

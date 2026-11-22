@@ -10,6 +10,7 @@ import DeadlineField from "./DeadlineField";
 import { selectionFromDeadline, selectionToDeadlinePayload, type DeadlineSelection } from "@/lib/deadline";
 import { useLanguage } from "@/lib/i18n";
 import type { TugasData } from "./TugasCard";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 interface LampiranInput {
   tipe: "FILE" | "LINK" | "VIDEO";
@@ -200,9 +201,7 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
 
         <Select label={t("Mapel (opsional)")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
           {mapelList.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.nama}
-            </option>
+            <TranslatedOption key={m.id} value={m.id} text={m.nama} />
           ))}
         </Select>
 
@@ -227,9 +226,7 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
+                <TranslatedOption key={k.id} value={k.id} text={k.label} />
               ))}
           </select>
 
@@ -239,7 +236,7 @@ export default function ModalTugas({ open, onClose, onSuccess, mode, initialData
                 const k = kelasList.find((kk) => kk.id === id);
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
-                    {k?.label}
+                    {k?.label && <TranslateContent text={k.label} textClassName="inline" />}
                     <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>

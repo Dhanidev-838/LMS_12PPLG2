@@ -7,6 +7,7 @@ import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { useLanguage } from "@/lib/i18n";
 import { isValidIdentityNumber } from "@/lib/identity-number";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 type Role = "SISWA" | "GURU";
 
@@ -281,9 +282,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
             required
           >
             {kelasReferensiList.map((k) => (
-              <option key={k.id} value={k.id}>
-                {k.label}
-              </option>
+              <TranslatedOption key={k.id} value={k.id} text={k.label} />
             ))}
           </Select>
         )}
@@ -291,9 +290,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
         {role === "GURU" && (
           <Select label={t("Mapel")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
             {mapelList.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nama}
-              </option>
+              <TranslatedOption key={m.id} value={m.id} text={m.nama} />
             ))}
           </Select>
         )}
@@ -312,9 +309,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
+                <TranslatedOption key={k.id} value={k.id} text={k.label} />
               ))}
           </select>
 
@@ -324,7 +319,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
                 const k = kelasList.find((kk) => kk.id === id);
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
-                    {k?.label}
+                    {k?.label && <TranslateContent text={k.label} textClassName="inline" />}
                     <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>

@@ -22,6 +22,7 @@ import MapelManager from "@/components/MapelManager";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
 import { intlLocaleCodes } from "@/lib/i18n";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 const BRAND = "#6B85F6";
 
@@ -802,21 +803,21 @@ export default function AdminDashboard() {
                   {t("Jurusan")}
                   <select value={jurusanFilter} onChange={(event) => { setJurusanFilter(event.target.value); setRombelFilter(""); }} className={FIELD_CLASS}>
                     <option value="">{t("Semua Jurusan")}</option>
-                    {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
+                    {jurusanOptions.map((jurusan) => <TranslatedOption key={jurusan} value={jurusan} text={jurusan} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
                   {t("Kelas")}
                   <select value={kelasFilter} onChange={(event) => { setKelasFilter(event.target.value); setRombelFilter(""); }} className={FIELD_CLASS}>
                     <option value="">{t("Semua Kelas")}</option>
-                    {kelasOptions.map((kelas) => <option key={kelas} value={kelas}>{kelas}</option>)}
+                    {kelasOptions.map((kelas) => <TranslatedOption key={kelas} value={kelas} text={kelas} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
                   {t("Rombel")}
                   <select value={rombelFilter} onChange={(event) => setRombelFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">{t("Semua Rombel")}</option>
-                    {filteredRombelOptions.map((rombel) => <option key={rombel.id} value={rombel.id}>{rombel.label}</option>)}
+                    {filteredRombelOptions.map((rombel) => <TranslatedOption key={rombel.id} value={rombel.id} text={rombel.label} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
@@ -836,7 +837,7 @@ export default function AdminDashboard() {
                       {t("Kelas tujuan")}
                       <select value={bulkTargetClassId} onChange={(event) => setBulkTargetClassId(event.target.value)} className={FIELD_CLASS}>
                         <option value="">{t("Pilih kelas tujuan")}</option>
-                        {kelasList.map((kelas) => <option key={kelas.id} value={kelas.id}>{kelas.judul}</option>)}
+                        {kelasList.map((kelas) => <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.judul} />)}
                       </select>
                     </label>
                     <Button size="sm" loading={sendingFilteredSiswa} disabled={!bulkTargetClassId} onClick={() => void sendFilteredStudentsToClass()}>
@@ -882,7 +883,7 @@ export default function AdminDashboard() {
                   {t("Mapel")}
                   <select value={mapelFilter} onChange={(event) => setMapelFilter(event.target.value)} className={FIELD_CLASS}>
                     <option value="">{t("Semua Mapel")}</option>
-                    {mapelOptions.map((mapel) => <option key={mapel} value={mapel}>{mapel}</option>)}
+                    {mapelOptions.map((mapel) => <TranslatedOption key={mapel} value={mapel} text={mapel} />)}
                   </select>
                 </label>
                 <label className={FIELD_LABEL_CLASS}>
@@ -977,7 +978,7 @@ export default function AdminDashboard() {
       >
         <div className="space-y-5">
           <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-            <p className="text-sm font-bold text-red-700">{t("Hapus kelas")} {deletingKelas?.judul}?</p>
+            <p className="text-sm font-bold text-red-700">{t("Hapus kelas")} <TranslateContent text={deletingKelas?.judul ?? ""} textClassName="inline" />?</p>
             <p className="mt-2 text-sm leading-6 text-red-600">
               {t("Data hubungan siswa dan guru dengan kelas ini akan ikut terlepas. Tindakan ini tidak dapat dibatalkan.")}
             </p>

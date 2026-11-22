@@ -18,7 +18,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import { showConfirm } from "@/lib/dialog";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
-import TranslateContent from "@/components/TranslateContent";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "MAPEL" | "LAPORAN" | "PERFORMA";
 type GuruNav = "KELAS" | "ASESMEN" | "TUGAS" | "PROFILE";
@@ -580,9 +580,9 @@ export default function AdminKelasDetailPage() {
                         <div key={`a-${i}`} className="border border-border bg-surface p-4 rounded-[var(--radius-card)]">
                           <div className="flex items-center gap-2">
                             <Badge tone="brand">{t(a.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
-                            {a.mapel && <Badge tone="gray">{a.mapel.nama}</Badge>}
+                            {a.mapel && <Badge tone="gray"><TranslateContent text={a.mapel.nama} textClassName="inline" /></Badge>}
                           </div>
-                          <p className="mt-2 text-sm font-bold text-foreground">{a.judul}</p>
+                          <TranslateContent text={a.judul} className="mt-2 block" textClassName="text-sm font-bold text-foreground" />
                           <p className="mt-1 text-xs text-muted-foreground">
                             {a._count?.soal ?? 0} {t("soal")} · {t("oleh")} {a.guru?.nama}
                           </p>
@@ -736,9 +736,7 @@ function ModalTambahSiswa({
       <div className="space-y-4">
         <Select label={t("Pilih Kelas/Rombel")} placeholder={t("Pilih rombel dulu")} value={rombelId} onChange={(e) => setRombelId(e.target.value)}>
           {rombelList.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.label}
-            </option>
+            <TranslatedOption key={r.id} value={r.id} text={r.label} />
           ))}
         </Select>
 
@@ -845,9 +843,7 @@ function ModalTambahGuru({
 
         <Select label={t("Mapel")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
           {mapelList.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.nama}
-            </option>
+            <TranslatedOption key={m.id} value={m.id} text={m.nama} />
           ))}
         </Select>
 

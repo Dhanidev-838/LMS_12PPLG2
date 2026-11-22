@@ -5,6 +5,7 @@ import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 interface ModalKirimAsesmenProps {
   open: boolean;
@@ -75,14 +76,14 @@ export default function ModalKirimAsesmen({ open, asesmenId, onClose, onSuccess 
           >
             <option value="">+ {t("Tambah kelas")}</option>
             {kelasList.filter((kelas) => !selectedKelasIds.includes(kelas.id)).map((kelas) => (
-              <option key={kelas.id} value={kelas.id}>{kelas.judul}</option>
+              <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.judul} />
             ))}
           </select>
           {selectedKelasIds.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {selectedKelasIds.map((id) => {
                 const kelas = kelasList.find((item) => item.id === id);
-                return <Badge key={id} tone="brand" className="flex items-center gap-1">{kelas?.judul}<button type="button" aria-label={t("Hapus")} onClick={() => toggleKelas(id)}>x</button></Badge>;
+                return <Badge key={id} tone="brand" className="flex items-center gap-1">{kelas?.judul && <TranslateContent text={kelas.judul} textClassName="inline" />}<button type="button" aria-label={t("Hapus")} onClick={() => toggleKelas(id)}>x</button></Badge>;
               })}
             </div>
           )}

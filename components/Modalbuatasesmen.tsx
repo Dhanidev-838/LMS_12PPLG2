@@ -8,6 +8,7 @@ import Badge from "./ui/Badge";
 import DeadlineField from "./DeadlineField";
 import { selectionToDeadlinePayload, type DeadlineSelection } from "@/lib/deadline";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 type Tipe = "KUIS" | "UJIAN";
 type Sumber = "BARU" | "EXISTING";
@@ -245,9 +246,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
             required
           >
             {asesmenExistingList.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.judul}
-              </option>
+              <TranslatedOption key={a.id} value={a.id} text={a.judul} />
             ))}
           </Select>
         ) : (
@@ -276,9 +275,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
 
             <Select label={t("Mapel (opsional)")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(e) => setMapelId(e.target.value)}>
               {mapelList.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nama}
-                </option>
+                <TranslatedOption key={m.id} value={m.id} text={m.nama} />
               ))}
             </Select>
 
@@ -321,9 +318,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
             {kelasList
               .filter((k) => !selectedKelasIds.includes(k.id))
               .map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
+                <TranslatedOption key={k.id} value={k.id} text={k.label} />
               ))}
           </select>
 
@@ -333,7 +328,7 @@ export default function ModalBuatAsesmen({ open, onClose, onSuccess, defaultKela
                 const k = kelasList.find((kk) => kk.id === id);
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
-                    {k?.label}
+                    {k?.label && <TranslateContent text={k.label} textClassName="inline" />}
                     <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>

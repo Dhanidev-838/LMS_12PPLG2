@@ -322,9 +322,9 @@ export default function KurikulumKelasDetailPage() {
                       >
                         <div className="flex items-center gap-2">
                           <Badge tone="brand">{t(a.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
-                          {a.mapel && <Badge tone="gray">{a.mapel.nama}</Badge>}
+                          {a.mapel && <Badge tone="gray"><TranslateContent text={a.mapel.nama} textClassName="inline" /></Badge>}
                         </div>
-                        <p className="mt-2 text-sm font-bold text-foreground">{a.judul}</p>
+                        <TranslateContent text={a.judul} className="mt-2 block" textClassName="text-sm font-bold text-foreground" />
                         <p className="mt-1 text-xs text-muted-foreground">{a._count?.soal ?? 0} {t("soal")} · {t("oleh")} {a.guru?.nama} — {t("Lihat ujian & jawaban siswa")}</p>
                       </button>
                     );

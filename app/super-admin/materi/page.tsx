@@ -8,6 +8,7 @@ import RolePageHero from "@/components/shared/RolePageHero";
 import CreatorScopeFilter, { type CreatorScope } from "@/components/shared/CreatorScopeFilter";
 import { showConfirm } from "@/lib/dialog";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
 
 
 interface KelasOption {
@@ -120,7 +121,7 @@ export default function SuperAdminMateriPage() {
           onChange={(event) => setFilterKelasId(event.target.value)}
         >
           <option value="">{t("Semua Kelas")}</option>
-          {kelasOptions.map((kelas) => <option key={kelas.id} value={kelas.id}>{kelas.label}</option>)}
+          {kelasOptions.map((kelas) => <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.label} />)}
         </select>
       </RolePageHero>
 

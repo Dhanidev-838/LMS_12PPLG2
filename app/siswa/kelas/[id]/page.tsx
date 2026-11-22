@@ -256,7 +256,7 @@ export default function SiswaKelasDetailPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Badge tone="brand">{t(a.tipe === "KUIS" ? "Kuis" : "Ujian Online")}</Badge>
-                        {a.mapel && <Badge tone="gray">{a.mapel.nama}</Badge>}
+                        {a.mapel && <Badge tone="gray"><TranslateContent text={a.mapel.nama} textClassName="inline" /></Badge>}
                       </div>
                       <button
                         type="button"
@@ -266,7 +266,7 @@ export default function SiswaKelasDetailPage() {
                         {t(a.statusSubmission === "SUDAH" ? "Sudah Dikerjakan" : "Kerjakan")}
                       </button>
                     </div>
-                    <p className="mt-2 text-sm font-bold text-foreground">{a.judul}</p>
+                    <TranslateContent text={a.judul} className="mt-2 block" textClassName="text-sm font-bold text-foreground" />
                     <p className="mt-1 text-xs text-muted-foreground">{t("oleh")} {a.guru?.nama}</p>
                   </div>
                 );

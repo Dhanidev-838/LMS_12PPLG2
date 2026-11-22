@@ -7,6 +7,7 @@ import Button from "./ui/Button";
 import DeadlineField from "./DeadlineField";
 import { selectionFromDeadline, selectionToDeadlinePayload, type DeadlineSelection } from "@/lib/deadline";
 import { useLanguage } from "@/lib/i18n";
+import { TranslatedOption } from "@/components/TranslateContent";
 
 interface MapelOption {
   id: string;
@@ -111,7 +112,7 @@ export default function ModalEditAsesmen({
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label={t("Judul Asesmen")} value={judul} onChange={(event) => setJudul(event.target.value)} required />
         <Select label={t("Mapel")} placeholder={t("Pilih mapel")} value={mapelId} onChange={(event) => setMapelId(event.target.value)}>
-          {mapelList.map((mapel) => <option key={mapel.id} value={mapel.id}>{mapel.nama}</option>)}
+          {mapelList.map((mapel) => <TranslatedOption key={mapel.id} value={mapel.id} text={mapel.nama} />)}
         </Select>
         <Input label={t("Durasi (menit)")} type="number" min={initialData?.tipe === "KUIS" ? 10 : 20} value={durasiMenit} onChange={(event) => setDurasiMenit(event.target.value)} />
         {durasiMenit && Number(durasiMenit) < (initialData?.tipe === "KUIS" ? 10 : 20) && (

@@ -5,6 +5,7 @@ import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { useLanguage } from "@/lib/i18n";
+import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 interface KelasOption {
   id: string;
@@ -88,9 +89,7 @@ export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: M
             {kelasList
               .filter((kelas) => !selectedKelasIds.includes(kelas.id))
               .map((kelas) => (
-                <option key={kelas.id} value={kelas.id}>
-                  {kelas.label}
-                </option>
+              <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.label} />
               ))}
           </select>
           {selectedKelasIds.length > 0 && (
@@ -99,7 +98,7 @@ export default function ModalKirimTugas({ open, tugasId, onClose, onSuccess }: M
                 const kelas = kelasList.find((item) => item.id === id);
                 return (
                   <Badge key={id} tone="brand" className="flex items-center gap-1">
-                    {kelas?.label}
+                    {kelas?.label && <TranslateContent text={kelas.label} textClassName="inline" />}
                     <button type="button" onClick={() => toggleKelas(id)} className="cursor-pointer hover:text-danger">
                       ×
                     </button>
