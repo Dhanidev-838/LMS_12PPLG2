@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
         where: { role: "SISWA" },
         select: {
           id: true,
+          role: true,
           nama: true,
           email: true,
           nis: true,
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
       where: { role: "GURU" },
       select: {
         id: true,
+        role: true,
         nama: true,
         email: true,
         nik: true,
