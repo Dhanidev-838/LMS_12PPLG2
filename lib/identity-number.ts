@@ -1,7 +1,7 @@
 type IdentityRole = "SISWA" | "GURU";
 
 const IDENTITY_NUMBER_LENGTHS: Record<IdentityRole, number> = {
-  SISWA: 10,
+  SISWA: 9,
   GURU: 16,
 };
 

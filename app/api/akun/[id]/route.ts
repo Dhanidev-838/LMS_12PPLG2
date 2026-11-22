@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     if (existing.role === "SISWA" && nis !== undefined && !isValidIdentityNumber("SISWA", nis)) {
-      return NextResponse.json({ error: "NIS harus tepat 10 digit angka." }, { status: 400 });
+      return NextResponse.json({ error: "NIS harus tepat 9 digit angka." }, { status: 400 });
     }
     if (existing.role === "GURU" && nik !== undefined && !isValidIdentityNumber("GURU", nik)) {
       return NextResponse.json({ error: "NIK harus tepat 16 digit angka." }, { status: 400 });

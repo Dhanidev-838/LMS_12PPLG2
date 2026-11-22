@@ -156,7 +156,7 @@ export default function ModalAkun({ open, onClose, onSuccess, mode, defaultRole 
       return;
     }
     if (!isValidIdentityNumber(role, nomorInduk)) {
-      setError(role === "SISWA" ? "NIS harus tepat 10 digit angka." : "NIK harus tepat 16 digit angka.");
+      setError(role === "SISWA" ? "NIS harus tepat 9 digit angka." : "NIK harus tepat 16 digit angka.");
       return;
     }
     if (role === "SISWA" && mode === "create" && !kelasReferensiId) {

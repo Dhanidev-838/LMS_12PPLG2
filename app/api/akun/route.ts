@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         );
       }
       if (!isValidIdentityNumber("SISWA", nis)) {
-        return NextResponse.json({ error: "NIS harus tepat 10 digit angka." }, { status: 400 });
+        return NextResponse.json({ error: "NIS harus tepat 9 digit angka." }, { status: 400 });
       }
 
       const nisExists = await db.user.findUnique({ where: { nis } });
