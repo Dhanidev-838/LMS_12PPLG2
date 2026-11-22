@@ -64,11 +64,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isVercel = process.env.VERCEL === "1";
+    const isVercel =
+      process.env.VERCEL === "1" ||
+      Boolean(process.env.VERCEL_ENV || process.env.VERCEL_URL);
+    const hasBlobConfig = Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+    const useBlobStorage = isVercel || hasBlobConfig;
     const sizeMb = file.size / (1024 * 1024);
-    const maxSizeMb = isVercel ? 4 : MAX_SIZE_MB;
+    const maxSizeMb = useBlobStorage ? 4 : MAX_SIZE_MB;
     if (sizeMb > maxSizeMb) {
-      const error = isVercel
+      const error = useBlobStorage
         ? "Ukuran file maksimal 4 MB di hosting."
         : `Ukuran file maksimal ${MAX_SIZE_MB}MB.`;
       return NextResponse.json({ error }, { status: 400 });
@@ -79,8 +83,8 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     let url: string;
 
-    if (isVercel) {
-      if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+    if (useBlobStorage) {
+      if (!hasBlobConfig) {
         return NextResponse.json(
           { error: "Penyimpanan file belum dikonfigurasi. Hubungkan Vercel Blob di project ini." },
           { status: 503 }
