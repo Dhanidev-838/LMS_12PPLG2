@@ -54,10 +54,11 @@ DB_USER=root
 DB_PASSWORD=
 DB_NAME=Classify
 JWT_SECRET=ganti-dengan-secret-random
-RESEND_API_KEY=
+GMAIL_USER=
+GMAIL_APP_PASSWORD=
 ```
 
-Jangan commit `.env`, `account.txt`, password, API key, atau file upload pengguna.
+Untuk email OTP, gunakan alamat Gmail dan App Password khusus Google (aktifkan Verifikasi 2 Langkah terlebih dahulu). Simpan `GMAIL_USER` dan `GMAIL_APP_PASSWORD` sebagai environment variables di Vercel dan `.env` lokal. Jangan pernah commit `.env`, `account.txt`, password, App Password, API key, atau file upload pengguna.
 
 ## Database
 

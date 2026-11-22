@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 import { requireRole, FULL_CRUD_ADMIN } from "@/lib/rbac";
-import { sendOtpEmail } from "@/lib/Resend"; // fix: sebelumnya "@/lib/Resend" (huruf R besar) -> gagal di Vercel (Linux, case-sensitive)
+import { sendOtpEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
+
+export const runtime = "nodejs";
 
 // POST /api/lupa-password/[id]/kirim-otp -> generate OTP baru + kirim email
 export async function POST(req: NextRequest, { params }: Params) {
