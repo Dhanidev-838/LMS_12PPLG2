@@ -42,10 +42,12 @@ export function TranslatePageProvider({ children }: { children: React.ReactNode 
   const [registrations, setRegistrations] = useState(new Map<string, TranslationEntry>());
   const [revision, setRevision] = useState(0);
   const [translatedPageKey, setTranslatedPageKey] = useState<string | null>(null);
+  const [minimizedPageKey, setMinimizedPageKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState<{ pageKey: string; message: string } | null>(null);
   const pageKey = `${pathname}\0${locale}`;
   const showTranslation = translatedPageKey === pageKey;
+  const isMinimized = minimizedPageKey === pageKey;
 
   const register = useCallback((id: string, text: string, entryLocale: Locale) => {
     if (!text.trim()) return () => {};
@@ -176,19 +178,45 @@ export function TranslatePageProvider({ children }: { children: React.ReactNode 
       {children}
       {entries.length > 0 && (
         <div className="fixed bottom-4 right-4 z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
-          {errorState?.pageKey === pageKey && (
+          {!isMinimized && errorState?.pageKey === pageKey && (
             <p role="alert" className="max-w-sm rounded-lg border border-danger bg-surface px-3 py-2 text-xs text-danger shadow-lg">
               {errorState.message}
             </p>
           )}
-          <button
-            type="button"
-            onClick={() => void translatePage()}
-            disabled={loading}
-            className="cursor-pointer rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-accent/90 disabled:cursor-wait disabled:opacity-70"
-          >
-            {buttonLabel}
-          </button>
+          {isMinimized ? (
+            <button
+              type="button"
+              onClick={() => setMinimizedPageKey(null)}
+              aria-label={t("Terjemahkan halaman via DeepL")}
+              title={t("Terjemahkan halaman via DeepL")}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-accent text-white shadow-lg transition-colors hover:bg-accent/90"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
+              </svg>
+            </button>
+          ) : (
+            <div className="flex items-center rounded-full bg-accent p-1 shadow-lg">
+              <button
+                type="button"
+                onClick={() => void translatePage()}
+                disabled={loading}
+                className="cursor-pointer px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent/90 disabled:cursor-wait disabled:opacity-70"
+              >
+                {buttonLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMinimizedPageKey(pageKey)}
+                aria-label={t("Sembunyikan tombol terjemahan")}
+                title={t("Sembunyikan tombol terjemahan")}
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-lg font-semibold text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
       )}
     </TranslationContext.Provider>
