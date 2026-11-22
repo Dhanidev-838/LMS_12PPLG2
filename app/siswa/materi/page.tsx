@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import MateriCard, { MateriData } from "@/components/MateriCard";
+import RolePageHero from "@/components/shared/RolePageHero";
 import { useLanguage } from "@/lib/i18n";
 import { TranslatedOption } from "@/components/TranslateContent";
 
@@ -65,22 +66,26 @@ export default function SiswaMateriPage() {
 
   return (
     <div>
-      <section className="rounded-[var(--radius-card)] border border-border p-5 text-white sm:p-6" style={{ background: "#6B85F6" }}>
-        <p className="text-sm font-bold">{t("Materi Belajar")}</p>
-        <p className="mt-1 text-sm text-white/85">{t("Kumpulan materi yang dibagikan guru di kelasmu.")}</p>
-      </section>
-
-      <div className="mt-4 flex justify-end">
+      <RolePageHero
+        eyebrow={t("Ruang belajar siswa")}
+        title={t("Materi Belajar")}
+        description={t("Kumpulan materi yang dibagikan guru di kelasmu.")}
+        summary={{
+          label: t("Materi tersedia"),
+          value: loading ? "—" : materiList.length,
+          description: t("Materi dari kelas yang kamu ikuti"),
+        }}
+      >
         <select
           aria-label={t("Filter kelas")}
-          className="min-w-40 rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-[#6B85F6]"
+          className="min-h-10 min-w-40 rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           value={filterKelasId}
           onChange={(event) => setFilterKelasId(event.target.value)}
         >
           <option value="">{t("Semua Kelas")}</option>
           {kelasOptions.map((kelas) => <TranslatedOption key={kelas.id} value={kelas.id} text={kelas.label} />)}
         </select>
-      </div>
+      </RolePageHero>
 
       {error && <p className="mt-4 border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {loading ? (
