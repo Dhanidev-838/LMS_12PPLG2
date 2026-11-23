@@ -28,7 +28,10 @@ export default function LanguageSelector({
         value={locale}
         onChange={(event) => {
           const selectedLanguage = languageNames.find((language) => language.value === event.target.value);
-          if (selectedLanguage) setLocale(selectedLanguage.value);
+          if (selectedLanguage) {
+            setLocale(selectedLanguage.value);
+            window.dispatchEvent(new CustomEvent("classify-welcome-language-change", { detail: selectedLanguage.value }));
+          }
         }}
         className="min-h-10 w-full rounded-lg border border-border bg-surface px-3 text-xs font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >

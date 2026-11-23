@@ -29,6 +29,7 @@ export async function proxy(request: NextRequest) {
 
   const isPublicPath =
     pathname === "/" ||
+    pathname.startsWith("/audio/") ||
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/lupa-password") ||
