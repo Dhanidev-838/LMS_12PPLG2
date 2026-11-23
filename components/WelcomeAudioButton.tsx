@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage, type Locale } from "@/lib/i18n";
 
 const labels: Record<Locale, { play: string; loading: string; stop: string; unavailable: string; autoplayBlocked: string }> = {
-  id: { play: "Dengarkan sambutan", loading: "Menyiapkan suara…", stop: "Hentikan suara", unavailable: "Audio belum tersedia. Coba lagi sebentar.", autoplayBlocked: "Browser memblokir putar otomatis. Tekan tombol untuk memutar." },
-  en: { play: "Hear the welcome", loading: "Preparing the voice…", stop: "Stop the welcome", unavailable: "Audio is unavailable right now. Please try again.", autoplayBlocked: "Your browser blocked autoplay. Press the button to play." },
-  de: { play: "Willkommensgruß anhören", loading: "Stimme wird vorbereitet…", stop: "Stimme anhalten", unavailable: "Audio ist gerade nicht verfügbar. Bitte versuche es erneut.", autoplayBlocked: "Dein Browser hat die automatische Wiedergabe blockiert. Drücke zum Abspielen die Taste." },
-  ja: { play: "ウェルカム音声を聴く", loading: "音声を準備しています…", stop: "音声を停止", unavailable: "音声を再生できません。もう一度お試しください。", autoplayBlocked: "ブラウザーが自動再生をブロックしました。ボタンを押して再生してください。" },
+  id: { play: "Dengarkan sambutan", loading: "Menyiapkan suara…", stop: "Hentikan suara", unavailable: "Audio belum tersedia. Coba lagi sebentar.", autoplayBlocked: "Browser memblokir putar otomatis. Klik di mana saja untuk memulai suara." },
+  en: { play: "Hear the welcome", loading: "Preparing the voice…", stop: "Stop the welcome", unavailable: "Audio is unavailable right now. Please try again.", autoplayBlocked: "Your browser blocked autoplay. Click anywhere to start the welcome." },
+  de: { play: "Willkommensgruß anhören", loading: "Stimme wird vorbereitet…", stop: "Stimme anhalten", unavailable: "Audio ist gerade nicht verfügbar. Bitte versuche es erneut.", autoplayBlocked: "Dein Browser blockiert die automatische Wiedergabe. Klicke irgendwo, um den Gruß zu starten." },
+  ja: { play: "ウェルカム音声を聴く", loading: "音声を準備しています…", stop: "音声を停止", unavailable: "音声を再生できません。もう一度お試しください。", autoplayBlocked: "ブラウザーが自動再生をブロックしました。ページ内をクリックすると再生します。" },
 };
 
 const welcomeLanguageEvent = "classify-welcome-language-change";
@@ -18,6 +18,7 @@ export default function WelcomeAudioButton() {
   const audioLocaleRef = useRef<Locale | null>(null);
   const activeLocaleRef = useRef(locale);
   const attemptedLocaleRef = useRef<Locale | null>(null);
+  const autoplayBlockedRef = useRef(false);
   const [loadingLocale, setLoadingLocale] = useState<Locale | null>(null);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState("");
@@ -40,10 +41,15 @@ export default function WelcomeAudioButton() {
         if (audioRef.current === audio) setPlaying(false);
       };
       await audio.play();
-      if (audioRef.current === audio) setPlaying(true);
+      if (audioRef.current === audio) {
+        autoplayBlockedRef.current = false;
+        setPlaying(true);
+      }
     } catch (cause) {
       if (activeLocaleRef.current === requestedLocale) {
-        const blocked = cause instanceof DOMException && cause.name === "NotAllowedError";
+        const errorName = typeof cause === "object" && cause !== null && "name" in cause ? cause.name : "";
+        const blocked = errorName === "NotAllowedError";
+        autoplayBlockedRef.current = blocked;
         setError(blocked ? labels[requestedLocale].autoplayBlocked : labels[requestedLocale].unavailable);
       }
     } finally {
@@ -71,6 +77,25 @@ export default function WelcomeAudioButton() {
   }, [locale, startWelcome]);
 
   useEffect(() => () => audioRef.current?.pause(), []);
+
+  useEffect(() => {
+    function resumeAfterGesture(event: Event) {
+      if (!autoplayBlockedRef.current) return;
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-welcome-audio-control], select")) return;
+
+      const requestedLocale = activeLocaleRef.current;
+      attemptedLocaleRef.current = requestedLocale;
+      void startWelcome(requestedLocale);
+    }
+
+    window.addEventListener("pointerdown", resumeAfterGesture, true);
+    window.addEventListener("keydown", resumeAfterGesture, true);
+    return () => {
+      window.removeEventListener("pointerdown", resumeAfterGesture, true);
+      window.removeEventListener("keydown", resumeAfterGesture, true);
+    };
+  }, [startWelcome]);
 
   useEffect(() => {
     function handleLanguageChange(event: Event) {
@@ -102,6 +127,7 @@ export default function WelcomeAudioButton() {
     <div className="flex flex-col items-start gap-1">
       <button
         type="button"
+        data-welcome-audio-control
         onClick={playWelcome}
         disabled={loading}
         aria-label={playing ? copy.stop : copy.play}
