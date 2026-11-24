@@ -21,7 +21,7 @@ import { intlLocaleCodes } from "@/lib/i18n";
 const BRAND = "#6B85F6";
 
 type AccountRole = "SISWA" | "GURU";
-type Tab = "DASHBOARD" | "KELAS" | "AKUN" | "ASESMEN" | "PERFORMA";
+type Tab = "DASHBOARD" | "KELAS" | "AKUN" | "MAPEL" | "ASESMEN" | "PERFORMA";
 type KurikulumAsesmen = AsesmenData & { guru: { id: string; nama: string } };
 
 interface AdminDashboardData {
@@ -47,6 +47,7 @@ function TabIcon({ tab }: { tab: Tab }) {
     DASHBOARD: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
     KELAS: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
     AKUN: <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7.87a4 4 0 0 1 0 7.75" />,
+    MAPEL: <path d="M4 5h16v14H4zM8 9h8M8 13h5" />,
     ASESMEN: <path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 4h4m-4 4h4m-4 4h4" />,
     PERFORMA: <path d="M4 19V5M4 19h17M8 16v-4M13 16V8M18 16V4" />,
   };
@@ -61,6 +62,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "DASHBOARD", label: "Dashboard" },
   { key: "KELAS", label: "Kelas" },
   { key: "AKUN", label: "Daftar Akun" },
+  { key: "MAPEL", label: "Mata Pelajaran" },
   { key: "ASESMEN", label: "Asesmen" },
   { key: "PERFORMA", label: "Performa Akademik" },
 ];
@@ -112,7 +114,7 @@ export default function KurikulumDashboard() {
       setAccountRole(tab);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab("AKUN");
-    } else if (tab && ["DASHBOARD", "KELAS", "AKUN", "ASESMEN", "PERFORMA"].includes(tab)) {
+    } else if (tab && ["DASHBOARD", "KELAS", "AKUN", "MAPEL", "ASESMEN", "PERFORMA"].includes(tab)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(tab as Tab);
     }
@@ -166,6 +168,10 @@ export default function KurikulumDashboard() {
         setKelasReferensiList(referensiData.data ?? []);
         setGuruList(guruData.data ?? []);
         setMapelList(mapelData.data ?? []);
+      } else if (tab === "MAPEL") {
+        const res = await fetch("/api/mapel");
+        const data = await res.json();
+        setMapelList(data.data ?? []);
       } else if (tab === "ASESMEN") {
         const res = await fetch("/api/asesmen");
         const data = await res.json();
@@ -236,7 +242,7 @@ export default function KurikulumDashboard() {
     { label: "Asesmen", value: dashboardData.statistik.asesmen, actionLabel: "Kuis dan ujian", onAction: () => openTab("KELAS") },
     { label: "Tugas", value: dashboardData.statistik.tugas, actionLabel: "Tugas dibuat", onAction: () => openTab("KELAS") },
     { label: "Materi", value: dashboardData.statistik.materi, actionLabel: "Materi dibagikan", onAction: () => openTab("KELAS") },
-    { label: "Mata Pelajaran", value: dashboardData.statistik.mapel, actionLabel: "Mapel tersedia", onAction: () => openTab("GURU") },
+    { label: "Mata Pelajaran", value: dashboardData.statistik.mapel, actionLabel: "Mapel tersedia", onAction: () => openTab("MAPEL") },
     { label: "Rata-rata Nilai", value: dashboardData.statistik.rataRataNilai, actionLabel: "Dari asesmen dinilai", onAction: () => openTab("PERFORMA") },
   ] : [];
 
@@ -347,7 +353,7 @@ export default function KurikulumDashboard() {
                   ["Asesmen", dashboardData.statistik.asesmen, "Kuis dan ujian", "KELAS"],
                   ["Tugas", dashboardData.statistik.tugas, "Tugas dibuat", "KELAS"],
                   ["Materi", dashboardData.statistik.materi, "Materi dibagikan", "KELAS"],
-                  ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "GURU"],
+                  ["Mata Pelajaran", dashboardData.statistik.mapel, "Mapel tersedia", "MAPEL"],
                   ["Rata-rata Nilai", dashboardData.statistik.rataRataNilai, "Dari asesmen dinilai", "PERFORMA"],
                 ].map(([label, value, caption, tab], index) => (
                   <button key={label as string} type="button" onClick={() => openTab(tab as Tab)} className={`group cursor-pointer rounded-[var(--radius-card)] border p-4 text-left transition-colors hover:border-accent hover:bg-accent-subtle ${index === 0 ? "border-accent bg-accent-subtle" : "border-border bg-surface"}`}>
@@ -468,6 +474,34 @@ export default function KurikulumDashboard() {
                   {kelasList.map((k) => (
                     <KelasCard key={k.id} data={k} isEditable={false} basePath="/kurikulum/kelas" />
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!loading && activeTab === "MAPEL" && (
+            <div className="space-y-5">
+              <PageHeader eyebrow={t("Pengelolaan akademik")} title={t("Daftar Mata Pelajaran")} desc={t("Lihat mata pelajaran yang tersedia di sekolah (akses lihat saja).")} />
+              {mapelList.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("Belum ada mata pelajaran.")}</p>
+              ) : (
+                <div className="overflow-x-auto border border-border bg-surface">
+                  <table className="w-full min-w-[420px] text-left text-sm">
+                    <thead className="border-b border-border text-xs text-muted-foreground">
+                      <tr>
+                        <th className="whitespace-nowrap px-4 py-3 font-semibold">{t("No")}</th>
+                        <th className="whitespace-nowrap px-4 py-3 font-semibold">{t("Nama Mata Pelajaran")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {mapelList.map((mapel, index) => (
+                        <tr key={mapel.id}>
+                          <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">{index + 1}</td>
+                          <td className="px-4 py-3 font-semibold text-foreground">{mapel.nama}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
