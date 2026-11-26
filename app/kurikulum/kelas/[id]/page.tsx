@@ -155,6 +155,9 @@ export default function KurikulumKelasDetailPage() {
     return acc;
   }, {});
 
+  Object.values(siswaGrouped).forEach((group) => group.sort((a, b) => Number(b.siswa.isActive === true) - Number(a.siswa.isActive === true)));
+  Object.values(guruGrouped).forEach((group) => group.sort((a, b) => Number(b.guru.isActive === true) - Number(a.guru.isActive === true)));
+
   return (
     <div data-admin-theme={theme} className="admin-shell flex min-h-screen flex-col bg-background" style={{ fontFamily: "Inter, sans-serif" }}>
       <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
@@ -249,7 +252,7 @@ export default function KurikulumKelasDetailPage() {
 
             {section === "SISWA" && (
               <div className="mt-3 space-y-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 sm:p-4">
-                {Object.keys(siswaGrouped).length === 0 ? <p className="text-sm text-muted-foreground">{t("Belum ada siswa di kelas ini.")}</p> : Object.entries(siswaGrouped).map(([label, list]) => {
+                {Object.keys(siswaGrouped).length === 0 ? <p className="text-sm text-muted-foreground">{t("Belum ada siswa di kelas ini.")}</p> : Object.entries(siswaGrouped).sort(([, a], [, b]) => b.filter((item) => item.siswa.isActive === true).length - a.filter((item) => item.siswa.isActive === true).length).map(([label, list]) => {
                   const isOpen = expandedRombel === label;
                   return (
                     <div key={label} className="border border-border bg-surface">
@@ -282,7 +285,7 @@ export default function KurikulumKelasDetailPage() {
 
             {section === "GURU" && (
               <div className="mt-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 sm:p-4">
-                {Object.keys(guruGrouped).length === 0 ? <p className="text-sm text-muted-foreground">{t("Belum ada guru mengajar di kelas ini.")}</p> : Object.entries(guruGrouped).map(([mapel, list]) => (
+                {Object.keys(guruGrouped).length === 0 ? <p className="text-sm text-muted-foreground">{t("Belum ada guru mengajar di kelas ini.")}</p> : Object.entries(guruGrouped).sort(([, a], [, b]) => b.filter((item) => item.guru.isActive === true).length - a.filter((item) => item.guru.isActive === true).length).map(([mapel, list]) => (
                   <div key={mapel} className="mb-4">
                     <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{mapel}</p>
                     <div className="space-y-2">

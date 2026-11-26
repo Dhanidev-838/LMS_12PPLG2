@@ -110,6 +110,9 @@ export default function SiswaKelasDetailPage() {
     return acc;
   }, {});
 
+  Object.values(siswaGrouped).forEach((group) => group.sort((a, b) => Number(b.siswa.isActive === true) - Number(a.siswa.isActive === true)));
+  Object.values(guruGrouped).forEach((group) => group.sort((a, b) => Number(b.guru.isActive === true) - Number(a.guru.isActive === true)));
+
   return (
     <div className="mx-auto w-full max-w-5xl">
       <section className="grid overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(15rem,34%)]">
@@ -155,7 +158,7 @@ export default function SiswaKelasDetailPage() {
           {Object.keys(siswaGrouped).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("Belum ada siswa di kelas ini.")}</p>
           ) : (
-            Object.entries(siswaGrouped).map(([label, list]) => {
+            Object.entries(siswaGrouped).sort(([, a], [, b]) => b.filter((item) => item.siswa.isActive === true).length - a.filter((item) => item.siswa.isActive === true).length).map(([label, list]) => {
               const isOpen = expandedRombel === label;
               return (
                 <div key={label} className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
@@ -203,7 +206,7 @@ export default function SiswaKelasDetailPage() {
           {Object.keys(guruGrouped).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("Belum ada guru mengajar di kelas ini.")}</p>
           ) : (
-            Object.entries(guruGrouped).map(([mapel, list]) => (
+            Object.entries(guruGrouped).sort(([, a], [, b]) => b.filter((item) => item.guru.isActive === true).length - a.filter((item) => item.guru.isActive === true).length).map(([mapel, list]) => (
               <div key={mapel} className="mb-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{mapel}</p>
                 <div className="space-y-2">
