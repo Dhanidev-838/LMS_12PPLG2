@@ -4,6 +4,7 @@ import "./globals.css";
 import DialogHost from "@/components/ui/DialogHost";
 import { TranslatePageProvider } from "@/components/TranslateContent";
 import { LanguageProvider } from "@/lib/i18n";
+import PresenceHeartbeat from "@/components/shared/PresenceHeartbeat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <LanguageProvider>
+          <PresenceHeartbeat />
           <TranslatePageProvider>{children}</TranslatePageProvider>
           <DialogHost />
         </LanguageProvider>

@@ -10,15 +10,16 @@ import TugasCard from "@/components/TugasCard";
 import MateriCard from "@/components/MateriCard";
 import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFilter";
 import { useLanguage } from "@/lib/i18n";
+import ClassMemberPresence from "@/components/kelas/ClassMemberPresence";
 import TranslateContent from "@/components/TranslateContent";
 
 interface SiswaDiKelas {
   siswaId: string;
-  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; kelasReferensi: { label: string } | null };
+  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; isActive?: boolean; kelasReferensi: { label: string } | null };
 }
 interface GuruDiKelas {
   id: string;
-  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null };
+  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null; isActive?: boolean };
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
@@ -184,7 +185,7 @@ export default function SiswaKelasDetailPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p>
+                            <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p><ClassMemberPresence isActive={ks.siswa.isActive ?? false} t={t} />
                           </div>
                         </button>
                       ))}
@@ -220,7 +221,7 @@ export default function SiswaKelasDetailPage() {
                           gm.guru.nama.charAt(0)
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p>
+                      <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p><ClassMemberPresence isActive={gm.guru.isActive ?? false} t={t} />
                     </button>
                   ))}
                 </div>

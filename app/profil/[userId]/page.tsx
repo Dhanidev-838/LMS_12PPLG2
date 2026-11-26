@@ -200,6 +200,9 @@ export default function ProfilPage() {
 
   const isSiswa = profil?.role === "SISWA";
   const isGuru = profil?.role === "GURU";
+  const canViewStudentPerformance = Boolean(
+    isSiswa && !profil?.isSelf && me && ["ADMIN", "SUPER_ADMIN", "KEPSEK", "KURIKULUM", "GURU"].includes(me.role),
+  );
   const dashboardHref = me?.role === "SUPER_ADMIN" ? "/super-admin" : me?.role === "ADMIN" ? "/admin" : me?.role === "KEPSEK" ? "/kepsek" : me?.role === "KURIKULUM" ? "/kurikulum" : me?.role === "GURU" ? "/guru" : "/siswa";
 
   function goBack() {
@@ -355,6 +358,14 @@ export default function ProfilPage() {
               </div>
             ) : (
               <>
+                {canViewStudentPerformance && profil && (
+                  <Link
+                    href={`/performa-siswa/${profil.id}`}
+                    className="no-print mb-4 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-accent-subtle px-4 py-3 text-sm font-semibold text-accent-text transition-colors hover:border-accent hover:bg-accent/10"
+                  >
+                    <span>{t("Lihat")}</span> {t("Performa Akademik")} <span aria-hidden="true">→</span>
+                  </Link>
+                )}
                 <div className="profile-card grid gap-4 lg:grid-cols-[1.12fr_.88fr]">
                   <div className="profile-card-header relative overflow-hidden rounded-[28px] bg-accent p-6 text-white shadow-[0_20px_50px_rgba(48,64,145,0.18)] sm:p-8">
                     <div className="relative flex items-start justify-between gap-3">

@@ -129,6 +129,20 @@ export async function GET(_req: NextRequest, { params }: Params) {
       (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
     );
 
+    const memberIds = [...new Set([
+      ...kelas.siswa.map((ks) => ks.siswaId),
+      ...kelas.guruMapel.map((gm) => gm.guruId),
+    ])];
+    const onlineSince = new Date(Date.now() - 2 * 60_000);
+    const activeRows = memberIds.length
+      ? await db.loginAktivitas.findMany({
+          where: { userId: { in: memberIds }, createdAt: { gte: onlineSince } },
+          select: { userId: true },
+          distinct: ["userId"],
+        })
+      : [];
+    const activeUserIds = new Set(activeRows.map((row) => row.userId));
+
     const kelasForResponse = {
       ...kelas,
       siswa: kelas.siswa.map((ks) => ({
@@ -136,6 +150,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         siswa: {
           ...ks.siswa,
           nis: ks.siswa.nis,
+          isActive: activeUserIds.has(ks.siswaId),
         },
       })),
       guruMapel: kelas.guruMapel.map((gm) => ({
@@ -143,6 +158,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         guru: {
           ...gm.guru,
           nik: gm.guru.nik,
+          isActive: activeUserIds.has(gm.guruId),
         },
       })),
       feed,

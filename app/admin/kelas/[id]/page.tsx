@@ -18,6 +18,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import { showConfirm } from "@/lib/dialog";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import ClassMemberPresence from "@/components/kelas/ClassMemberPresence";
 import TranslateContent, { TranslatedOption } from "@/components/TranslateContent";
 
 type AdminTab = "DASHBOARD" | "KELAS" | "AKUN" | "MAPEL" | "LAPORAN" | "PERFORMA";
@@ -71,13 +72,14 @@ interface SiswaDiKelas {
     nama: string;
     nis: string | null;
     fotoProfil: string | null;
+    isActive?: boolean;
     deskripsi: string | null;
     kelasReferensi: { id: string; label: string } | null;
   };
 }
 interface GuruDiKelas {
   id: string;
-  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null; deskripsi: string | null };
+  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null; isActive?: boolean; deskripsi: string | null };
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
@@ -467,7 +469,7 @@ export default function AdminKelasDetailPage() {
                                       )}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                      <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p>
+                                      <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p><ClassMemberPresence isActive={ks.siswa.isActive ?? false} t={t} />
                                     </div>
                                   </button>
                                   {canManageClass && (
@@ -534,7 +536,7 @@ export default function AdminKelasDetailPage() {
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold text-foreground">{gm.guru.nama}</p>
+                                <p className="truncate text-sm font-semibold text-foreground">{gm.guru.nama}</p><ClassMemberPresence isActive={gm.guru.isActive ?? false} t={t} />
                               </div>
                             </button>
                             {canManageClass && (

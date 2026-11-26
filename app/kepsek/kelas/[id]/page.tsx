@@ -13,6 +13,7 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import ThemeToggle from "@/components/shared/theme-toggle";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import ClassMemberPresence from "@/components/kelas/ClassMemberPresence";
 import TranslateContent from "@/components/TranslateContent";
 
 const BRAND = "#6B85F6";
@@ -31,11 +32,11 @@ function TabIcon({ tab }: { tab: KepsekTab }) {
 
 interface SiswaDiKelas {
   siswaId: string;
-  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; kelasReferensi: { label: string } | null };
+  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; isActive?: boolean; kelasReferensi: { label: string } | null };
 }
 interface GuruDiKelas {
   id: string;
-  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null };
+  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null; isActive?: boolean };
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
@@ -268,7 +269,7 @@ export default function KepsekKelasDetailPage() {
                                   ks.siswa.nama.charAt(0)
                                 )}
                               </div>
-                              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p></div>
+                              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p><ClassMemberPresence isActive={ks.siswa.isActive ?? false} t={t} /></div>
                             </button>
                           ))}
                         </div>
@@ -295,7 +296,7 @@ export default function KepsekKelasDetailPage() {
                               gm.guru.nama.charAt(0)
                             )}
                           </div>
-                          <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p>
+                          <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p><ClassMemberPresence isActive={gm.guru.isActive ?? false} t={t} />
                         </button>
                       ))}
                     </div>

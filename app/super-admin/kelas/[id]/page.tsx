@@ -19,15 +19,16 @@ import KelasFeedFilter, { KelasFeedFilterValue } from "@/components/KelasFeedFil
 import type { AsesmenData } from "@/components/Asesmencard";
 import { showAlert, showConfirm } from "@/lib/dialog";
 import { useLanguage } from "@/lib/i18n";
+import ClassMemberPresence from "@/components/kelas/ClassMemberPresence";
 import TranslateContent from "@/components/TranslateContent";
 
 interface SiswaDiKelas {
   siswaId: string;
-  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; kelasReferensi: { label: string } | null };
+  siswa: { id: string; nama: string; nis: string | null; fotoProfil: string | null; isActive?: boolean; kelasReferensi: { label: string } | null };
 }
 interface GuruDiKelas {
   id: string;
-  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null };
+  guru: { id: string; nama: string; nik: string | null; fotoProfil: string | null; isActive?: boolean };
   mapel: { id: string; nama: string };
 }
 interface FeedItem {
@@ -276,7 +277,7 @@ export default function SuperAdminKelasDetailPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p>
+                            <p className="truncate text-sm font-semibold text-foreground">{ks.siswa.nama}</p><ClassMemberPresence isActive={ks.siswa.isActive ?? false} t={t} />
                           </div>
                         </button>
                       ))}
@@ -299,7 +300,7 @@ export default function SuperAdminKelasDetailPage() {
                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{mapel}</p>
                 <div className="space-y-2">
                   {list.map((gm) => (
-                    <div key={gm.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3">
+                    <Link key={gm.id} href={`/profil/${gm.guru.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 hover:border-accent hover:bg-accent-subtle">
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-xs font-bold text-muted-foreground">
                         {gm.guru.fotoProfil ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -308,8 +309,8 @@ export default function SuperAdminKelasDetailPage() {
                           gm.guru.nama.charAt(0)
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p>
-                    </div>
+                      <p className="text-sm font-semibold text-foreground">{gm.guru.nama}</p><ClassMemberPresence isActive={gm.guru.isActive ?? false} t={t} />
+                    </Link>
                   ))}
                 </div>
               </div>

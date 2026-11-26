@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { requireRole } from "@/lib/rbac";
+import { ADMIN_TIER, requireRole } from "@/lib/rbac";
 
 type RangeKey = "semua" | "bulan" | "3bulan" | "tahun";
 
@@ -23,11 +23,31 @@ function average(values: number[]): number | null {
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    requireRole(session, ["SISWA"]);
+    requireRole(session, [...ADMIN_TIER, "GURU", "SISWA"]);
+    if (session!.role !== "SISWA" && !req.nextUrl.searchParams.get("siswaId")) {
+      return NextResponse.json({ error: "ID siswa wajib dipilih." }, { status: 400 });
+    }
     const rangeParam = req.nextUrl.searchParams.get("range") ?? "semua";
     const range: RangeKey = ["semua", "bulan", "3bulan", "tahun"].includes(rangeParam) ? rangeParam as RangeKey : "semua";
     const fromDate = getRangeStart(range);
-    const siswaId = session!.userId;
+    const requestedStudentId = req.nextUrl.searchParams.get("siswaId");
+    let siswaId = session!.userId;
+    if (requestedStudentId && requestedStudentId !== session!.userId) {
+      requireRole(session, [...ADMIN_TIER, "GURU"]);
+      const target = await db.user.findUnique({ where: { id: requestedStudentId }, select: { id: true, role: true } });
+      if (!target || target.role !== "SISWA") {
+        return NextResponse.json({ error: "Siswa tidak ditemukan." }, { status: 404 });
+      }
+      if (session!.role === "GURU") {
+        const kelasSiswaTarget = await db.kelasSiswa.findMany({ where: { siswaId: target.id }, select: { kelasId: true } });
+        const hasSharedClass = await db.kelasGuruMapel.findFirst({
+          where: { guruId: session!.userId, kelasId: { in: kelasSiswaTarget.map((item) => item.kelasId) } },
+          select: { id: true },
+        });
+        if (!hasSharedClass) return NextResponse.json({ error: "Siswa ini bukan anggota kelas yang kamu ajar." }, { status: 403 });
+      }
+      siswaId = target.id;
+    }
     const kelasSiswa = await db.kelasSiswa.findMany({ where: { siswaId }, select: { kelasId: true } });
     const kelasIds = kelasSiswa.map((item) => item.kelasId);
 
