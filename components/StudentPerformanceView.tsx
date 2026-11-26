@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { useLanguage } from "@/lib/i18n";
 
@@ -14,9 +12,7 @@ type Data = {
   tugasBelumDikumpulkan: Array<{ id: string; judul: string; mapel: string }>;
 };
 
-export default function PerformaSiswaPage() {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+export default function StudentPerformanceView({ studentId, onBack }: { studentId: string; onBack: () => void }) {
   const { t } = useLanguage();
   const [range, setRange] = useState<Range>("semua");
   const [name, setName] = useState("");
@@ -31,8 +27,8 @@ export default function PerformaSiswaPage() {
       setError("");
       try {
         const [performanceResponse, profileResponse] = await Promise.all([
-          fetch(`/api/siswa/performa?siswaId=${encodeURIComponent(id)}&range=${range}`),
-          fetch(`/api/profil/${encodeURIComponent(id)}`),
+          fetch(`/api/siswa/performa?siswaId=${encodeURIComponent(studentId)}&range=${range}`),
+          fetch(`/api/profil/${encodeURIComponent(studentId)}`),
         ]);
         const [performance, profile] = await Promise.all([performanceResponse.json(), profileResponse.json()]);
         if (!performanceResponse.ok) throw new Error(performance.error ?? "Gagal memuat performa akademik.");
@@ -47,15 +43,14 @@ export default function PerformaSiswaPage() {
     }
     void load();
     return () => { cancelled = true; };
-  }, [id, range]);
+  }, [studentId, range]);
 
   const summary = data?.summary;
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-5 px-4 py-6 sm:px-6">
-      <Link href={`/profil/${id}`} className="text-sm font-semibold text-accent-text hover:underline">← {t("Kembali ke Profil")}</Link>
+    <div className="mx-auto w-full max-w-5xl space-y-5">
+      <button type="button" onClick={onBack} className="text-sm font-semibold text-accent-text hover:underline">← {t("Kembali ke Profil")}</button>
       <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="text-xs font-bold uppercase tracking-wide text-accent-text">{t("Performa Akademik")}</p><h1 className="mt-1 text-2xl font-bold text-foreground">{name || t("Performa Siswa")}</h1><p className="mt-1 text-sm text-muted-foreground">{t("Ringkasan hasil belajar siswa")}</p></div>
-        <Button variant="outline" onClick={() => router.back()}>{t("Kembali")}</Button>
       </section>
       <div className="flex flex-wrap gap-2">
         {([["semua", "Semua"], ["bulan", "Bulan Ini"], ["3bulan", "3 Bulan Terakhir"], ["tahun", "Tahun Ini"]] as [Range, string][]).map(([key, label]) => <Button key={key} size="sm" variant={range === key ? "primary" : "outline"} onClick={() => setRange(key)}>{t(label)}</Button>)}
@@ -70,6 +65,6 @@ export default function PerformaSiswaPage() {
           <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5 lg:col-span-2"><h2 className="font-bold text-foreground">{t("Tugas belum dikumpulkan")}</h2>{data.tugasBelumDikumpulkan.length ? <ul className="mt-3 grid gap-2 sm:grid-cols-2">{data.tugasBelumDikumpulkan.map((item) => <li key={item.id} className="rounded-lg bg-surface-muted p-3"><p className="text-sm font-semibold">{item.judul}</p><p className="text-xs text-muted-foreground">{item.mapel}</p></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">{t("Tidak ada tugas yang tertunda.")}</p>}</section>
         </div>
       </> : null}
-    </main>
+    </div>
   );
 }

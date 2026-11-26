@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/shared/theme-toggle";
 import styles from "@/app/admin/admin.module.css";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/lib/i18n";
+import StudentPerformanceView from "@/components/StudentPerformanceView";
 
 
 type Role = "ADMIN" | "SUPER_ADMIN" | "KEPSEK" | "KURIKULUM" | "GURU" | "SISWA";
@@ -133,6 +134,7 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showEdit, setShowEdit] = useState(false);
+  const [showStudentPerformance, setShowStudentPerformance] = useState(false);
 
   useEffect(() => {
     fetch("/api/me")
@@ -150,6 +152,15 @@ export default function ProfilPage() {
     document.documentElement.setAttribute("data-admin-theme", theme);
     return () => document.documentElement.removeAttribute("data-admin-theme");
   }, [theme]);
+
+  useEffect(() => {
+    const syncPerformanceView = () => {
+      setShowStudentPerformance(new URLSearchParams(window.location.search).get("view") === "performa");
+    };
+    syncPerformanceView();
+    window.addEventListener("popstate", syncPerformanceView);
+    return () => window.removeEventListener("popstate", syncPerformanceView);
+  }, []);
 
   async function loadProfil() {
     setLoading(true);
@@ -345,6 +356,15 @@ export default function ProfilPage() {
         </aside>
 
         <main className="min-w-0 flex-1 lg:pl-6">
+          {showStudentPerformance && profil && canViewStudentPerformance ? (
+            <StudentPerformanceView
+              studentId={profil.id}
+              onBack={() => {
+                setShowStudentPerformance(false);
+                router.push(`/profil/${profil.id}`);
+              }}
+            />
+          ) : (
           <div className="profile-print-area mx-auto w-full max-w-5xl">
             <div className="no-print mb-4 flex items-center justify-between gap-3 sm:hidden">
               <Button size="sm" variant="outline" onClick={goBack}>← {t("Kembali")}</Button>
@@ -360,7 +380,12 @@ export default function ProfilPage() {
               <>
                 {canViewStudentPerformance && profil && (
                   <Link
-                    href={`/performa-siswa/${profil.id}`}
+                    href={`/profil/${profil.id}?view=performa`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setShowStudentPerformance(true);
+                      router.push(`/profil/${profil.id}?view=performa`);
+                    }}
                     className="no-print mb-4 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-accent-subtle px-4 py-3 text-sm font-semibold text-accent-text transition-colors hover:border-accent hover:bg-accent/10"
                   >
                     <span>{t("Lihat")}</span> {t("Performa Akademik")} <span aria-hidden="true">→</span>
@@ -526,6 +551,7 @@ export default function ProfilPage() {
               </>
             )}
           </div>
+          )}
         </main>
       </div>
 
